@@ -83,7 +83,7 @@ namespace MachineControlPanel.Framework
         /// <returns></returns>
         private static bool ShouldSkipMachineInput_DayUpdate(MachineOutputTrigger trigger, MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem)
         {
-            if (trigger.HasFlag(MachineOutputTrigger.DayUpdate) || trigger.HasFlag(MachineOutputTrigger.MachinePutDown))
+            if (trigger.HasFlag(MachineOutputTrigger.DayUpdate) || trigger.HasFlag(MachineOutputTrigger.MachinePutDown) || trigger.HasFlag(MachineOutputTrigger.OutputCollected))
                 return ShouldSkipMachineInput(trigger2, machine, rule, inputItem);
             return false;
         }

@@ -61,7 +61,6 @@ namespace MachineControlPanel.Framework
     /// <param name="Outputs"></param>
     internal sealed record RuleEntry(
         RuleIdent Ident,
-        bool CanCheck,
         List<RuleItem> Inputs,
         List<RuleItem> Outputs
     )
@@ -329,7 +328,7 @@ namespace MachineControlPanel.Framework
                     continue;
 
                 // rule inputs (triggers)
-                List<Tuple<RuleIdent, bool, List<RuleItem>>> inputs = [];
+                List<Tuple<RuleIdent, List<RuleItem>>> inputs = [];
                 foreach (MachineOutputTriggerRule trigger in rule.Triggers)
                 {
                     RuleIdent ident = new(rule.Id, trigger.Id);
@@ -406,9 +405,6 @@ namespace MachineControlPanel.Framework
 
                         inputs.Add(new(
                             ident,
-                            !trigger.Trigger.HasFlag(MachineOutputTrigger.MachinePutDown) &&
-                            !trigger.Trigger.HasFlag(MachineOutputTrigger.OutputCollected) &&
-                            trigger.Trigger != MachineOutputTrigger.None,
                             inputLine
                         ));
                     }
@@ -419,7 +415,6 @@ namespace MachineControlPanel.Framework
                     {
                         inputs.Add(new(
                             new(rule.Id, PLACEHOLDER_TRIGGER),
-                            false,
                             [new RuleItem([QuestionIcon], [I18n.RuleList_SpecialInput()])]
                         ));
                     }
@@ -427,7 +422,7 @@ namespace MachineControlPanel.Framework
 
                 if (withEmcFuel.Any())
                 {
-                    foreach ((RuleIdent ident, bool canCheck, List<RuleItem> inputLine) in inputs)
+                    foreach ((RuleIdent ident, List<RuleItem> inputLine) in inputs)
                     {
                         foreach ((List<RuleItem> optLine, List<RuleItem> emcFuel) in withEmcFuel)
                         {
@@ -456,7 +451,6 @@ namespace MachineControlPanel.Framework
                             }
                             RuleEntries.Add(new RuleEntry(
                                 ident,
-                                canCheck,
                                 ipt,
                                 optLine
                             ));
@@ -466,11 +460,10 @@ namespace MachineControlPanel.Framework
 
                 if (outputLine.Any())
                 {
-                    foreach ((RuleIdent ident, bool canCheck, List<RuleItem> inputLine) in inputs)
+                    foreach ((RuleIdent ident, List<RuleItem> inputLine) in inputs)
                     {
                         RuleEntries.Add(new RuleEntry(
                             ident,
-                            canCheck,
                             inputLine,
                             outputLine
                         ));

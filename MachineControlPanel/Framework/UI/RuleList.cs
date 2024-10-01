@@ -175,22 +175,25 @@ namespace MachineControlPanel.Framework.UI
         /// </summary>
         private void UpdateTabButtons()
         {
-            if (container!.Content == inputsGrid)
+            if (rulesBtn != null && inputsBtn != null)
             {
-                rulesBtn!.Margin = tabButtonPassive;
-                inputsBtn!.Margin = tabButtonActive;
+                if (container!.Content == inputsGrid)
+                {
+                    rulesBtn.Margin = tabButtonPassive;
+                    inputsBtn.Margin = tabButtonActive;
+                }
+                else
+                {
+                    rulesBtn.Margin = tabButtonActive;
+                    inputsBtn.Margin = tabButtonPassive;
+                }
+                rulesBtn.Text = ruleHelper.HasDisabledRules ?
+                    I18n.RuleList_Rules() + I18n.RuleList_Edited() :
+                    I18n.RuleList_Rules();
+                inputsBtn.Text = ruleHelper.HasDisabledInputs ?
+                    I18n.RuleList_Inputs() + I18n.RuleList_Edited() :
+                    I18n.RuleList_Inputs();
             }
-            else
-            {
-                rulesBtn!.Margin = tabButtonActive;
-                inputsBtn!.Margin = tabButtonPassive;
-            }
-            rulesBtn!.Text = ruleHelper.HasDisabledRules ?
-                I18n.RuleList_Rules() + I18n.RuleList_Edited() :
-                I18n.RuleList_Rules();
-            inputsBtn!.Text = ruleHelper.HasDisabledInputs ?
-                I18n.RuleList_Inputs() + I18n.RuleList_Edited() :
-                I18n.RuleList_Inputs();
             // ((Label)rulesBtn!.Content!).Bold = ruleHelper.HasDisabledRules;
             // ((Label)inputsBtn!.Content!).Bold = ruleHelper.HasDisabledInputs;
         }
@@ -464,7 +467,7 @@ namespace MachineControlPanel.Framework.UI
         private IView CreateRuleListEntry(RuleEntry rule, LayoutParameters inputLayout, LayoutParameters outputLayout)
         {
             List<IView> children = [];
-            if (Game1.IsMasterGame && rule.CanCheck)
+            if (Game1.IsMasterGame)
             {
                 if (ruleCheckBoxes.ContainsKey(rule.Ident))
                 {
