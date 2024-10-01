@@ -8,8 +8,8 @@ namespace MachineControlPanel.Framework.UI
 {
     internal sealed class MachineSelect(
         Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
-        Action<HoveredItemPanel> setHoverEvents,
-        Action<bool> exitThisMenu
+        Action<bool> exitThisMenu,
+        Action<HoveredItemPanel>? setHoverEvents = null
     ) : WrapperView
     {
         private const int GUTTER = 400;
@@ -70,7 +70,7 @@ namespace MachineControlPanel.Framework.UI
                         Name = $"MachineSelect.{qId}"
                     };
                     cell.LeftClick += ShowPanel;
-                    setHoverEvents((HoveredItemPanel)cell.Content!);
+                    setHoverEvents?.Invoke(cell);
                     cells.Add(cell);
                 }
             }

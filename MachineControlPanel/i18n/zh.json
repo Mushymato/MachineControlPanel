@@ -3,6 +3,8 @@
     "config.control-panel-key.description": "在机器旁边时，按此键打开控制面板",
     "config.machine-select-key.name": "机器选择按键",
     "config.machine-select-key.description": "按此键打开机器选择菜单",
+    "config.save-on-change.name": "自动保存",
+    "config.save-on-change.description": "关闭控制面板或更改控制面板页面自动保存设定",
     "config.default-page.name": "默认界面",
     "config.default-page.description": "打开控制面板后默认显示的页面",
     "config.default-page.machine-rules": "机器规则",
@@ -16,6 +18,7 @@
     "rule-list.reset": "重置",
     "rule-list.rules": "机器规则",
     "rule-list.inputs": "输入物品",
+    "rule-list.edited": "=",
     "rule-list.footer-note": "只有房主可以更改机器设置",
     "skip-reason.rules": "物品因规则设置而退回",
     "skip-reason.inputs": "物品“{{Name}}“因输入设置而退回"

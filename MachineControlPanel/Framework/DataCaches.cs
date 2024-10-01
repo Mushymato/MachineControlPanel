@@ -136,7 +136,12 @@ namespace MachineControlPanel.Framework
                     foreach (MachineItemOutput output in outputs)
                     {
                         if (StaticDelegateBuilder.TryCreateDelegate<MachineOutputDelegate>(output.OutputMethod, out var createdDelegate, out var _)
-                            && createdDelegate(machineObj, item, true, output, Game1.player, out _) != null)
+#if SDV_168
+                            && createdDelegate(machineObj, item, true, output, out _) != null
+#else
+                            && createdDelegate(machineObj, item, true, output, Game1.player, out _) != null
+#endif
+                        )
                         {
                             return true;
                         }
@@ -333,7 +338,10 @@ namespace MachineControlPanel.Framework
                             return null;
                         List<IconEdge> icons = [];
                         if (Game1.objectData.TryGetValue(baseItem.ItemId, out var value)
-                            && value.ColorOverlayFromNextIndex)
+#if !SDV_168
+                            && value.ColorOverlayFromNextIndex
+#endif
+                            )
                         {
                             icons.Add(new(baseItem.GetItemSprite()));
                             icons.Add(new(baseItem.GetItemSprite(1), Tint: tint));

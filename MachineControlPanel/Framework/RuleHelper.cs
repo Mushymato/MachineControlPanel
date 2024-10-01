@@ -112,31 +112,18 @@ namespace MachineControlPanel.Framework
             this.machine = machine;
         }
 
+        // Helper for checking state of saved entries
         internal bool HasDisabled => ModEntry.HasSavedEntry(QId);
-
-        internal bool CheckRuleDisabled(RuleIdent ident)
-        {
-            return (
-                ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry) &&
-                msdEntry.Rules.Contains(ident)
-            );
-        }
-
-        internal bool CheckInputDisabled(string inputQId)
-        {
-            return (
-                ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry) &&
-                msdEntry.Inputs.Contains(inputQId)
-            );
-        }
-
-        internal bool CheckInputImplicitDisabled(IEnumerable<RuleIdent> idents)
-        {
-            return (
-                ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry) &&
-                !idents.Except(msdEntry.Rules).Any()
-            );
-        }
+        internal bool HasDisabledRules => ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry)
+            && msdEntry.Rules.Any();
+        internal bool HasDisabledInputs => ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry)
+            && msdEntry.Inputs.Any();
+        internal bool HasDisabledRule(RuleIdent ident) => ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry)
+            && msdEntry.Rules.Contains(ident);
+        internal bool HasDisabledInput(string inputQId) => ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry)
+            && msdEntry.Inputs.Contains(inputQId);
+        internal bool IsImplicitDisabled(IEnumerable<RuleIdent> idents) => ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry)
+            && !idents.Except(msdEntry.Rules).Any();
 
         /// <summary>Add item data valid inputs</summary>
         /// <param name="itemData"></param>

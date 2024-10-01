@@ -11,8 +11,8 @@ namespace MachineControlPanel.Framework.UI
     internal sealed class RuleListView(
         RuleHelper ruleHelper,
         Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
-        Action<HoveredItemPanel> setHoverEvents,
         Action<bool>? exitThisMenu = null,
+        Action<HoveredItemPanel>? setHoverEvents = null,
         Action? updateEdited = null
     ) : WrapperView, IPageable
     {
@@ -43,6 +43,7 @@ namespace MachineControlPanel.Framework.UI
         private ScrollableView? container;
         private Lane? rulesList = null;
         private Grid? inputsGrid = null;
+        private bool implicitOffDirty = false;
         private Button? rulesBtn = null;
         private Button? inputsBtn = null;
 
@@ -83,10 +84,8 @@ namespace MachineControlPanel.Framework.UI
                 scrollBox.FloatingElements.Add(new(CreateSidebar(), FloatingPosition.BeforeParent));
 
                 if (ModEntry.Config.DefaultPage == DefaultPageOption.Inputs)
-                {
                     container.Content = inputsGrid;
-                    UpdateTabButtonMargins();
-                }
+                UpdateTabButtons();
             }
 
             Banner banner = new()
@@ -142,7 +141,7 @@ namespace MachineControlPanel.Framework.UI
                     Text = I18n.RuleList_Rules(),
                     Margin = new(Left: 12)
                 },
-                Layout = LayoutParameters.FixedSize(96, 64),
+                Layout = LayoutParameters.FixedSize(108, 64),
                 Margin = tabButtonActive
             };
             rulesBtn.LeftClick += ShowRules;
@@ -154,14 +153,14 @@ namespace MachineControlPanel.Framework.UI
                     Text = I18n.RuleList_Inputs(),
                     Margin = new(Left: 12)
                 },
-                Layout = LayoutParameters.FixedSize(96, 64),
+                Layout = LayoutParameters.FixedSize(108, 64),
                 Margin = tabButtonPassive,
             };
             inputsBtn.LeftClick += ShowInputs;
 
             return new Lane()
             {
-                Layout = new() { Width = Length.Px(96), Height = Length.Content() },
+                Layout = new() { Width = Length.Px(108), Height = Length.Content() },
                 Padding = new(Top: 32),
                 Margin = new(Right: -20),
                 HorizontalContentAlignment = Alignment.End,
@@ -174,7 +173,7 @@ namespace MachineControlPanel.Framework.UI
         /// <summary>
         /// Move tab position depending on current page
         /// </summary>
-        private void UpdateTabButtonMargins()
+        private void UpdateTabButtons()
         {
             if (container!.Content == inputsGrid)
             {
@@ -186,6 +185,14 @@ namespace MachineControlPanel.Framework.UI
                 rulesBtn!.Margin = tabButtonActive;
                 inputsBtn!.Margin = tabButtonPassive;
             }
+            rulesBtn!.Text = ruleHelper.HasDisabledRules ?
+                I18n.RuleList_Rules() + I18n.RuleList_Edited() :
+                I18n.RuleList_Rules();
+            inputsBtn!.Text = ruleHelper.HasDisabledInputs ?
+                I18n.RuleList_Inputs() + I18n.RuleList_Edited() :
+                I18n.RuleList_Inputs();
+            // ((Label)rulesBtn!.Content!).Bold = ruleHelper.HasDisabledRules;
+            // ((Label)inputsBtn!.Content!).Bold = ruleHelper.HasDisabledInputs;
         }
 
         /// <summary>
@@ -197,19 +204,24 @@ namespace MachineControlPanel.Framework.UI
             List<IView> children;
             if (Game1.IsMasterGame)
             {
-                Button saveBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
-                {
-                    Name = "SaveBtn",
-                    Text = I18n.RuleList_Save()
-                };
-                saveBtn.LeftClick += SaveRules;
                 Button resetBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
                 {
                     Name = "ResetBtn",
                     Text = I18n.RuleList_Reset()
                 };
                 resetBtn.LeftClick += ResetRules;
-                children = [saveBtn, resetBtn];
+                if (ModEntry.Config.SaveOnChange)
+                    children = [resetBtn];
+                else
+                {
+                    Button saveBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+                    {
+                        Name = "SaveBtn",
+                        Text = I18n.RuleList_Save()
+                    };
+                    saveBtn.LeftClick += SaveRules;
+                    children = [saveBtn, resetBtn];
+                }
             }
             else
             {
@@ -241,8 +253,10 @@ namespace MachineControlPanel.Framework.UI
             if (sender is Button)
             {
                 container!.Content = rulesList;
-                UpdateTabButtonMargins();
+                UpdateTabButtons();
                 Game1.playSound("smallSelect");
+                if (ModEntry.Config.SaveOnChange)
+                    SaveRulesUI();
             }
         }
 
@@ -256,13 +270,40 @@ namespace MachineControlPanel.Framework.UI
             if (sender is Button)
             {
                 container!.Content = inputsGrid;
-                UpdateTabButtonMargins();
+                UpdateTabButtons();
                 Game1.playSound("smallSelect");
+                if (ModEntry.Config.SaveOnChange)
+                    SaveRulesUI();
+                if (implicitOffDirty)
+                {
+                    foreach (InputCheckable checkable in inputChecks)
+                        checkable.IsImplicitOff = ruleHelper.IsImplicitDisabled(checkable.Idents);
+                    implicitOffDirty = false;
+                }
             }
         }
 
+        /// <summary>Save rules</summary>
+        internal void SaveAllRules()
+        {
+            saveMachineRules(
+                ruleHelper.QId,
+                ruleCheckBoxes.Where((kv) => !kv.Value.IsChecked).Select((kv) => kv.Key),
+                inputChecks.Where((ic) => !ic.IsChecked).Select((ic) => ic.QId)
+            );
+            implicitOffDirty = true;
+        }
+
+        /// <summary>Save rules and update parts of UI</summary>
+        internal void SaveRulesUI()
+        {
+            SaveAllRules();
+            updateEdited?.Invoke();
+            UpdateTabButtons();
+        }
+
         /// <summary>
-        /// Save rules
+        /// Save rules on button press
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -271,16 +312,7 @@ namespace MachineControlPanel.Framework.UI
             if (sender is not Button)
                 return;
             Game1.playSound("bigSelect");
-
-            saveMachineRules(
-                ruleHelper.QId,
-                ruleCheckBoxes.Where((kv) => !kv.Value.IsChecked).Select((kv) => kv.Key),
-                inputChecks.Where((ic) => !ic.IsChecked).Select((ic) => ic.QId)
-            );
-            updateEdited?.Invoke();
-
-            foreach (InputCheckable checkable in inputChecks)
-                checkable.IsImplicitOff = ruleHelper.CheckInputImplicitDisabled(checkable.Idents);
+            SaveRulesUI();
         }
 
         /// <summary>
@@ -302,8 +334,8 @@ namespace MachineControlPanel.Framework.UI
             saveMachineRules(ruleHelper.QId, [], []);
             updateEdited?.Invoke();
 
-            foreach (InputCheckable checkable in inputChecks)
-                checkable.IsImplicitOff = ruleHelper.CheckInputImplicitDisabled(checkable.Idents);
+            implicitOffDirty = true;
+            UpdateTabButtons();
         }
 
         /// <summary>
@@ -332,8 +364,8 @@ namespace MachineControlPanel.Framework.UI
                     Game1.IsMasterGame
                 )
                 {
-                    IsChecked = !ruleHelper.CheckInputDisabled(key),
-                    IsImplicitOff = ruleHelper.CheckInputImplicitDisabled(input.Idents)
+                    IsChecked = !ruleHelper.HasDisabledInput(key),
+                    IsImplicitOff = ruleHelper.IsImplicitDisabled(input.Idents)
                 };
                 children.Add(inputCheck.Content);
                 if (Game1.IsMasterGame)
@@ -436,24 +468,16 @@ namespace MachineControlPanel.Framework.UI
             {
                 if (ruleCheckBoxes.ContainsKey(rule.Ident))
                 {
-#if DEBUG
-                    children.Add(new Image()
-                    {
-                        Sprite = ruleHelper.CheckRuleDisabled(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
-                        Tint = Color.White * 0.5f,
-                        Layout = LayoutParameters.FitContent(),
-                        IsFocusable = false
-                    });
-#else
                     children.Add(ruleCheckBoxes[rule.Ident]);
-#endif
                 }
                 else
                 {
                     CheckBox checkBox = new()
                     {
-                        IsChecked = !ruleHelper.CheckRuleDisabled(rule.Ident),
-                        Tooltip = rule.Ident.ToString()
+                        IsChecked = !ruleHelper.HasDisabledRule(rule.Ident),
+#if DEBUG
+                        Tooltip = rule.Ident.ToString(),
+#endif
                     };
                     ruleCheckBoxes[rule.Ident] = checkBox;
                     children.Add(checkBox);
@@ -463,7 +487,7 @@ namespace MachineControlPanel.Framework.UI
             {
                 children.Add(new Image()
                 {
-                    Sprite = ruleHelper.CheckRuleDisabled(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
+                    Sprite = ruleHelper.HasDisabledRule(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
                     Tint = Color.White * 0.5f,
                     Layout = LayoutParameters.FitContent(),
                     IsFocusable = false
@@ -579,7 +603,7 @@ namespace MachineControlPanel.Framework.UI
                 IsFocusable = true,
                 HoveredItem = ruleItem.Item
             };
-            setHoverEvents(itemPanel);
+            setHoverEvents?.Invoke(itemPanel);
             return itemPanel;
         }
 
@@ -592,7 +616,7 @@ namespace MachineControlPanel.Framework.UI
             if (container!.Content == rulesList)
             {
                 container!.Content = inputsGrid;
-                UpdateTabButtonMargins();
+                UpdateTabButtons();
                 Game1.playSound("smallSelect");
                 return true;
             }
@@ -608,7 +632,7 @@ namespace MachineControlPanel.Framework.UI
             if (container!.Content == inputsGrid)
             {
                 container!.Content = rulesList;
-                UpdateTabButtonMargins();
+                UpdateTabButtons();
                 Game1.playSound("smallSelect");
                 return true;
             }

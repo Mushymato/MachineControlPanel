@@ -31,7 +31,7 @@ namespace MachineControlPanel.Framework
                     original: AccessTools.Method(typeof(SObject), nameof(SObject.PlaceInMachine)),
                     transpiler: new HarmonyMethod(typeof(GamePatches), nameof(SObject_PlaceInMachine_Transpiler))
                 );
-                ModEntry.Log($"Applied MachineDataUtility.CanApplyOutput Transpiler", LogLevel.Trace);
+                ModEntry.Log($"Applied MachineDataUtility.PlaceInMachine Transpiler", LogLevel.Trace);
             }
             catch (Exception err)
             {
@@ -129,7 +129,8 @@ namespace MachineControlPanel.Framework
                     new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(MachineOutputTriggerRule), nameof(MachineOutputTriggerRule.RequiredCount))),
                     new(OpCodes.Ldarg_3),
                     new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Item), nameof(Item.Stack))),
-                ]);
+                ])
+                .ThrowIfNotMatch("Failed to find 'if (trigger2.RequiredCount > inputItem.Stack)'");
 
                 Label lbl = (Label)matcher.Operand; // label to end of loop
                 matcher.Advance(1);
@@ -148,14 +149,16 @@ namespace MachineControlPanel.Framework
                 ]);
 
                 // Check for MachineOutputTrigger.DayUpdate
-                matcher.MatchStartForward([
+                matcher
+                .MatchStartForward([
                     new(OpCodes.Ldarg_S, (byte)6),
                     new(ldloc.opcode, ldloc.operand),
                     new(OpCodes.Stind_Ref),
                     new(OpCodes.Ldarg_S, (byte)7),
                     new(OpCodes.Ldc_I4_0),
                     new(OpCodes.Stind_I1)
-                ]);
+                ])
+                .ThrowIfNotMatch("Failed 'triggerRule = trigger2; matchesExceptCount = false;");
 
                 matcher
                 .SetAndAdvance(OpCodes.Ldarg_2, null) // MachineOutputTrigger trigger
@@ -238,7 +241,8 @@ namespace MachineControlPanel.Framework
                     new(OpCodes.Ldc_I4_0),
                     new(OpCodes.Ret),
                     new(OpCodes.Ldarg_3),
-                ]);
+                ])
+                .ThrowIfNotMatch("Failed 'triggerRule = trigger2; matchesExceptCount = false;");
                 matcher.Advance(1);
                 // if not reached by jump, go to ret
                 matcher.InsertAndAdvance([new(OpCodes.Br, matcher.Labels.Last())]);

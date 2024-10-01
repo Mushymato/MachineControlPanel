@@ -14,10 +14,20 @@ namespace MachineControlPanel.Framework.UI
             return new(
                 ruleHelper,
                 saveMachineRules,
-                SetHoverEvents,
                 showExitX ? exitThisMenu : null,
+                ModEntry.HasLookupAnying ? SetHoverEvents : null,
                 updateEdited: updateEdited
             );
         }
+
+        /// <summary>
+        /// Autosave changes when closing the control panel.
+        /// </summary>
+        protected override void cleanupBeforeExit()
+        {
+            if (ModEntry.Config.SaveOnChange)
+                View.SaveAllRules();
+        }
+
     }
 }

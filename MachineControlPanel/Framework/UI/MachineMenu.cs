@@ -9,7 +9,7 @@ namespace MachineControlPanel.Framework.UI
         protected override MachineSelect CreateView()
         {
             initializeUpperRightCloseButton();
-            return new(saveMachineRules, SetHoverEvents, exitThisMenu: exitThisMenu);
+            return new(saveMachineRules, exitThisMenu: exitThisMenu, ModEntry.HasLookupAnying ? SetHoverEvents : null);
         }
     }
 }

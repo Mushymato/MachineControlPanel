@@ -77,7 +77,8 @@ namespace MachineControlPanel.Framework
         public KeybindList MachineSelectKey { get; set; } = KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
         /// <summary>Default page to use</summary>
         public DefaultPageOption DefaultPage { get; set; } = DefaultPageOption.Rules;
-        public bool AlwaysShowCheckbox { get; set; } = false;
+        /// <summary>Save any changed rules when closing the menu</summary>
+        public bool SaveOnChange { get; set; } = true;
 
         private void Reset()
         {
@@ -113,6 +114,13 @@ namespace MachineControlPanel.Framework
                 setValue: (value) => { MachineSelectKey = value; },
                 name: I18n.Config_MachineSelectKey_Name,
                 tooltip: I18n.Config_MachineSelectKey_Description
+            );
+            GMCM.AddBoolOption(
+                mod,
+                getValue: () => { return SaveOnChange; },
+                setValue: (value) => { SaveOnChange = value; },
+                name: I18n.Config_SaveOnChange_Name,
+                tooltip: I18n.Config_SaveOnChange_Description
             );
             GMCM.AddTextOption(
                 mod,

@@ -3,6 +3,8 @@
     "config.control-panel-key.description": "Press this key when within range of a machine to open the machine control panel.",
     "config.machine-select-key.name": "Machine Select Key",
     "config.machine-select-key.description": "Press this key to open a selection menu for all machines in the game.",
+    "config.save-on-change.name": "Save on Change",
+    "config.save-on-change.description": "Automatically save changes when closing the control panel or when changing pages.",
     "config.default-page.name": "Default Page",
     "config.default-page.description": "Page of control panel to display by default.",
     "config.default-page.machine-rules": "Machine Rules",
@@ -12,10 +14,14 @@
     "rule-list.same-as-input": "Same as Input",
     "rule-list.special-input": "Special Input",
     "rule-list.special-output": "Special Output: {{method}}",
+    // these button text can't be too long, they are fixed size on the UI
     "rule-list.save": "Save",
     "rule-list.reset": "Reset",
     "rule-list.rules": "Rules",
     "rule-list.inputs": "Inputs",
+    // this char is appeneded after Rules or Inputs if edits exist for one
+    // most languages should use * but in english it looks angry
+    "rule-list.edited": "=",
     "rule-list.footer-note": "Only the host player can change machine settings.",
     "skip-reason.rules": "Item rejected due disabled rules.",
     "skip-reason.inputs": "Item \"{{Name}}\" rejected due to disabled inputs."

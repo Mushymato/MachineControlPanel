@@ -29,6 +29,7 @@ namespace MachineControlPanel
         private static IMonitor? mon = null;
         private static ModSaveData? saveData = null;
         internal static ModConfig Config = null!;
+        internal static bool HasLookupAnying = false;
 
         /// <summary>
         /// Attempt to get a save data entry for a machine
@@ -148,6 +149,8 @@ namespace MachineControlPanel
             var EMC = Helper.ModRegistry.GetApi<IExtraMachineConfigApi>("selph.ExtraMachineConfig");
             if (EMC != null)
                 RuleHelper.EMC = EMC;
+            HasLookupAnying = Helper.ModRegistry.IsLoaded("Pathoschild.LookupAnything");
+
             Harmony harmony = new(ModManifest.UniqueID);
             GamePatches.Apply(harmony);
         }
@@ -206,7 +209,9 @@ namespace MachineControlPanel
                             saveData.Disabled.Remove(msdEntryMsg.QId);
                         else
                             saveData.Disabled[msdEntryMsg.QId] = msdEntryMsg.Entry;
+#if DEBUG
                         LogSaveData(msdEntryMsg.QId);
+#endif
                         break;
                 }
             }
@@ -276,9 +281,9 @@ namespace MachineControlPanel
                 SAVEDATA_ENTRY, modIDs: [ModManifest.UniqueID]
             );
             Helper.Data.WriteSaveData(SAVEDATA, saveData);
+#if DEBUG
             LogSaveData(bigCraftableId);
-            return;
-
+#endif
         }
 
         /// <summary>

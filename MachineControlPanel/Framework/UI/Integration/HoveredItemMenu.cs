@@ -23,10 +23,10 @@ namespace MachineControlPanel.Framework.UI.Integration
             hoverPanel.PointerEnter += OnPointerEnter;
             hoverPanel.PointerLeave += OnPointerLeave;
         }
-        internal virtual void RemoveHoverEvents(HoveredItemPanel hoverPanel)
-        {
-            hoverPanel.PointerEnter -= OnPointerEnter;
-            hoverPanel.PointerLeave -= OnPointerLeave;
-        }
+        // internal virtual void RemoveHoverEvents(HoveredItemPanel hoverPanel)
+        // {
+        //     hoverPanel.PointerEnter -= OnPointerEnter;
+        //     hoverPanel.PointerLeave -= OnPointerLeave;
+        // }
     }
 }

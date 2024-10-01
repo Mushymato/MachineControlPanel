@@ -6,12 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-## [0.1.0] - 2024-08-02
+## [1.0.0] - 2024-08-02
 
 ### Added
 
 - Initial release.
-- [Add bullet points for alpha features.]
 
-[Unreleased]: https://github.com/mushymato/MachineControlPanel/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/mushymato/MachineControlPanel/tree/v0.1.0
+[Unreleased]: https://github.com/mushymato/MachineControlPanel/compare/v1.0.0...HEAD
+[0.1.0]: https://github.com/mushymato/MachineControlPanel/tree/v1.0.0
