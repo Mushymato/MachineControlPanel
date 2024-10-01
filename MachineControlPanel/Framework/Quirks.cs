@@ -33,15 +33,15 @@ namespace MachineControlPanel.Framework
                 {
                     // edit second duplicate and on
                     int i = 1;
-                    foreach (T model in models.GetRange(1, models.Count - 1))
+                    foreach (T model in models.Skip(1))
                         setIdSeq(model, i++);
                 }
             }
         }
 
         /// <summary>
-        /// Check if every MachineOutputRule and every has a unique Id field.
-        /// For any field that does not fufill this requirement, append an index.
+        /// Check if every MachineOutputRule and every has a unique Id field within their lists.
+        /// For entries that does not fufill this requirement, add a suffix to the second duplicate entry and on.
         /// </summary>
         /// <param name="asset"></param>
         internal static void EnsureUniqueMachineOutputRuleId(IAssetData asset)
