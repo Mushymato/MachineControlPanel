@@ -6,7 +6,7 @@ namespace MachineControlPanel.Framework.UI
 {
     internal sealed class RuleListOverlay(
         RuleHelper ruleHelper,
-        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, BitArray> saveMachineRules,
+        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, bool[]> saveMachineRules,
         Action<HoveredItemPanel>? setHoverEvents = null,
         Action? updateEdited = null
     ) : FullScreenOverlay

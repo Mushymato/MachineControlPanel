@@ -9,7 +9,7 @@ using System.Collections;
 namespace MachineControlPanel.Framework.UI
 {
     internal sealed class MachineSelect(
-        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, BitArray> saveMachineRules,
+        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, bool[]> saveMachineRules,
         Action<bool> exitThisMenu,
         Action<HoveredItemPanel>? setHoverEvents = null
     ) : WrapperView

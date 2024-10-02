@@ -128,7 +128,7 @@ namespace MachineControlPanel.Framework
         internal bool IsImplicitDisabled(IEnumerable<RuleIdent> idents) => ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry)
             && !idents.Except(msdEntry.Rules).Any();
         internal bool HasDisabledQuality(int quality) => ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry)
-            && msdEntry.Quality.Get(quality);
+            && msdEntry.Quality[quality];
 
         /// <summary>Add item data valid inputs</summary>
         /// <param name="itemData"></param>
@@ -244,7 +244,7 @@ namespace MachineControlPanel.Framework
                 // rule outputs
                 List<Tuple<List<RuleItem>, List<RuleItem>>> withEmcFuel = [];
                 List<RuleItem> outputLine = [];
-                foreach (MachineItemOutput output in PrunedMachineItemOutput(rule.OutputItem))
+                foreach (MachineItemOutput output in rule.OutputItem)
                 {
                     List<RuleItem> optLine = [];
                     if (output.OutputMethod != null)

@@ -10,7 +10,7 @@ namespace MachineControlPanel.Framework
     public sealed record ModSaveDataEntry(
         ImmutableHashSet<RuleIdent> Rules,
         ImmutableHashSet<string> Inputs,
-        BitArray Quality
+        bool[] Quality
     );
     public sealed record ModSaveDataEntryMessage(
         string QId,

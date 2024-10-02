@@ -11,7 +11,7 @@ namespace MachineControlPanel.Framework.UI
 
     internal sealed class RuleListView(
         RuleHelper ruleHelper,
-        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, BitArray> saveMachineRules,
+        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, bool[]> saveMachineRules,
         Action<bool>? exitThisMenu = null,
         Action<HoveredItemPanel>? setHoverEvents = null,
         Action? updateEdited = null
@@ -296,10 +296,10 @@ namespace MachineControlPanel.Framework.UI
         /// <summary>Save rules</summary>
         internal void SaveAllRules()
         {
-            BitArray quality = new(5);
+            bool[] quality = new bool[5];
             foreach (QualityCheckable checkable in qualityChecks)
             {
-                quality.Set(checkable.Quality, !checkable.IsChecked);
+                quality[checkable.Quality] = !checkable.IsChecked;
             }
             saveMachineRules(
                 ruleHelper.QId,
@@ -345,14 +345,16 @@ namespace MachineControlPanel.Framework.UI
             foreach (var kv in ruleCheckBoxes)
                 kv.Value.IsChecked = true;
             foreach (var ic in inputChecks)
+            {
+                ic.IsImplicitOff = false;
                 ic.IsChecked = true;
+            }
             foreach (var qc in qualityChecks)
                 qc.IsChecked = true;
 
-            saveMachineRules(ruleHelper.QId, [], [], new BitArray(5));
+            saveMachineRules(ruleHelper.QId, [], [], new bool[5]);
             updateEdited?.Invoke();
 
-            implicitOffDirty = true;
             UpdateTabButtons();
         }
 
@@ -524,7 +526,7 @@ namespace MachineControlPanel.Framework.UI
                     {
                         IsChecked = !ruleHelper.HasDisabledRule(rule.Ident),
 #if DEBUG
-                        Tooltip = rule.Ident.ToString(),
+                        Tooltip = $"O: {rule.Ident.OutputId}\nT: {rule.Ident.TriggerId}",
 #endif
                     };
                     ruleCheckBoxes[rule.Ident] = checkBox;

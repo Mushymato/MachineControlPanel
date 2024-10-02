@@ -254,9 +254,11 @@ namespace MachineControlPanel
             string bigCraftableId,
             IEnumerable<RuleIdent> disabledRules,
             IEnumerable<string> disabledInputs,
-            BitArray disabledQuality
+            bool[] disabledQuality
         )
         {
+            if (!Game1.IsMasterGame)
+                return;
             if (saveData == null)
             {
                 Log("Attempted to save machine rules without save loaded", LogLevel.Error);
@@ -429,13 +431,17 @@ namespace MachineControlPanel
                     Log($"* {ident}");
                 foreach (string inputQId in value.Inputs)
                     Log($"- {inputQId}");
-                string qualityStr = "";
-                for (int i = 0; i < value.Quality.Length; i++)
-                    qualityStr += value.Quality.Get(i) ? "1" : "0";
-                Log($"Q {qualityStr}");
+                if (value.Quality.HasAnySet())
+                {
+                    string qualityStr = "";
+                    for (int i = 0; i < value.Quality.Length; i++)
+                        qualityStr += value.Quality[i] ? "1" : "0";
+                    Log($"Q {qualityStr}");
+                }
             }
         }
 
+#if DEBUG
         /// <summary>Debug log partial save data</summary>
         internal static void LogSaveData(string qId)
         {
@@ -454,10 +460,14 @@ namespace MachineControlPanel
                 Log($"* {ident}");
             foreach (string inputQId in msdEntry.Inputs)
                 Log($"- {inputQId}");
-            string qualityStr = "";
-            for (int i = 0; i < msdEntry.Quality.Length; i++)
-                qualityStr += msdEntry.Quality.Get(i) ? "1" : "0";
-            Log($"Q {qualityStr}");
+            if (msdEntry.Quality.HasAnySet())
+            {
+                string qualityStr = "";
+                for (int i = 0; i < msdEntry.Quality.Length; i++)
+                    qualityStr += msdEntry.Quality[i] ? "1" : "0";
+                Log($"Q {qualityStr}");
+            }
         }
+#endif
     }
 }

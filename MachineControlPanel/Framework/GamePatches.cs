@@ -71,7 +71,7 @@ namespace MachineControlPanel.Framework
                     skipped = SkipReason.Input;
                     return true;
                 }
-                if (msdEntry.Quality.Get(inputItem.Quality))
+                if (msdEntry.Quality[inputItem.Quality])
                 {
                     ModEntry.LogOnce($"{machine.QualifiedItemId} Quality {inputItem.Quality} disabled.");
                     skipped = SkipReason.Quality;

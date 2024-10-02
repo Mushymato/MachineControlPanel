@@ -48,11 +48,16 @@ namespace MachineControlPanel.Framework
             return new(data.GetTexture(), data.GetSourceRect(offset));
         }
 
-        public static bool HasAnySet(this BitArray bitArray)
+        /// <summary>
+        /// I am use bool array bc json doesn't like BitArray
+        /// </summary>
+        /// <param name="intArray"></param>
+        /// <returns></returns>
+        public static bool HasAnySet(this bool[] bitArr)
         {
-            for (int i = 0; i < bitArray.Length; i++)
+            for (int i = 0; i < bitArr.Length; i++)
             {
-                if (bitArray.Get(i))
+                if (bitArr[i])
                     return true;
             }
             return false;
