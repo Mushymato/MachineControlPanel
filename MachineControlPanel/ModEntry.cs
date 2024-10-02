@@ -264,7 +264,7 @@ namespace MachineControlPanel
             }
 
             ModSaveDataEntry? msdEntry = null;
-            if (!disabledRules.Any() && !disabledInputs.Any() && disabledQuality.Equals(0))
+            if (!disabledRules.Any() && !disabledInputs.Any() && !disabledQuality.HasAnySet())
             {
                 saveData.Disabled.Remove(bigCraftableId);
             }

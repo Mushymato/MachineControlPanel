@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
@@ -34,10 +35,27 @@ namespace MachineControlPanel.Framework
             return result;
         }
 
+        /// <summary>
+        /// Get a sprite from an <see cref="Item"/>
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static Sprite GetItemSprite(this Item item, int offset = 0)
         {
             ParsedItemData data = ItemRegistry.GetData(item.QualifiedItemId) ?? throw new ArgumentException($"Error item '{item.QualifiedItemId}'");
             return new(data.GetTexture(), data.GetSourceRect(offset));
+        }
+
+        public static bool HasAnySet(this BitArray bitArray)
+        {
+            for (int i = 0; i < bitArray.Length; i++)
+            {
+                if (bitArray.Get(i))
+                    return true;
+            }
+            return false;
         }
     }
     internal static class RuleHelperCache

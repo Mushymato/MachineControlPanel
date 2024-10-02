@@ -32,6 +32,7 @@ Crab Pots and Tappers seem like machines and get treated as such by automation m
 
 This page displays all items that can be put into a particular artisan machine.
 An input item is disabled by clicking on the item such that it becomes blacked out, and then pressing the save button.
+You can also prevent certain quality items from being used with the 4 quality icons at the top.
 
 ### Interaction between Rules and Inputs
 
