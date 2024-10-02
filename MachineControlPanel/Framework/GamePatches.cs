@@ -11,7 +11,8 @@ namespace MachineControlPanel.Framework
     {
         None = 0,
         Rule = 1,
-        Input = 2
+        Input = 2,
+        Quality = 3,
     }
     internal static class GamePatches
     {
@@ -62,11 +63,20 @@ namespace MachineControlPanel.Framework
                 return true;
             }
             // maybe better to check once in the postfix rather than in the iteration, but eh
-            if (inputItem != null && msdEntry.Inputs.Contains(inputItem.QualifiedItemId))
+            if (inputItem != null)
             {
-                ModEntry.LogOnce($"{machine.QualifiedItemId} Input {inputItem.QualifiedItemId} disabled.");
-                skipped = SkipReason.Input;
-                return true;
+                if (msdEntry.Inputs.Contains(inputItem.QualifiedItemId))
+                {
+                    ModEntry.LogOnce($"{machine.QualifiedItemId} Input {inputItem.QualifiedItemId} disabled.");
+                    skipped = SkipReason.Input;
+                    return true;
+                }
+                if (msdEntry.Quality.Get(inputItem.Quality))
+                {
+                    ModEntry.LogOnce($"{machine.QualifiedItemId} Quality {inputItem.Quality} disabled.");
+                    skipped = SkipReason.Quality;
+                    return true;
+                }
             }
             return false;
         }
@@ -209,16 +219,19 @@ namespace MachineControlPanel.Framework
         /// <param name="who"></param>
         private static void ShowSkippedReasonMessage(Item inputItem, Farmer who)
         {
-            switch (skipped)
+            if (inputItem != null && who != null)
             {
-                case SkipReason.Rule:
-                    Game1.showRedMessage(I18n.SkipReason_Rules());
+                if (skipped switch
+                {
+                    SkipReason.Rule => I18n.SkipReason_Rules(inputItem.DisplayName),
+                    SkipReason.Input => I18n.SkipReason_Inputs(inputItem.DisplayName),
+                    SkipReason.Quality => I18n.SkipReason_Quality(inputItem.DisplayName),
+                    _ => null
+                } is string skipMsg)
+                {
+                    Game1.showRedMessage(skipMsg);
                     who.ignoreItemConsumptionThisFrame = true;
-                    break;
-                case SkipReason.Input:
-                    Game1.showRedMessage(I18n.SkipReason_Inputs(inputItem.DisplayName));
-                    who.ignoreItemConsumptionThisFrame = true;
-                    break;
+                }
             }
             skipped = SkipReason.None;
         }

@@ -35,7 +35,7 @@ An input item is disabled by clicking on the item such that it becomes blacked o
 
 ### Interaction between Rules and Inputs
 
-Should the current rules settings completely prevent an input from being placed into a machine, it will be shown as semi-transparent on the input page and become unclickable until the relevant rules are enabled again.
+Should the current rules settings completely prevent an input from being placed into a machine, it will be shown as semi-transparent on the input page and become uncheckable until the relevant rules are enabled again.
 
 For example, if the first bone items rule on the bone mill is disabled, all bone items except for bone fragments will become semi-transparent on the input page.
 
@@ -45,7 +45,7 @@ For example, if the first bone items rule on the bone mill is disabled, all bone
     * C# mods that add machines via content pipeline is also supported.
 * Extra fuel from [Extra Machine Configs](https://www.nexusmods.com/stardewvalley/mods/22256) is shown on the rules page.
 * Both menus in this mod supports [Lookup Anything](https://www.nexusmods.com/stardewvalley/mods/541).
-* NOT COMPATIBLE with [Producer Framework Mod](https://www.nexusmods.com/stardewvalley/mods/4970) machines, no supoort is planned.
+* NOT COMPATIBLE with [Producer Framework Mod](https://www.nexusmods.com/stardewvalley/mods/4970) machines, no support is planned.
 
 ### Multiplayer
 
@@ -59,7 +59,7 @@ Only the host player is allowed to change machine rules, but everyone can open t
     * Default: LeftControl+Q
 * `Save on Change`: Automatically save changes when closing the control panel or when changing pages.
 * `Default Page`: Page of control panel to display by default.
-* `Open Machine Select Menu`: Once a save is loaded, this option will display a button that opens the machine select menu, useful in case you are out of keybinds.
+* `Open Machine Select Menu`: Once a save is loaded, this option will display a button that opens the machine select menu, useful in case you are out of keybindings.
 
 ### Save Data
 

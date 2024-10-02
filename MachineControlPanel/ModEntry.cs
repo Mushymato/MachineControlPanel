@@ -1,6 +1,4 @@
 ﻿global using SObject = StardewValley.Object;
-// MachineOutputRule Id, MachineOutputTriggerRule Id
-global using RuleIdent = System.Tuple<string, string>;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -13,9 +11,11 @@ using MachineControlPanel.Framework.Integration;
 using HarmonyLib;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Collections;
 
 namespace MachineControlPanel
 {
+    public sealed record RuleIdent(string OutputId, string TriggerId);
     internal sealed class ModEntry : Mod
     {
         /// <summary>
@@ -253,7 +253,8 @@ namespace MachineControlPanel
         private void SaveMachineRules(
             string bigCraftableId,
             IEnumerable<RuleIdent> disabledRules,
-            IEnumerable<string> disabledInputs
+            IEnumerable<string> disabledInputs,
+            BitArray disabledQuality
         )
         {
             if (saveData == null)
@@ -263,7 +264,7 @@ namespace MachineControlPanel
             }
 
             ModSaveDataEntry? msdEntry = null;
-            if (!disabledRules.Any() && !disabledInputs.Any())
+            if (!disabledRules.Any() && !disabledInputs.Any() && disabledQuality.Equals(0))
             {
                 saveData.Disabled.Remove(bigCraftableId);
             }
@@ -271,7 +272,8 @@ namespace MachineControlPanel
             {
                 msdEntry = new(
                     disabledRules.ToImmutableHashSet(),
-                    disabledInputs.ToImmutableHashSet()
+                    disabledInputs.ToImmutableHashSet(),
+                    disabledQuality
                 );
                 saveData.Disabled[bigCraftableId] = msdEntry;
             }
@@ -427,6 +429,10 @@ namespace MachineControlPanel
                     Log($"* {ident}");
                 foreach (string inputQId in value.Inputs)
                     Log($"- {inputQId}");
+                string qualityStr = "";
+                for (int i = 0; i < value.Quality.Length; i++)
+                    qualityStr += value.Quality.Get(i) ? "1" : "0";
+                Log($"Q {qualityStr}");
             }
         }
 
@@ -448,6 +454,10 @@ namespace MachineControlPanel
                 Log($"* {ident}");
             foreach (string inputQId in msdEntry.Inputs)
                 Log($"- {inputQId}");
+            string qualityStr = "";
+            for (int i = 0; i < msdEntry.Quality.Length; i++)
+                qualityStr += msdEntry.Quality.Get(i) ? "1" : "0";
+            Log($"Q {qualityStr}");
         }
     }
 }

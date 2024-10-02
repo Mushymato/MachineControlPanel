@@ -9,7 +9,7 @@ namespace MachineControlPanel.Framework.UI
     /// </summary>
     internal sealed class InputCheckable
     {
-        public static readonly Color COLOR_DISABLED = Color.Black * 0.9f;
+        internal static readonly Color COLOR_DISABLED = Color.Black * 0.9f;
         private bool isChecked = true;
         private bool isImplicitOff = false;
         private readonly ValidInput input;

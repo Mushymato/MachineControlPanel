@@ -298,15 +298,11 @@ namespace MachineControlPanel.Framework
         /// <param name="baseItem"></param>
         /// <param name="preserveTag"></param>
         /// <returns></returns>
-        internal static RuleItem? GetPreserveRuleItem(IEnumerable<string>? tags, int count, Item baseItem)
+        internal static RuleItem? GetPreserveRuleItem(IEnumerable<string> tags, int count, Item baseItem)
         {
-            if (tags == null)
-            {
-                return null;
-            }
             foreach (string tag in tags)
             {
-                if (tag == "preserve_sheet_index_-1" && baseItem.QualifiedItemId == "(O)340")
+                if (tag == $"preserve_sheet_index_{SObject.WildHoneyPreservedId}" && baseItem.QualifiedItemId == "(O)340")
                 {
                     // special case wild honey
                     return new RuleItem(

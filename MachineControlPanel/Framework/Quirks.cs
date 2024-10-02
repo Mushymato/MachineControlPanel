@@ -41,7 +41,7 @@ namespace MachineControlPanel.Framework
 
         /// <summary>
         /// Check if every MachineOutputRule and every has a unique Id field within their lists.
-        /// For entries that does not fufill this requirement, add a suffix to the second duplicate entry and on.
+        /// For entries that does not fulfill this requirement, add a suffix to the second duplicate entry and on.
         /// </summary>
         /// <param name="asset"></param>
         internal static void EnsureUniqueMachineOutputRuleId(IAssetData asset)

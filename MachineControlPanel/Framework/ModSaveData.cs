@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Immutable;
 using StardewModdingAPI;
 using StardewValley;
@@ -8,7 +9,8 @@ namespace MachineControlPanel.Framework
 {
     public sealed record ModSaveDataEntry(
         ImmutableHashSet<RuleIdent> Rules,
-        ImmutableHashSet<string> Inputs
+        ImmutableHashSet<string> Inputs,
+        BitArray Quality
     );
     public sealed record ModSaveDataEntryMessage(
         string QId,
@@ -57,7 +59,7 @@ namespace MachineControlPanel.Framework
                     if (newRules.IsEmpty && newInputs.IsEmpty)
                         Disabled.Remove(qId);
                     else
-                        Disabled[qId] = new(newRules, newInputs);
+                        Disabled[qId] = new(newRules, newInputs, msdEntry.Quality);
                 }
             }
             return hasChange;

@@ -1,10 +1,11 @@
+using System.Collections;
 using MachineControlPanel.Framework.UI.Integration;
 
 namespace MachineControlPanel.Framework.UI
 {
     internal sealed class RuleListMenu(
         RuleHelper ruleHelper,
-        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
+        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, BitArray> saveMachineRules,
         bool showExitX = false,
         Action? updateEdited = null
     ) : HoveredItemMenu<RuleListView>

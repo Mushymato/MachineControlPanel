@@ -1,9 +1,10 @@
+using System.Collections;
 using MachineControlPanel.Framework.UI.Integration;
 
 namespace MachineControlPanel.Framework.UI
 {
     internal sealed class MachineMenu(
-        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules
+        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, BitArray> saveMachineRules
     ) : HoveredItemMenu<MachineSelect>
     {
         protected override MachineSelect CreateView()

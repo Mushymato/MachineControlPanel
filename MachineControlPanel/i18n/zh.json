@@ -20,6 +20,7 @@
     "rule-list.inputs": "输入物品",
     "rule-list.edited": "=",
     "rule-list.footer-note": "只有房主可以更改机器设置",
-    "skip-reason.rules": "物品因规则设置而退回",
-    "skip-reason.inputs": "物品“{{Name}}“因输入设置而退回"
+    "skip-reason.rules": "{{Name}}因规则设置而退回",
+    "skip-reason.inputs": "{{Name}}因输入设置而退回",
+    "skip-reason.quality": "{{Name}}因品质设置而退回"
 }

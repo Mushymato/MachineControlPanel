@@ -23,6 +23,7 @@
     // most languages should use * but in english it looks angry
     "rule-list.edited": "=",
     "rule-list.footer-note": "Only the host player can change machine settings.",
-    "skip-reason.rules": "Item rejected due disabled rules.",
-    "skip-reason.inputs": "Item \"{{Name}}\" rejected due to disabled inputs."
+    "skip-reason.rules": "{{Name}} rejected due to disabled rules.",
+    "skip-reason.inputs": "{{Name}} rejected due to disabled inputs.",
+    "skip-reason.quality": "{{Name}} rejected due to disabled quality."
 }

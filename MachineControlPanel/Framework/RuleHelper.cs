@@ -65,7 +65,7 @@ namespace MachineControlPanel.Framework
         List<RuleItem> Outputs
     )
     {
-        internal string Repr => $"{Ident.Item1}.{Ident.Item2}";
+        internal string Repr => $"{Ident.OutputId}.{Ident.TriggerId}";
     };
 
     /// <summary>
@@ -85,15 +85,19 @@ namespace MachineControlPanel.Framework
         internal static IconEdge QuestionIcon => new(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)));
         internal static IconEdge EmojiExclaim => new(new(ChatBox.emojiTexture, new Rectangle(54, 81, 9, 9)), new(Top: 37), 3f);
         internal static IconEdge EmojiBolt => new(new(ChatBox.emojiTexture, new Rectangle(36, 63, 9, 9)), new(Left: 37), 3f);
-
-        internal static IconEdge Quality(int quality)
+        internal static Sprite Quality(int quality)
         {
-            return new(
-                new(Game1.mouseCursors,
-                (quality < 4) ? new Rectangle(338 + (quality - 1) * 8, 400, 8, 8) : new Rectangle(346, 392, 8, 8)),
-                new(Top: 37),
-                3
-            );
+            return quality switch
+            {
+                0 or 1 => new(Game1.mouseCursors, new Rectangle(338, 400, 8, 8)),
+                2 => new(Game1.mouseCursors, new Rectangle(346, 400, 8, 8)),
+                4 => new(Game1.mouseCursors, new Rectangle(346, 392, 8, 8)),
+                _ => new(Game1.mouseCursors, new Rectangle(354, 400, 8, 8)),
+            };
+        }
+        internal static IconEdge QualityIconEdge(int quality)
+        {
+            return new(Quality(quality), new(Top: 37), 3);
         }
 
         private bool populated = false;
@@ -123,6 +127,8 @@ namespace MachineControlPanel.Framework
             && msdEntry.Inputs.Contains(inputQId);
         internal bool IsImplicitDisabled(IEnumerable<RuleIdent> idents) => ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry)
             && !idents.Except(msdEntry.Rules).Any();
+        internal bool HasDisabledQuality(int quality) => ModEntry.TryGetSavedEntry(QId, out ModSaveDataEntry? msdEntry)
+            && msdEntry.Quality.Get(quality);
 
         /// <summary>Add item data valid inputs</summary>
         /// <param name="itemData"></param>
@@ -171,7 +177,11 @@ namespace MachineControlPanel.Framework
                 first.PreserveId == second.PreserveId &&
                 first.Quality == second.Quality &&
                 first.MinStack == second.MinStack &&
-                first.MaxStack == second.MaxStack
+                first.MaxStack == second.MaxStack &&
+                first.QualityModifierMode == second.StackModifierMode &&
+                first.QualityModifiers == second.QualityModifiers &&
+                first.StackModifierMode == second.StackModifierMode &&
+                first.StackModifiers == second.StackModifiers
             );
         }
 
@@ -267,7 +277,7 @@ namespace MachineControlPanel.Framework
                                 }
                                 if (item.Quality > 0)
                                 {
-                                    icons.Add(Quality(item.Quality));
+                                    icons.Add(QualityIconEdge(item.Quality));
                                 }
                                 tooltip.Add(itemData.DisplayName);
                                 optLine.Add(new RuleItem(
@@ -352,8 +362,8 @@ namespace MachineControlPanel.Framework
                             // specific item
                             if (ItemRegistry.Create(trigger.RequiredItemId, allowNull: true) is Item item && item != null)
                             {
-                                RuleItem? preserve = ItemQueryCache.GetPreserveRuleItem(trigger.RequiredTags, trigger.RequiredCount, item);
-                                if (preserve != null)
+                                if (trigger.RequiredTags != null
+                                    && ItemQueryCache.GetPreserveRuleItem(trigger.RequiredTags, trigger.RequiredCount, item) is RuleItem preserve)
                                 {
                                     inputLine.Add(preserve);
                                     // Don't bother showing specific preserve items in inputs, should just use rules for that
@@ -488,7 +498,7 @@ namespace MachineControlPanel.Framework
                     _ => -1,
                 };
                 if (quality > -1)
-                    return Quality(quality);
+                    return QualityIconEdge(quality);
             }
             return null;
         }

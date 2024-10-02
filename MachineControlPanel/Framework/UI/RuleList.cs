@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Immutable;
 using MachineControlPanel.Framework.UI.Integration;
 using Microsoft.Xna.Framework;
@@ -10,7 +11,7 @@ namespace MachineControlPanel.Framework.UI
 
     internal sealed class RuleListView(
         RuleHelper ruleHelper,
-        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
+        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, BitArray> saveMachineRules,
         Action<bool>? exitThisMenu = null,
         Action<HoveredItemPanel>? setHoverEvents = null,
         Action? updateEdited = null
@@ -24,10 +25,15 @@ namespace MachineControlPanel.Framework.UI
         private const int MIN_HEIGHT = 400;
         private const int GUTTER_HEIGHT = 400;
         private static Sprite RightCaret => new(Game1.mouseCursors, new(448, 96, 24, 32));
+        private static Sprite ThinHDivider =>
+            new(
+                Game1.menuTexture,
+                SourceRect: new(64, 412, 64, 8)
+            );
         private static Sprite ThinVDivider =>
             new(
                 Game1.menuTexture,
-                SourceRect: new(156, 384, 8, 54)
+                SourceRect: new(156, 384, 8, 64)
             );
         private static Sprite TabButton => new(Game1.menuTexture, new(0, 256, 44, 60), new(16, 16, 0, 16));
         private static readonly IReadOnlyList<Sprite> Digits = Enumerable
@@ -40,9 +46,10 @@ namespace MachineControlPanel.Framework.UI
         private static LayoutParameters IconLayout => LayoutParameters.FixedSize(64, 64);
         internal readonly Dictionary<RuleIdent, CheckBox> ruleCheckBoxes = [];
         internal readonly List<InputCheckable> inputChecks = [];
+        internal readonly List<QualityCheckable> qualityChecks = [];
         private ScrollableView? container;
         private Lane? rulesList = null;
-        private Grid? inputsGrid = null;
+        private Lane? inputsGrid = null;
         private bool implicitOffDirty = false;
         private Button? rulesBtn = null;
         private Button? inputsBtn = null;
@@ -289,10 +296,16 @@ namespace MachineControlPanel.Framework.UI
         /// <summary>Save rules</summary>
         internal void SaveAllRules()
         {
+            BitArray quality = new(5);
+            foreach (QualityCheckable checkable in qualityChecks)
+            {
+                quality.Set(checkable.Quality, !checkable.IsChecked);
+            }
             saveMachineRules(
                 ruleHelper.QId,
                 ruleCheckBoxes.Where((kv) => !kv.Value.IsChecked).Select((kv) => kv.Key),
-                inputChecks.Where((ic) => !ic.IsChecked).Select((ic) => ic.QId)
+                inputChecks.Where((ic) => !ic.IsChecked).Select((ic) => ic.QId),
+                quality
             );
             implicitOffDirty = true;
         }
@@ -333,8 +346,10 @@ namespace MachineControlPanel.Framework.UI
                 kv.Value.IsChecked = true;
             foreach (var ic in inputChecks)
                 ic.IsChecked = true;
+            foreach (var qc in qualityChecks)
+                qc.IsChecked = true;
 
-            saveMachineRules(ruleHelper.QId, [], []);
+            saveMachineRules(ruleHelper.QId, [], [], new BitArray(5));
             updateEdited?.Invoke();
 
             implicitOffDirty = true;
@@ -355,10 +370,34 @@ namespace MachineControlPanel.Framework.UI
         /// Make inputs page
         /// </summary>
         /// <returns></returns>
-        private Grid CreateInputsGrid()
+        private Lane CreateInputsGrid()
         {
+            List<IView> qualityChecksUI = [];
+            foreach (int quality in new int[] { SObject.lowQuality, SObject.medQuality, SObject.highQuality, SObject.bestQuality })
+            {
+                QualityCheckable qualityCheckable = new(quality, Game1.IsMasterGame)
+                {
+                    IsChecked = !ruleHelper.HasDisabledQuality(quality),
+                    Margin = new(ROW_MARGIN)
+                };
+                qualityChecksUI.Add(qualityCheckable);
+                if (Game1.IsMasterGame)
+                    qualityChecks.Add(qualityCheckable);
+            }
+            Lane qualities = new()
+            {
+                Name = "InputsGrid.Quality",
+                Orientation = Orientation.Horizontal,
+                Children = qualityChecksUI
+            };
+            Image divider = new()
+            {
+                Layout = new() { Width = Length.Stretch(), Height = Length.Px(ThinHDivider.Size.Y) },
+                Fit = ImageFit.Stretch,
+                Sprite = ThinHDivider,
+            };
             int i = 0;
-            List<IView> children = [];
+            List<IView> inputChecksUI = [];
             foreach ((string key, ValidInput input) in ruleHelper.ValidInputs)
             {
                 InputCheckable inputCheck = new(
@@ -370,16 +409,22 @@ namespace MachineControlPanel.Framework.UI
                     IsChecked = !ruleHelper.HasDisabledInput(key),
                     IsImplicitOff = ruleHelper.IsImplicitDisabled(input.Idents)
                 };
-                children.Add(inputCheck.Content);
+                inputChecksUI.Add(inputCheck.Content);
                 if (Game1.IsMasterGame)
                     inputChecks.Add(inputCheck);
             }
+            Grid inputs = new()
+            {
+                Name = "InputsGrid.Inputs",
+                ItemLayout = GridItemLayout.Length(ROW_W),
+                Children = inputChecksUI
+            };
 
-            return new Grid()
+            return new Lane()
             {
                 Name = "InputsGrid",
-                ItemLayout = GridItemLayout.Length(ROW_W),
-                Children = children
+                Orientation = Orientation.Vertical,
+                Children = [qualities, divider, inputs]
             };
         }
 

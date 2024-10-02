@@ -3,17 +3,18 @@ using StardewValley;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using MachineControlPanel.Framework.UI.Integration;
+using Microsoft.Xna.Framework;
+using System.Collections;
 
 namespace MachineControlPanel.Framework.UI
 {
     internal sealed class MachineSelect(
-        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>> saveMachineRules,
+        Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, BitArray> saveMachineRules,
         Action<bool> exitThisMenu,
         Action<HoveredItemPanel>? setHoverEvents = null
     ) : WrapperView
     {
         private const int GUTTER = 400;
-        private const int GRID_W = 96;
         private int gridCount = 12;
         internal static readonly Sprite CloseButton = new(Game1.mouseCursors, new(337, 494, 12, 12));
 
@@ -23,20 +24,33 @@ namespace MachineControlPanel.Framework.UI
         /// <returns></returns>
         protected override IView CreateView()
         {
+            List<IView> cells = CreateMachineSelectCells();
+            // derive the desired width and height
             xTile.Dimensions.Size viewportSize = Game1.uiViewport.Size;
-            gridCount = (int)MathF.Min(gridCount, MathF.Floor((viewportSize.Width - GUTTER) / 96));
-            float menuWidth = gridCount * GRID_W;
-            float menuHeight = MathF.Max(400, viewportSize.Height - GUTTER);
+            cells.First().Measure(new(viewportSize.Width, viewportSize.Height));
+            Vector2 gridSize = cells.First().ActualBounds.Size;
+            gridCount = (int)MathF.Min(gridCount, MathF.Floor((viewportSize.Width - GUTTER) / gridSize.X));
+            float menuWidth = gridCount * gridSize.X;
+            float menuHeight = MathF.Max(400, viewportSize.Height - gridSize.X);
+            float neededHeight = MathF.Ceiling((float)cells.Count / gridCount) * gridSize.Y;
+            if (neededHeight < menuHeight)
+                menuHeight = neededHeight;
 
             ScrollableView scrollableView = new()
             {
                 Name = "MachineSelect.View",
                 Layout = LayoutParameters.FixedSize(menuWidth, menuHeight),
-                Content = CreateMachineSelect()
+                Content = new Grid()
+                {
+                    Name = "MachineSelect.Grid",
+                    ItemLayout = GridItemLayout.Count(gridCount),
+                    Children = cells
+                }
             };
             Panel wrapper = new()
             {
                 Layout = LayoutParameters.FitContent(),
+                VerticalContentAlignment = Alignment.Middle,
                 Children = [scrollableView]
             };
             Button closeBtn = new(defaultBackgroundSprite: CloseButton)
@@ -50,11 +64,7 @@ namespace MachineControlPanel.Framework.UI
             return wrapper;
         }
 
-        /// <summary>
-        /// Make machine select grid
-        /// </summary>
-        /// <returns></returns>
-        private IView CreateMachineSelect()
+        private List<IView> CreateMachineSelectCells()
         {
             var machinesData = DataLoader.Machines(Game1.content);
             List<IView> cells = [];
@@ -74,12 +84,7 @@ namespace MachineControlPanel.Framework.UI
                     cells.Add(cell);
                 }
             }
-            return new Grid()
-            {
-                Name = "MachineSelect.Grid",
-                ItemLayout = GridItemLayout.Count(gridCount),
-                Children = cells
-            }; ;
+            return cells;
         }
 
         /// <summary>
