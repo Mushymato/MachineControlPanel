@@ -32,7 +32,8 @@ namespace MachineControlPanel.Framework
                 if (hovering && justClicked)
                 {
                     Game1.playSound("bigSelect");
-                    Game1.activeClickableMenu.SetChildMenu(getMachineSelectMenu());
+                    // Game1.activeClickableMenu.SetChildMenu(getMachineSelectMenu());
+                    Game1.activeClickableMenu = getMachineSelectMenu();
                 }
                 b.Draw(
                     Game1.mouseCursors2,

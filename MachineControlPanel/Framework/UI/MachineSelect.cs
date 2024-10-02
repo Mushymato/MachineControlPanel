@@ -4,7 +4,6 @@ using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using MachineControlPanel.Framework.UI.Integration;
 using Microsoft.Xna.Framework;
-using System.Collections;
 
 namespace MachineControlPanel.Framework.UI
 {

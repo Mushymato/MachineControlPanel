@@ -11,7 +11,6 @@ using MachineControlPanel.Framework.Integration;
 using HarmonyLib;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Collections;
 
 namespace MachineControlPanel
 {

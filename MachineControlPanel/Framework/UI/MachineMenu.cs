@@ -1,4 +1,3 @@
-using System.Collections;
 using MachineControlPanel.Framework.UI.Integration;
 
 namespace MachineControlPanel.Framework.UI
@@ -9,7 +8,6 @@ namespace MachineControlPanel.Framework.UI
     {
         protected override MachineSelect CreateView()
         {
-            initializeUpperRightCloseButton();
             return new(saveMachineRules, exitThisMenu: exitThisMenu, ModEntry.HasLookupAnying ? SetHoverEvents : null);
         }
     }
