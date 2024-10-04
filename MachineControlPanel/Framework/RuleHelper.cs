@@ -462,9 +462,8 @@ namespace MachineControlPanel.Framework
         internal List<RuleItem> GetOutputRuleItemLine(MachineItemOutput output, ref List<MachineItemOutput> complexOutputs)
         {
             // EMC Extra Output
-            var extraOutputs = EMC!.GetExtraOutputs(output, machine);
             List<RuleItem>? extraOptLine = null;
-            if (EMC!.GetExtraOutputs(output, machine) is IList<MachineItemOutput> extraOutput && extraOutput.Any())
+            if (EMC?.GetExtraOutputs(output, machine) is IList<MachineItemOutput> extraOutput && extraOutput.Any())
             {
                 extraOptLine = [];
                 foreach (var extraOut in extraOutput)
@@ -472,6 +471,7 @@ namespace MachineControlPanel.Framework
                     extraOptLine.AddRange(GetOutputRuleItemLine(extraOut, ref complexOutputs));
                 }
             }
+            extraOptLine.Any();
 
             List<RuleItem> optLine = [];
             if (output.OutputMethod != null)
