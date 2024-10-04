@@ -30,10 +30,11 @@ namespace MachineControlPanel.Framework.UI
             Vector2 gridSize = cells.First().ActualBounds.Size;
             gridCount = (int)MathF.Min(gridCount, MathF.Floor((viewportSize.Width - GUTTER) / gridSize.X));
             float menuWidth = gridCount * gridSize.X;
-            float menuHeight = MathF.Max(400, viewportSize.Height - gridSize.X);
-            float neededHeight = MathF.Ceiling((float)cells.Count / gridCount) * gridSize.Y;
-            if (neededHeight < menuHeight)
-                menuHeight = neededHeight;
+            float menuHeight = MathF.Min(
+                MathF.Max(400, viewportSize.Height - gridSize.X),
+                // min needed height
+                MathF.Ceiling((float)cells.Count / gridCount) * gridSize.Y
+            );
 
             ScrollableView scrollableView = new()
             {

@@ -19,6 +19,9 @@
     "rule-list.reset": "Reset",
     "rule-list.rules": "Rules",
     "rule-list.inputs": "Inputs",
+    "rule-list.disable-all": "Disable All",
+    "rule-list.enable-all": "Enable All",
+    "rule-list.more-outputs": "{{Count}} Outputs",
     // this char is appeneded after Rules or Inputs if edits exist for one
     // most languages should use * but in english it looks angry
     "rule-list.edited": "=",

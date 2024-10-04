@@ -7,6 +7,7 @@ using StardewValley.ItemTypeDefinitions;
 using StardewValley.Internal;
 using StardewValley.Menus;
 using StardewUI;
+using System.Data;
 
 namespace MachineControlPanel.Framework
 {
@@ -38,7 +39,8 @@ namespace MachineControlPanel.Framework
         List<IconEdge> Icons,
         List<string> Tooltip,
         int Count = 0,
-        Item? Item = null
+        Item? Item = null,
+        List<RuleItem>? Extra = null
     )
     {
         internal RuleItem Copy()
@@ -243,56 +245,27 @@ namespace MachineControlPanel.Framework
 
                 // rule outputs
                 List<Tuple<List<RuleItem>, List<RuleItem>>> withEmcFuel = [];
+                // List<MachineItemOutput> allOutputs = [];
+                // if (EMC != null)
+                // {
+                //     allOutputs.AddRange(rule.OutputItem);
+                //     foreach (MachineItemOutput output in rule.OutputItem)
+                //         allOutputs.AddRange(EMC.GetExtraOutputs(output, machine));
+                // }
+                // else
+                // {
+                //     allOutputs = rule.OutputItem;
+                // }
                 List<RuleItem> outputLine = [];
                 foreach (MachineItemOutput output in rule.OutputItem)
                 {
-                    List<RuleItem> optLine = [];
-                    if (output.OutputMethod != null)
-                    {
-                        complexOutputs.Add(output);
-                        string methodName = output.OutputMethod.Split(':').Last().Trim();
-                        optLine.Add(new RuleItem([QuestionIcon], [I18n.RuleList_SpecialOutput(method: methodName)]));
-                    }
-
-                    if (output.ItemId == "DROP_IN")
-                    {
-                        optLine.Add(new RuleItem([QuestionIcon], [I18n.RuleList_SameAsInput()]));
-                    }
-                    else if (output.ItemId != null)
-                    {
-                        IList<ItemQueryResult> itemQueryResults = ItemQueryResolver.TryResolve(
-                            output, ItemQueryCache.Context,
-                            formatItemId: id => id != null ? Regex.Replace(id, "(DROP_IN_ID|DROP_IN_PRESERVE|NEARBY_FLOWER_ID)", "0") : id
-                        );
-                        foreach (ItemQueryResult res in itemQueryResults)
-                        {
-                            if (res.Item is Item item && ItemRegistry.GetData(res.Item.QualifiedItemId) is ParsedItemData itemData)
-                            {
-                                List<IconEdge> icons = [new(new(itemData.GetTexture(), itemData.GetSourceRect()))];
-                                List<string> tooltip = [];
-                                if (output.Condition != null)
-                                {
-                                    icons.Add(EmojiExclaim);
-                                    tooltip.AddRange(output.Condition.Split(','));
-                                }
-                                if (item.Quality > 0)
-                                {
-                                    icons.Add(QualityIconEdge(item.Quality));
-                                }
-                                tooltip.Add(itemData.DisplayName);
-                                optLine.Add(new RuleItem(
-                                    icons, tooltip,
-                                    Count: res.Item.Stack,
-                                    Item: item
-                                ));
-                            }
-                        }
-                    }
+                    List<RuleItem> optLine = GetOutputRuleItemLine(output, ref complexOutputs);
                     if (optLine.Count == 0)
                         continue;
 
                     if (EMC != null)
                     {
+                        // EMC Fuels
                         List<RuleItem> emcFuel = [];
                         var extraReq = EMC.GetExtraRequirements(output);
                         if (extraReq.Any())
@@ -484,6 +457,78 @@ namespace MachineControlPanel.Framework
             populated = true;
             return RuleEntries.Any();
         }
+
+
+        internal List<RuleItem> GetOutputRuleItemLine(MachineItemOutput output, ref List<MachineItemOutput> complexOutputs)
+        {
+            // EMC Extra Output
+            var extraOutputs = EMC!.GetExtraOutputs(output, machine);
+            List<RuleItem>? extraOptLine = null;
+            if (EMC!.GetExtraOutputs(output, machine) is IList<MachineItemOutput> extraOutput && extraOutput.Any())
+            {
+                extraOptLine = [];
+                foreach (var extraOut in extraOutput)
+                {
+                    extraOptLine.AddRange(GetOutputRuleItemLine(extraOut, ref complexOutputs));
+                }
+            }
+
+            List<RuleItem> optLine = [];
+            if (output.OutputMethod != null)
+            {
+                complexOutputs.Add(output);
+                string methodName = output.OutputMethod.Split(':').Last().Trim();
+                optLine.Add(new RuleItem([QuestionIcon], [I18n.RuleList_SpecialOutput(method: methodName)]));
+            }
+            if (output.ItemId == "DROP_IN")
+            {
+                optLine.Add(new RuleItem([QuestionIcon], [I18n.RuleList_SameAsInput()], Extra: extraOptLine));
+            }
+            else if (output.ItemId != null)
+            {
+                IList<ItemQueryResult> itemQueryResults;
+                try
+                {
+                    itemQueryResults = ItemQueryResolver.TryResolve(
+                        output, ItemQueryCache.Context,
+                        formatItemId: id => id != null ? Regex.Replace(id, "(DROP_IN_ID|DROP_IN_PRESERVE|NEARBY_FLOWER_ID|DROP_IN_QUALITY)", "0") : id
+                    );
+                    List<Tuple<Item, ParsedItemData>> filteredItems = [];
+                    foreach (ItemQueryResult res in itemQueryResults.ToList())
+                    {
+                        if (res.Item is Item item && ItemRegistry.GetData(res.Item.QualifiedItemId) is ParsedItemData itemData)
+                            filteredItems.Add(new(item, itemData));
+                    }
+                    foreach ((Item item, ParsedItemData itemData) in filteredItems.OrderBy((val) => val.Item1.QualifiedItemId))
+                    {
+                        List<IconEdge> icons = [new(new(itemData.GetTexture(), itemData.GetSourceRect()))];
+                        List<string> tooltip = [];
+                        if (output.Condition != null)
+                        {
+                            icons.Add(EmojiExclaim);
+                            tooltip.AddRange(output.Condition.Split(','));
+                        }
+                        if (item.Quality > 0)
+                        {
+                            icons.Add(QualityIconEdge(item.Quality));
+                        }
+                        tooltip.Add(itemData.DisplayName);
+                        optLine.Add(new RuleItem(
+                            icons, tooltip,
+                            Count: item.Stack,
+                            Item: item,
+                            Extra: extraOptLine
+                        ));
+                    }
+                }
+                catch (NullReferenceException)
+                {
+                    optLine.Add(new RuleItem([QuestionIcon], [output.ItemId], Extra: extraOptLine));
+                }
+            }
+            return optLine;
+        }
+
 
         internal static IconEdge? GetContextTagQuality(IEnumerable<string> tags)
         {

@@ -23,6 +23,7 @@ namespace MachineControlPanel.Framework.UI
         private const int BOX_W = ROW_MARGIN * 3;
         private const int MIN_HEIGHT = 400;
         private const int GUTTER_HEIGHT = 400;
+        private const int OUTPUT_MAX = 8;
         private static Sprite RightCaret => new(Game1.mouseCursors, new(448, 96, 24, 32));
         private static Sprite ThinHDivider =>
             new(
@@ -35,6 +36,7 @@ namespace MachineControlPanel.Framework.UI
                 SourceRect: new(156, 384, 8, 64)
             );
         private static Sprite TabButton => new(Game1.menuTexture, new(0, 256, 44, 60), new(16, 16, 0, 16));
+        internal static readonly Sprite OutputGroup = new(Game1.mouseCursors, new(403, 373, 9, 9), new(2), new(Scale: 4));
         private static readonly IReadOnlyList<Sprite> Digits = Enumerable
             .Range(0, 10)
             .Select((digit) => new Sprite(Game1.mouseCursors, new Rectangle(368 + digit * 5, 56, 5, 7)))
@@ -52,6 +54,7 @@ namespace MachineControlPanel.Framework.UI
         private bool implicitOffDirty = false;
         private Button? rulesBtn = null;
         private Button? inputsBtn = null;
+        private Button? toggleAllBtn = null;
 
         /// <summary>
         /// Create rule list view, with tabs and footer buttons
@@ -176,6 +179,22 @@ namespace MachineControlPanel.Framework.UI
             };
         }
 
+        private string GetToggleButtonText()
+        {
+            bool prevCheck = false;
+            if (container!.Content == inputsGrid)
+            {
+                var firstNotImplicitOff = inputChecks.FirstOrDefault((ic) => !ic.IsImplicitOff);
+                if (firstNotImplicitOff != null)
+                {
+                    prevCheck = firstNotImplicitOff.IsChecked;
+                }
+            }
+            else
+                prevCheck = ruleCheckBoxes.First().Value.IsChecked;
+            return prevCheck ? I18n.RuleList_DisableAll() : I18n.RuleList_EnableAll();
+        }
+
         /// <summary>
         /// Move tab position depending on current page
         /// </summary>
@@ -199,9 +218,9 @@ namespace MachineControlPanel.Framework.UI
                 inputsBtn.Text = ruleHelper.HasDisabledInputs ?
                     I18n.RuleList_Inputs() + I18n.RuleList_Edited() :
                     I18n.RuleList_Inputs();
+                if (toggleAllBtn != null)
+                    toggleAllBtn.Text = GetToggleButtonText();
             }
-            // ((Label)rulesBtn!.Content!).Bold = ruleHelper.HasDisabledRules;
-            // ((Label)inputsBtn!.Content!).Bold = ruleHelper.HasDisabledInputs;
         }
 
         /// <summary>
@@ -213,23 +232,33 @@ namespace MachineControlPanel.Framework.UI
             List<IView> children;
             if (Game1.IsMasterGame)
             {
+
+                toggleAllBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+                {
+                    Name = "ToggleAllBtn",
+                    Text = GetToggleButtonText(),
+                    Margin = new(ROW_MARGIN)
+                };
+                toggleAllBtn.LeftClick += ToggleAllChecks;
                 Button resetBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
                 {
                     Name = "ResetBtn",
-                    Text = I18n.RuleList_Reset()
+                    Text = I18n.RuleList_Reset(),
+                    Margin = new(ROW_MARGIN)
                 };
                 resetBtn.LeftClick += ResetRules;
                 if (ModEntry.Config.SaveOnChange)
-                    children = [resetBtn];
+                    children = [toggleAllBtn, resetBtn];
                 else
                 {
                     Button saveBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
                     {
                         Name = "SaveBtn",
-                        Text = I18n.RuleList_Save()
+                        Text = I18n.RuleList_Save(),
+                        Margin = new(ROW_MARGIN)
                     };
                     saveBtn.LeftClick += SaveRules;
-                    children = [saveBtn, resetBtn];
+                    children = [toggleAllBtn, saveBtn, resetBtn];
                 }
             }
             else
@@ -262,10 +291,10 @@ namespace MachineControlPanel.Framework.UI
             if (sender is Button)
             {
                 container!.Content = rulesList;
-                UpdateTabButtons();
                 Game1.playSound("smallSelect");
                 if (ModEntry.Config.SaveOnChange)
                     SaveRulesUI();
+                UpdateTabButtons();
             }
         }
 
@@ -279,7 +308,6 @@ namespace MachineControlPanel.Framework.UI
             if (sender is Button)
             {
                 container!.Content = inputsGrid;
-                UpdateTabButtons();
                 Game1.playSound("smallSelect");
                 if (ModEntry.Config.SaveOnChange)
                     SaveRulesUI();
@@ -289,6 +317,7 @@ namespace MachineControlPanel.Framework.UI
                         checkable.IsImplicitOff = ruleHelper.IsImplicitDisabled(checkable.Idents);
                     implicitOffDirty = false;
                 }
+                UpdateTabButtons();
             }
         }
 
@@ -357,6 +386,38 @@ namespace MachineControlPanel.Framework.UI
             UpdateTabButtons();
         }
 
+        private void ToggleAllChecks(object? sender, ClickEventArgs e)
+        {
+            if (sender is not Button toggleBtn)
+                return;
+            Game1.playSound("bigDeSelect");
+            bool prevCheck = false;
+            if (container!.Content == inputsGrid)
+            {
+                var firstNotImplicitOff = inputChecks.FirstOrDefault((ic) => !ic.IsImplicitOff);
+                if (firstNotImplicitOff != null)
+                {
+                    prevCheck = firstNotImplicitOff.IsChecked;
+                    foreach (var ic in inputChecks)
+                    {
+                        if (!ic.IsImplicitOff)
+                            ic.IsChecked = !prevCheck;
+                    }
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else
+            {
+                prevCheck = ruleCheckBoxes.First().Value.IsChecked;
+                foreach (var kv in ruleCheckBoxes)
+                    kv.Value.IsChecked = !prevCheck;
+            }
+            toggleBtn.Text = prevCheck ? I18n.RuleList_EnableAll() : I18n.RuleList_DisableAll();
+        }
+
         /// <summary>
         /// Exit menu on click
         /// </summary>
@@ -397,13 +458,14 @@ namespace MachineControlPanel.Framework.UI
                 Fit = ImageFit.Stretch,
                 Sprite = ThinHDivider,
             };
-            int i = 0;
             List<IView> inputChecksUI = [];
             foreach ((string key, ValidInput input) in ruleHelper.ValidInputs)
             {
+                Panel itemPanel = FormRuleItemPanel(input.Rule, showDigits: false);
+                itemPanel.Margin = new(ROW_MARGIN);
                 InputCheckable inputCheck = new(
                     input,
-                    FormRuleItemPanel(input.Rule, $"Inputs.{++i}"),
+                    itemPanel,
                     Game1.IsMasterGame
                 )
                 {
@@ -471,7 +533,15 @@ namespace MachineControlPanel.Framework.UI
             foreach (var rulesC in rulesColumns)
             {
                 int inputSize = rulesC.Max((rule) => rule.Inputs.Count);
-                int outputSize = rulesC.Max((rule) => rule.Outputs.Count);
+                int outputSize = rulesC.Max((rule) =>
+                {
+                    int count = rule.Outputs.Count;
+                    foreach (var output in rule.Outputs)
+                    {
+                        count += output.Extra != null ? output.Extra.Count : 0;
+                    }
+                    return count > OUTPUT_MAX ? 1 : count;
+                });
                 LayoutParameters inputLayout = new() { Width = Length.Px(ROW_W * inputSize + ROW_MARGIN * 2), Height = Length.Content() };
                 LayoutParameters outputLayout = new() { Width = Length.Px(ROW_W * outputSize + ROW_MARGIN * 2), Height = Length.Content() };
 
@@ -543,25 +613,38 @@ namespace MachineControlPanel.Framework.UI
                 });
             }
 
-            Lane inputs = FormRuleItemLane(rule.Inputs, $"{rule.Repr}.Inputs");
-            inputs.HorizontalContentAlignment = Alignment.End;
-            inputs.Layout = inputLayout;
-            children.Add(inputs);
+            children.Add(new Lane()
+            {
+                Name = $"{rule.Repr}.Inputs",
+                Layout = inputLayout,
+                Orientation = Orientation.Horizontal,
+                HorizontalContentAlignment = Alignment.End,
+                VerticalContentAlignment = Alignment.Middle,
+                Children = FormRuleItemPanels(rule.Inputs)
+            });
 
-            Image arrow = new()
+            children.Add(new Image()
             {
                 Name = $"{rule.Repr}.Arrow",
                 Layout = LayoutParameters.FitContent(),
                 Padding = new(20, 16),
                 Sprite = RightCaret
-            };
-            children.Add(arrow);
+            });
 
-            Lane outputs = FormRuleItemLane(rule.Outputs, $"{rule.Repr}.Outputs");
-            outputs.Margin = new(Left: ROW_MARGIN * 1);
-            outputs.Layout = outputLayout;
-            outputs.HorizontalContentAlignment = Alignment.Start;
-            children.Add(outputs);
+
+            List<IView> outputPanels = FormRuleItemPanels(rule.Outputs);
+            if (outputPanels.Count > 4)
+                outputPanels = [new OutputModalButton(outputPanels)];
+            children.Add(new Lane()
+            {
+                Name = $"{rule.Repr}.Outputs",
+                Layout = outputLayout,
+                Orientation = Orientation.Horizontal,
+                HorizontalContentAlignment = Alignment.Start,
+                VerticalContentAlignment = Alignment.Middle,
+                Children = outputPanels,
+                Margin = new(Left: ROW_MARGIN * 1)
+            });
 
             return new Lane()
             {
@@ -581,43 +664,35 @@ namespace MachineControlPanel.Framework.UI
         /// <param name="ruleItems"></param>
         /// <param name="prefix"></param>
         /// <returns></returns>
-        private Lane FormRuleItemLane(List<RuleItem> ruleItems, string prefix)
+        private List<IView> FormRuleItemPanels(List<RuleItem> ruleItems)
         {
             List<IView> content = [];
-            int i = 0;
             foreach (var ruleItem in ruleItems)
             {
-                Panel itemPanel = FormRuleItemPanel(ruleItem, $"{prefix}.{i++}");
-                if (ruleItem.Count > 1)
+                Panel itemPanel = FormRuleItemPanel(ruleItem);
+                if (ruleItem.Extra != null)
                 {
-                    int num = ruleItem.Count;
-                    int offset = 44;
-                    while (num > 0)
+                    List<IView> withExtraOut = [itemPanel];
+                    withExtraOut.AddRange(ruleItem.Extra.Select((rule) => FormRuleItemPanel(rule)));
+                    content.Add(new Frame()
                     {
-                        // final digit
-                        int digit = num % 10;
-                        itemPanel.Children.Add(new Image()
+                        Border = OutputGroup,
+                        BorderThickness = OutputGroup.FixedEdges!,
+                        Content = new Lane()
                         {
-                            Layout = LayoutParameters.FixedSize(15, 21),
-                            Padding = new(Left: offset, Top: 48),
-                            Sprite = Digits[digit]
-                        });
-                        // unclear why this looks the best, shouldnt it be scale * 5?
-                        offset -= 12;
-                        num /= 10;
-                    }
+                            Orientation = Orientation.Horizontal,
+                            Children = withExtraOut,
+                            Margin = new(4, 2),
+                        }
+                    });
                 }
-                content.Add(itemPanel);
+                else
+                {
+                    itemPanel.Margin = new(ROW_MARGIN);
+                    content.Add(itemPanel);
+                }
             }
-            return new Lane()
-            {
-                Name = prefix,
-                Layout = LayoutParameters.FitContent(),
-                Orientation = Orientation.Horizontal,
-                HorizontalContentAlignment = Alignment.End,
-                VerticalContentAlignment = Alignment.Middle,
-                Children = content
-            };
+            return content;
         }
 
         /// <summary>
@@ -626,7 +701,7 @@ namespace MachineControlPanel.Framework.UI
         /// <param name="ruleItem"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        private Panel FormRuleItemPanel(RuleItem ruleItem, string name)
+        private Panel FormRuleItemPanel(RuleItem ruleItem, bool showDigits = true)
         {
             List<IView> iconImgs = [];
             foreach (var icon in ruleItem.Icons)
@@ -644,14 +719,31 @@ namespace MachineControlPanel.Framework.UI
             }
             HoveredItemPanel itemPanel = new()
             {
-                Name = name,
                 Layout = IconLayout,
-                Margin = new Edges(ROW_MARGIN),
                 Children = iconImgs,
                 Tooltip = string.Join('\n', ruleItem.Tooltip.Select((tip) => tip.Trim())),
                 IsFocusable = true,
                 HoveredItem = ruleItem.Item
             };
+            if (showDigits && ruleItem.Count > 1)
+            {
+                int num = ruleItem.Count;
+                int offset = 44;
+                while (num > 0)
+                {
+                    // final digit
+                    int digit = num % 10;
+                    itemPanel.Children.Add(new Image()
+                    {
+                        Layout = LayoutParameters.FixedSize(15, 21),
+                        Padding = new(Left: offset, Top: 48),
+                        Sprite = Digits[digit]
+                    });
+                    // unclear why this looks the best, shouldnt it be scale * 5?
+                    offset -= 12;
+                    num /= 10;
+                }
+            }
             setHoverEvents?.Invoke(itemPanel);
             return itemPanel;
         }
