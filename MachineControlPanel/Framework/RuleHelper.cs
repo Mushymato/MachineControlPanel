@@ -471,7 +471,6 @@ namespace MachineControlPanel.Framework
                     extraOptLine.AddRange(GetOutputRuleItemLine(extraOut, ref complexOutputs));
                 }
             }
-            extraOptLine.Any();
 
             List<RuleItem> optLine = [];
             if (output.OutputMethod != null)
