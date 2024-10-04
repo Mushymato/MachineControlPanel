@@ -4,13 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.3] - 2024-10-02
 
-## [1.0.0] - 2024-08-02
+### Added
+
+- Toggle (enable/disable all) buttons.
+- Support for EMC extra outputs.
+
+### Fixed
+
+- Display problem when too many outputs exist for 1 rule.
+
+## [1.0.2] - 2024-10-02
+
+### Fixed
+
+- Issue with GMCM child menu hiding toolbar/daytimemoneybox.
+- Catch error with null machine output and trigger Ids, cause unknown
+
+## [1.0.0] - 2024-10-01
 
 ### Added
 
 - Initial release.
-
-[Unreleased]: https://github.com/mushymato/MachineControlPanel/compare/v1.0.0...HEAD
-[0.1.0]: https://github.com/mushymato/MachineControlPanel/tree/v1.0.0

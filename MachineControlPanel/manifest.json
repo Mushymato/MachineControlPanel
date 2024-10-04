@@ -1,7 +1,7 @@
 {
     "Name": "Machine Control Panel",
     "Author": "mushymato",
-    "Version": "1.0.2",
+    "Version": "1.0.3",
     "MinimumApiVersion": "4.0.8",
     "MinimumGameVersion": "1.6.8",
     "Description": "A control panel for machine rules.",
