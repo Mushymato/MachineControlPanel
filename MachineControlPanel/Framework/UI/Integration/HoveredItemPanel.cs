@@ -1,4 +1,4 @@
-using StardewUI;
+using StardewUI.Widgets;
 using StardewValley;
 
 namespace MachineControlPanel.Framework.UI.Integration

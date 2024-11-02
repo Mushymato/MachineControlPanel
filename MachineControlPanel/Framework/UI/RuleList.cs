@@ -2,6 +2,10 @@ using System.Collections.Immutable;
 using MachineControlPanel.Framework.UI.Integration;
 using Microsoft.Xna.Framework;
 using StardewUI;
+using StardewUI.Events;
+using StardewUI.Graphics;
+using StardewUI.Layout;
+using StardewUI.Widgets;
 using StardewValley;
 
 namespace MachineControlPanel.Framework.UI
@@ -14,7 +18,7 @@ namespace MachineControlPanel.Framework.UI
         Action<bool>? exitThisMenu = null,
         Action<HoveredItemPanel>? setHoverEvents = null,
         Action? updateEdited = null
-    ) : WrapperView, IPageable
+    ) : ComponentView<Lane>, IPageable
     {
         /// Geometry
         private const int ROW_MARGIN = 4;
@@ -60,7 +64,7 @@ namespace MachineControlPanel.Framework.UI
         /// Create rule list view, with tabs and footer buttons
         /// </summary>
         /// <returns></returns>
-        protected override IView CreateView()
+        protected override Lane CreateView()
         {
             xTile.Dimensions.Size viewportSize = Game1.uiViewport.Size;
             float menuHeight = MathF.Max(MIN_HEIGHT, viewportSize.Height - GUTTER_HEIGHT);
@@ -124,8 +128,9 @@ namespace MachineControlPanel.Framework.UI
             };
             if (exitThisMenu != null)
             {
-                Button closeBtn = new(defaultBackgroundSprite: MachineSelect.CloseButton)
+                Button closeBtn = new()
                 {
+                    DefaultBackground = MachineSelect.CloseButton,
                     Margin = new Edges(Left: 48),
                     Layout = LayoutParameters.FixedSize(48, 48)
                 };
@@ -142,8 +147,9 @@ namespace MachineControlPanel.Framework.UI
         /// <returns></returns>
         private Lane CreateSidebar()
         {
-            rulesBtn = new(defaultBackgroundSprite: TabButton)
+            rulesBtn = new()
             {
+                DefaultBackground = TabButton,
                 Name = "RulesBtn",
                 Content = new Label()
                 {
@@ -154,8 +160,9 @@ namespace MachineControlPanel.Framework.UI
                 Margin = tabButtonActive
             };
             rulesBtn.LeftClick += ShowRules;
-            inputsBtn = new(defaultBackgroundSprite: TabButton)
+            inputsBtn = new()
             {
+                DefaultBackground = TabButton,
                 Name = "InputsBtn",
                 Content = new Label()
                 {
@@ -233,15 +240,17 @@ namespace MachineControlPanel.Framework.UI
             if (Game1.IsMasterGame)
             {
 
-                toggleAllBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+                toggleAllBtn = new()
                 {
+                    HoverBackground = UiSprites.ButtonLight,
                     Name = "ToggleAllBtn",
                     Text = GetToggleButtonText(),
                     Margin = new(ROW_MARGIN)
                 };
                 toggleAllBtn.LeftClick += ToggleAllChecks;
-                Button resetBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+                Button resetBtn = new()
                 {
+                    HoverBackground = UiSprites.ButtonLight,
                     Name = "ResetBtn",
                     Text = I18n.RuleList_Reset(),
                     Margin = new(ROW_MARGIN)
@@ -251,8 +260,9 @@ namespace MachineControlPanel.Framework.UI
                     children = [toggleAllBtn, resetBtn];
                 else
                 {
-                    Button saveBtn = new(hoverBackgroundSprite: UiSprites.ButtonLight)
+                    Button saveBtn = new()
                     {
+                        HoverBackground = UiSprites.ButtonLight,
                         Name = "SaveBtn",
                         Text = I18n.RuleList_Save(),
                         Margin = new(ROW_MARGIN)
@@ -479,7 +489,7 @@ namespace MachineControlPanel.Framework.UI
             Grid inputs = new()
             {
                 Name = "InputsGrid.Inputs",
-                ItemLayout = GridItemLayout.Length(ROW_W),
+                ItemLayout = new GridItemLayout.Length(ROW_W),
                 Children = inputChecksUI
             };
 
@@ -609,7 +619,7 @@ namespace MachineControlPanel.Framework.UI
                     Sprite = ruleHelper.HasDisabledRule(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
                     Tint = Color.White * 0.5f,
                     Layout = LayoutParameters.FitContent(),
-                    IsFocusable = false
+                    Focusable = false
                 });
             }
 
@@ -722,7 +732,7 @@ namespace MachineControlPanel.Framework.UI
                 Layout = IconLayout,
                 Children = iconImgs,
                 Tooltip = string.Join('\n', ruleItem.Tooltip.Select((tip) => tip.Trim())),
-                IsFocusable = true,
+                Focusable = true,
                 HoveredItem = ruleItem.Item
             };
             if (showDigits && ruleItem.Count > 1)

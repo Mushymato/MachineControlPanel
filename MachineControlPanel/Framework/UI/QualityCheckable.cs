@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework;
-using StardewUI;
+using StardewUI.Events;
+using StardewUI.Layout;
+using StardewUI.Widgets;
 using StardewValley;
 
 namespace MachineControlPanel.Framework.UI
@@ -26,7 +28,7 @@ namespace MachineControlPanel.Framework.UI
             Quality = quality;
             Sprite = RuleHelper.Quality(quality);
             Layout = LayoutParameters.FixedSize(Sprite.Size.X * 4, Sprite.Size.X * 4);
-            IsFocusable = true;
+            Focusable = true;
             if (canCheck)
                 LeftClick += OnLeftClick;
             if (Quality == 0)

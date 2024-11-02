@@ -56,6 +56,7 @@ namespace MachineControlPanel.Framework
             }
         }
     }
+
     /// <summary>
     /// Options for default opened page
     /// Rules: machine rules page first

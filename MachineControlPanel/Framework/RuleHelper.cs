@@ -1,13 +1,14 @@
 using System.Text.RegularExpressions;
 using System.Collections.Immutable;
+using System.Data;
 using Microsoft.Xna.Framework;
 using StardewValley;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Internal;
 using StardewValley.Menus;
-using StardewUI;
-using System.Data;
+using StardewUI.Graphics;
+using StardewUI.Layout;
 
 namespace MachineControlPanel.Framework
 {

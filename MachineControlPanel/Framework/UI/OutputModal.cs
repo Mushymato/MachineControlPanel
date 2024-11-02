@@ -1,5 +1,10 @@
 using Microsoft.Xna.Framework;
 using StardewUI;
+using StardewUI.Events;
+using StardewUI.Graphics;
+using StardewUI.Layout;
+using StardewUI.Overlays;
+using StardewUI.Widgets;
 using StardewValley;
 
 namespace MachineControlPanel.Framework.UI
@@ -9,7 +14,7 @@ namespace MachineControlPanel.Framework.UI
         private readonly List<IView> outputPanels;
         private static readonly Sprite bgSprite = new(Game1.mouseCursors, new Rectangle(392, 361, 10, 11));
         private static readonly Sprite bgHoverSprite = new(Game1.mouseCursors, new Rectangle(402, 361, 10, 11));
-        public OutputModalButton(List<IView> outputPanels) : base(bgSprite, bgHoverSprite)
+        public OutputModalButton(List<IView> outputPanels) : base()
         {
             this.outputPanels = outputPanels;
             LeftClick += OpenOutputModal;
@@ -49,7 +54,7 @@ namespace MachineControlPanel.Framework.UI
                     Content = new Grid()
                     {
                         Children = outputPanels,
-                        ItemLayout = GridItemLayout.Count(GRID_COUNT),
+                        ItemLayout = new GridItemLayout.Count(GRID_COUNT),
                     }
                 }
             };

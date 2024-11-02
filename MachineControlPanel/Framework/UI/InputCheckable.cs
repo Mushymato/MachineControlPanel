@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework;
-using StardewUI;
+using StardewUI.Events;
+using StardewUI.Layout;
+using StardewUI.Widgets;
 using StardewValley;
 
 namespace MachineControlPanel.Framework.UI

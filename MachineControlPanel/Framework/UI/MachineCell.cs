@@ -1,8 +1,10 @@
 using Microsoft.Xna.Framework;
-using StardewUI;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using MachineControlPanel.Framework.UI.Integration;
+using StardewUI.Graphics;
+using StardewUI.Widgets;
+using StardewUI.Layout;
 
 namespace MachineControlPanel.Framework.UI
 {
@@ -23,13 +25,13 @@ namespace MachineControlPanel.Framework.UI
                 Background = bgSprite,
                 BorderThickness = bgSprite.FixedEdges!,
                 Tooltip = ruleHelper.Name,
-                IsFocusable = true,
+                Focusable = true,
                 Content = new Image()
                 {
                     Sprite = new(itemData.GetTexture(), itemData.GetSourceRect()),
                     Layout = LayoutParameters.FixedSize(64, 128),
                     ShadowAlpha = 1,
-                    IsFocusable = false
+                    Focusable = false
                 }
             };
             Children = [innerFrame];

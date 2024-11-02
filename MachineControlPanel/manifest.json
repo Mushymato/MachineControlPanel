@@ -1,33 +1,47 @@
 {
-    "Name": "Machine Control Panel",
-    "Author": "mushymato",
-    "Version": "1.0.4",
-    "MinimumApiVersion": "4.0.8",
-    "MinimumGameVersion": "1.6.8",
-    "Description": "A control panel for machine rules.",
-    "UniqueID": "mushymato.MachineControlPanel",
-    "UpdateKeys": [
-        "nexus:28261"
-    ],
-    "EntryDll": "MachineControlPanel.dll",
-    "Dependencies": [
-        // optional integrations
-        {
-            "UniqueID": "Pathoschild.LookupAnything",
-            "IsRequired": false
-        },
-        {
-            "UniqueID": "spacechase0.GenericModConfigMenu",
-            "IsRequired": false
-        },
-        {
-            "UniqueID": "selph.ExtraMachineConfig",
-            "IsRequired": false
-        },
-        // ensure data edits come after content patcher
-        {
-            "UniqueID": "Pathoschild.ContentPatcher",
-            "IsRequired": false
-        },
-    ]
+  /*
+   | This file is automatically updated by ModManifestBuilder
+   | when the project is compiled.
+   | 
+   | Changes made to this file may be overwritten.
+   | 
+   */
+  "$schema": "https://smapi.io/schemas/manifest.json",
+  "UniqueID": "mushymato.MachineControlPanel",
+  "Name": "Machine Control Panel",
+  "Author": "mushymato",
+  "Version": "1.1.0-Debug",
+  "Description": "A control panel for machine rules.",
+  "MinimumApiVersion": "4.1.0-beta.5+38a2d2d90049a9ad00e11d5e7ef638380ecb380c",
+  "MinimumGameVersion": "1.6.9",
+  "EntryDll": "MachineControlPanel.dll",
+  "Dependencies": [
+    {
+      "UniqueID": "focustense.StardewUI",
+      "MinimumVersion": "0.2.5"
+    },
+    {
+      "UniqueID": "Pathoschild.ContentPatcher",
+      "MinimumVersion": "2.4.0-beta.20241011",
+      "IsRequired": false
+    },
+    {
+      "UniqueID": "Pathoschild.LookupAnything",
+      "MinimumVersion": "1.45.3",
+      "IsRequired": false
+    },
+    {
+      "UniqueID": "selph.ExtraMachineConfig",
+      "MinimumVersion": "1.11.0-beta1",
+      "IsRequired": false
+    },
+    {
+      "UniqueID": "spacechase0.GenericModConfigMenu",
+      "MinimumVersion": "1.12.0",
+      "IsRequired": false
+    }
+  ],
+  "UpdateKeys": [
+    "nexus:28261"
+  ]
 }

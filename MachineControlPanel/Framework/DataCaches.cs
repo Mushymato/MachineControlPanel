@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
-using StardewUI;
+using StardewUI.Graphics;
 using StardewValley;
 using StardewValley.Delegates;
 using StardewValley.Extensions;

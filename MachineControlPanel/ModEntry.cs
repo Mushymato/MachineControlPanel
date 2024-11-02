@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewUI;
 using StardewValley.GameData.Machines;
 using StardewValley;
 using MachineControlPanel.Framework;
@@ -60,7 +59,6 @@ namespace MachineControlPanel
         {
             mon = Monitor;
             I18n.Init(helper.Translation);
-            UI.Initialize(helper, Monitor);
 
             // shared events
             helper.Events.GameLoop.GameLaunched += OnGameLaunched;

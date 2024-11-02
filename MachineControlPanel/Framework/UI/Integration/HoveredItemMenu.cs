@@ -1,4 +1,5 @@
 using StardewUI;
+using StardewUI.Events;
 using StardewValley;
 
 namespace MachineControlPanel.Framework.UI.Integration

@@ -1,5 +1,6 @@
 using MachineControlPanel.Framework.UI.Integration;
-using StardewUI;
+using StardewUI.Overlays;
+using StardewUI.Widgets;
 
 namespace MachineControlPanel.Framework.UI
 {

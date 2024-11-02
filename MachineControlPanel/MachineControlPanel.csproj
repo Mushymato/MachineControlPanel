@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="../../debug.csproj" />
+  <Import Project="$(MSBuildUserExtensionsPath)/sdv.props"
+    Condition="Exists('$(MSBuildUserExtensionsPath)/sdv.props')" />
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -9,11 +10,30 @@
     <EnableHarmony>true</EnableHarmony>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Name>Machine Control Panel</Name>
+    <Authors>mushymato</Authors>
+    <Description>A control panel for machine rules.</Description>
+    <UniqueId>mushymato.MachineControlPanel</UniqueId>
+    <UpdateKeys>nexus:28261</UpdateKeys>
+    <Version>1.1.0</Version>
+    <MinimumApiVersion_Behavior>UpdateFull</MinimumApiVersion_Behavior>
+    <MinimumGameVersion_Behavior>UpdateFull</MinimumGameVersion_Behavior>
+    <Dependencies_VersionBehavior>UpdateFull</Dependencies_VersionBehavior>
+  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
+    <SMAPIDependency Include="focustense.StardewUI" Version="0.2.5" Reference="true" />
+    <SMAPIDependency Include="Pathoschild.LookupAnything" Required="false" />
+    <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Required="false" />
+    <SMAPIDependency Include="selph.ExtraMachineConfig" Required="false" />
+    <SMAPIDependency Include="Pathoschild.ContentPatcher" Required="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Leclair.Stardew.ModManifestBuilder" Version="2.3.1" />
+    <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.3.0" />
     <PackageReference Include="Pathoschild.Stardew.ModTranslationClassBuilder" Version="2.2.0" />
   </ItemGroup>
 
-  <Import Project="../StardewUI/StardewUI.projitems" Label="Shared" />
 
 </Project>

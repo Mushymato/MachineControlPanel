@@ -4,6 +4,11 @@ using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
 using MachineControlPanel.Framework.UI.Integration;
 using Microsoft.Xna.Framework;
+using StardewUI.Graphics;
+using StardewUI.Widgets;
+using StardewUI.Layout;
+using StardewUI.Events;
+using StardewUI.Overlays;
 
 namespace MachineControlPanel.Framework.UI
 {
@@ -11,7 +16,7 @@ namespace MachineControlPanel.Framework.UI
         Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, bool[]> saveMachineRules,
         Action<bool> exitThisMenu,
         Action<HoveredItemPanel>? setHoverEvents = null
-    ) : WrapperView
+    ) : ComponentView<Panel>
     {
         private const int GUTTER = 400;
         private int gridCount = 12;
@@ -21,7 +26,7 @@ namespace MachineControlPanel.Framework.UI
         /// Make machine select grid view
         /// </summary>
         /// <returns></returns>
-        protected override IView CreateView()
+        protected override Panel CreateView()
         {
             List<IView> cells = CreateMachineSelectCells();
             // derive the desired width and height
@@ -43,7 +48,7 @@ namespace MachineControlPanel.Framework.UI
                 Content = new Grid()
                 {
                     Name = "MachineSelect.Grid",
-                    ItemLayout = GridItemLayout.Count(gridCount),
+                    ItemLayout = new GridItemLayout.Count(gridCount),
                     Children = cells
                 }
             };
@@ -53,10 +58,11 @@ namespace MachineControlPanel.Framework.UI
                 VerticalContentAlignment = Alignment.Middle,
                 Children = [scrollableView]
             };
-            Button closeBtn = new(defaultBackgroundSprite: CloseButton)
+            Button closeBtn = new()
             {
                 Margin = new Edges(Left: 96),
-                Layout = LayoutParameters.FixedSize(48, 48)
+                Layout = LayoutParameters.FixedSize(48, 48),
+                DefaultBackground = CloseButton
             };
             closeBtn.LeftClick += ExitMenu;
             wrapper.FloatingElements.Add(new(closeBtn, FloatingPosition.AfterParent));
