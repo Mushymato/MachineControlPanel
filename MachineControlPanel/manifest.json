@@ -10,10 +10,10 @@
   "UniqueID": "mushymato.MachineControlPanel",
   "Name": "Machine Control Panel",
   "Author": "mushymato",
-  "Version": "1.1.0-Debug",
+  "Version": "1.1.0",
   "Description": "A control panel for machine rules.",
-  "MinimumApiVersion": "4.1.0-beta.5+38a2d2d90049a9ad00e11d5e7ef638380ecb380c",
-  "MinimumGameVersion": "1.6.9",
+  "MinimumApiVersion": "4.1",
+  "MinimumGameVersion": "1.6.10",
   "EntryDll": "MachineControlPanel.dll",
   "Dependencies": [
     {
@@ -22,22 +22,22 @@
     },
     {
       "UniqueID": "Pathoschild.ContentPatcher",
-      "MinimumVersion": "2.4.0-beta.20241011",
+      "MinimumVersion": "2.4.0",
       "IsRequired": false
     },
     {
       "UniqueID": "Pathoschild.LookupAnything",
-      "MinimumVersion": "1.45.3",
+      "MinimumVersion": "1.46.0",
       "IsRequired": false
     },
     {
       "UniqueID": "selph.ExtraMachineConfig",
-      "MinimumVersion": "1.11.0-beta1",
+      "MinimumVersion": "1.11.0",
       "IsRequired": false
     },
     {
       "UniqueID": "spacechase0.GenericModConfigMenu",
-      "MinimumVersion": "1.12.0",
+      "MinimumVersion": "1.14.0",
       "IsRequired": false
     }
   ],

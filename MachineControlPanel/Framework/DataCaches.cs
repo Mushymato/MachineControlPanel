@@ -158,11 +158,7 @@ namespace MachineControlPanel.Framework
                     foreach (MachineItemOutput output in outputs)
                     {
                         if (StaticDelegateBuilder.TryCreateDelegate<MachineOutputDelegate>(output.OutputMethod, out var createdDelegate, out var _)
-#if SDV_168
-                            && createdDelegate(machineObj, item, true, output, out _) != null
-#else
                             && createdDelegate(machineObj, item, true, output, Game1.player, out _) != null
-#endif
                         )
                         {
                             return true;
