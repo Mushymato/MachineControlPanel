@@ -22,6 +22,7 @@
     "rule-list.disable-all": "Disable All",
     "rule-list.enable-all": "Enable All",
     "rule-list.more-outputs": "{{Count}} Outputs",
+    "rule-list.byproducts": "Byproducts",
     // this char is appeneded after Rules or Inputs if edits exist for one
     // most languages should use * but in english it looks angry
     "rule-list.edited": "=",

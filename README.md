@@ -44,7 +44,9 @@ For example, if the first bone items rule on the bone mill is disabled, all bone
 
 * Machines added via [Content Patcher](https://www.nexusmods.com/stardewvalley/mods/1915) is supported by this mod.
     * C# mods that add machines via content pipeline is also supported.
-* Extra fuel from [Extra Machine Configs](https://www.nexusmods.com/stardewvalley/mods/22256) is shown on the rules page.
+* [Extra Machine Configs](https://www.nexusmods.com/stardewvalley/mods/22256):
+    * Extra fuel and rule specific is displayed.
+    * Output byproducts are displayed with an icon on the top right of the output item.
 * Both menus in this mod supports [Lookup Anything](https://www.nexusmods.com/stardewvalley/mods/541).
 * NOT COMPATIBLE with [Producer Framework Mod](https://www.nexusmods.com/stardewvalley/mods/4970) machines, no support is planned.
 
