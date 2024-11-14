@@ -10,7 +10,7 @@
   "UniqueID": "mushymato.MachineControlPanel",
   "Name": "Machine Control Panel",
   "Author": "mushymato",
-  "Version": "1.1.0-Debug",
+  "Version": "1.1.1",
   "Description": "A control panel for machine rules.",
   "MinimumApiVersion": "4.1",
   "MinimumGameVersion": "1.6.14",
