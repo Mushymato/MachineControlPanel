@@ -1,25 +1,27 @@
 ﻿global using SObject = StardewValley.Object;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using HarmonyLib;
+using MachineControlPanel.Framework;
+using MachineControlPanel.Framework.Integration;
+using MachineControlPanel.Framework.UI;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewValley.GameData.Machines;
 using StardewValley;
-using MachineControlPanel.Framework;
-using MachineControlPanel.Framework.UI;
-using MachineControlPanel.Framework.Integration;
-using HarmonyLib;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+using StardewValley.GameData.Machines;
 
 namespace MachineControlPanel
 {
     public sealed record RuleIdent(string OutputId, string TriggerId);
+
     internal sealed class ModEntry : Mod
     {
         /// <summary>
         /// Key for save data of this mod.
         /// </summary>
         private const string SAVEDATA = "save-machine-rules";
+
         /// <summary>
         /// Key for a partial message, e.g. only 1 machine's rules/inputs were changed.
         /// </summary>
@@ -35,7 +37,10 @@ namespace MachineControlPanel
         /// <param name="QId"></param>
         /// <param name="msdEntry"></param>
         /// <returns></returns>
-        internal static bool TryGetSavedEntry(string QId, [NotNullWhen(true)] out ModSaveDataEntry? msdEntry)
+        internal static bool TryGetSavedEntry(
+            string QId,
+            [NotNullWhen(true)] out ModSaveDataEntry? msdEntry
+        )
         {
             msdEntry = null;
             if (saveData != null)
@@ -163,7 +168,8 @@ namespace MachineControlPanel
                 return;
 
             Helper.Multiplayer.SendMessage(
-                saveData, SAVEDATA,
+                saveData,
+                SAVEDATA,
                 modIDs: [ModManifest.UniqueID],
                 playerIDs: [e.Peer.PlayerID]
             );
@@ -186,7 +192,6 @@ namespace MachineControlPanel
                         {
                             saveData = e.ReadAs<ModSaveData>();
                             LogSaveData();
-
                         }
                         catch (InvalidOperationException)
                         {
@@ -279,7 +284,8 @@ namespace MachineControlPanel
             saveData.Version = ModManifest.Version;
             Helper.Multiplayer.SendMessage(
                 new ModSaveDataEntryMessage(bigCraftableId, msdEntry),
-                SAVEDATA_ENTRY, modIDs: [ModManifest.UniqueID]
+                SAVEDATA_ENTRY,
+                modIDs: [ModManifest.UniqueID]
             );
             Helper.Data.WriteSaveData(SAVEDATA, saveData);
 #if DEBUG
@@ -307,7 +313,11 @@ namespace MachineControlPanel
         /// <returns></returns>
         private bool ShowMachineSelect()
         {
-            if (Game1.activeClickableMenu == null && Config.MachineSelectKey.JustPressed() && saveData != null)
+            if (
+                Game1.activeClickableMenu == null
+                && Config.MachineSelectKey.JustPressed()
+                && saveData != null
+            )
             {
                 Game1.activeClickableMenu = GetMachineSelectMenu();
             }
@@ -329,14 +339,27 @@ namespace MachineControlPanel
         /// <returns></returns>
         private bool ShowPanel()
         {
-            if (Game1.activeClickableMenu == null && Config.ControlPanelKey.JustPressed() && saveData != null)
+            if (
+                Game1.activeClickableMenu == null
+                && Config.ControlPanelKey.JustPressed()
+                && saveData != null
+            )
             {
                 // ICursorPosition.GrabTile is unreliable with gamepad controls. Instead recreate game logic.
                 Vector2 cursorTile = Game1.currentCursorTile;
-                Point tile = Utility.tileWithinRadiusOfPlayer((int)cursorTile.X, (int)cursorTile.Y, 1, Game1.player)
+                Point tile = Utility.tileWithinRadiusOfPlayer(
+                    (int)cursorTile.X,
+                    (int)cursorTile.Y,
+                    1,
+                    Game1.player
+                )
                     ? cursorTile.ToPoint()
                     : Game1.player.GetGrabTile().ToPoint();
-                SObject? bigCraftable = Game1.player.currentLocation.getObjectAtTile(tile.X, tile.Y, ignorePassables: true);
+                SObject? bigCraftable = Game1.player.currentLocation.getObjectAtTile(
+                    tile.X,
+                    tile.Y,
+                    ignorePassables: true
+                );
                 if (bigCraftable != null && bigCraftable.bigCraftable.Value)
                 {
                     return ShowPanelFor(bigCraftable);
@@ -355,14 +378,16 @@ namespace MachineControlPanel
             if (bigCraftable.GetMachineData() is not MachineData machine)
                 return false;
 
-            if (RuleHelperCache.TryGetRuleHelper(bigCraftable.QualifiedItemId, bigCraftable.DisplayName, machine, out RuleHelper? ruleHelper)
-                && ruleHelper.GetRuleEntries())
+            if (
+                RuleHelperCache.TryGetRuleHelper(
+                    bigCraftable.QualifiedItemId,
+                    bigCraftable.DisplayName,
+                    machine,
+                    out RuleHelper? ruleHelper
+                ) && ruleHelper.GetRuleEntries()
+            )
             {
-                Game1.activeClickableMenu = new RuleListMenu(
-                    ruleHelper,
-                    SaveMachineRules,
-                    true
-                );
+                Game1.activeClickableMenu = new RuleListMenu(ruleHelper, SaveMachineRules, true);
             }
 
             return true;

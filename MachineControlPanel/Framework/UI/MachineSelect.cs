@@ -1,14 +1,14 @@
+using MachineControlPanel.Framework.UI.Integration;
+using Microsoft.Xna.Framework;
 using StardewUI;
+using StardewUI.Events;
+using StardewUI.Graphics;
+using StardewUI.Layout;
+using StardewUI.Overlays;
+using StardewUI.Widgets;
 using StardewValley;
 using StardewValley.GameData.Machines;
 using StardewValley.ItemTypeDefinitions;
-using MachineControlPanel.Framework.UI.Integration;
-using Microsoft.Xna.Framework;
-using StardewUI.Graphics;
-using StardewUI.Widgets;
-using StardewUI.Layout;
-using StardewUI.Events;
-using StardewUI.Overlays;
 
 namespace MachineControlPanel.Framework.UI
 {
@@ -20,7 +20,8 @@ namespace MachineControlPanel.Framework.UI
     {
         private const int GUTTER = 400;
         private int gridCount = 12;
-        internal static readonly Sprite CloseButton = new(Game1.mouseCursors, new(337, 494, 12, 12));
+        internal static readonly Sprite CloseButton =
+            new(Game1.mouseCursors, new(337, 494, 12, 12));
 
         /// <summary>
         /// Make machine select grid view
@@ -33,7 +34,8 @@ namespace MachineControlPanel.Framework.UI
             xTile.Dimensions.Size viewportSize = Game1.uiViewport.Size;
             cells.First().Measure(new(viewportSize.Width, viewportSize.Height));
             Vector2 gridSize = cells.First().ActualBounds.Size;
-            gridCount = (int)MathF.Min(gridCount, MathF.Floor((viewportSize.Width - GUTTER) / gridSize.X));
+            gridCount = (int)
+                MathF.Min(gridCount, MathF.Floor((viewportSize.Width - GUTTER) / gridSize.X));
             float menuWidth = gridCount * gridSize.X;
             float menuHeight = MathF.Min(
                 MathF.Max(400, viewportSize.Height - gridSize.X),
@@ -41,29 +43,32 @@ namespace MachineControlPanel.Framework.UI
                 MathF.Ceiling((float)cells.Count / gridCount) * gridSize.Y
             );
 
-            ScrollableView scrollableView = new()
-            {
-                Name = "MachineSelect.View",
-                Layout = LayoutParameters.FixedSize(menuWidth, menuHeight),
-                Content = new Grid()
+            ScrollableView scrollableView =
+                new()
                 {
-                    Name = "MachineSelect.Grid",
-                    ItemLayout = new GridItemLayout.Count(gridCount),
-                    Children = cells
-                }
-            };
-            Panel wrapper = new()
-            {
-                Layout = LayoutParameters.FitContent(),
-                VerticalContentAlignment = Alignment.Middle,
-                Children = [scrollableView]
-            };
-            Button closeBtn = new()
-            {
-                Margin = new Edges(Left: 96),
-                Layout = LayoutParameters.FixedSize(48, 48),
-                DefaultBackground = CloseButton
-            };
+                    Name = "MachineSelect.View",
+                    Layout = LayoutParameters.FixedSize(menuWidth, menuHeight),
+                    Content = new Grid()
+                    {
+                        Name = "MachineSelect.Grid",
+                        ItemLayout = new GridItemLayout.Count(gridCount),
+                        Children = cells,
+                    },
+                };
+            Panel wrapper =
+                new()
+                {
+                    Layout = LayoutParameters.FitContent(),
+                    VerticalContentAlignment = Alignment.Middle,
+                    Children = [scrollableView],
+                };
+            Button closeBtn =
+                new()
+                {
+                    Margin = new Edges(Left: 96),
+                    Layout = LayoutParameters.FixedSize(48, 48),
+                    DefaultBackground = CloseButton,
+                };
             closeBtn.LeftClick += ExitMenu;
             wrapper.FloatingElements.Add(new(closeBtn, FloatingPosition.AfterParent));
 
@@ -79,12 +84,16 @@ namespace MachineControlPanel.Framework.UI
                 if (ItemRegistry.GetData(qId) is not ParsedItemData itemData)
                     continue;
 
-                if (RuleHelperCache.TryGetRuleHelper(itemData.QualifiedItemId, itemData.DisplayName, machine, out RuleHelper? ruleHelper))
+                if (
+                    RuleHelperCache.TryGetRuleHelper(
+                        itemData.QualifiedItemId,
+                        itemData.DisplayName,
+                        machine,
+                        out RuleHelper? ruleHelper
+                    )
+                )
                 {
-                    MachineCell cell = new(ruleHelper, itemData)
-                    {
-                        Name = $"MachineSelect.{qId}"
-                    };
+                    MachineCell cell = new(ruleHelper, itemData) { Name = $"MachineSelect.{qId}" };
                     cell.LeftClick += ShowPanel;
                     setHoverEvents?.Invoke(cell);
                     cells.Add(cell);
@@ -124,6 +133,5 @@ namespace MachineControlPanel.Framework.UI
         {
             exitThisMenu(true);
         }
-
     }
 }

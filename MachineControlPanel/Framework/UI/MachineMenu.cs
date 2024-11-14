@@ -8,7 +8,11 @@ namespace MachineControlPanel.Framework.UI
     {
         protected override MachineSelect CreateView()
         {
-            return new(saveMachineRules, exitThisMenu: exitThisMenu, ModEntry.HasLookupAnying ? SetHoverEvents : null);
+            return new(
+                saveMachineRules,
+                exitThisMenu: exitThisMenu,
+                ModEntry.HasLookupAnying ? SetHoverEvents : null
+            );
         }
     }
 }

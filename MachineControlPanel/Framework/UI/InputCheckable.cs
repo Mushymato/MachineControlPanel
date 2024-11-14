@@ -44,7 +44,8 @@ namespace MachineControlPanel.Framework.UI
             }
         }
 
-        internal InputCheckable(ValidInput input, Panel content, bool canCheck) : base()
+        internal InputCheckable(ValidInput input, Panel content, bool canCheck)
+            : base()
         {
             this.input = input;
             this.content = content;

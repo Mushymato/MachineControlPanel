@@ -21,8 +21,8 @@ namespace MachineControlPanel.Framework
             {
                 origin.Y -= 4;
                 bool mouseThisFrame =
-                    Game1.input.GetMouseState().LeftButton == ButtonState.Pressed ||
-                    Game1.input.GetGamePadState().IsButtonDown(Buttons.A);
+                    Game1.input.GetMouseState().LeftButton == ButtonState.Pressed
+                    || Game1.input.GetGamePadState().IsButtonDown(Buttons.A);
                 bool justClicked = mouseThisFrame && !mouseLastFrame;
                 mouseLastFrame = mouseThisFrame;
                 int mouseX = Game1.getMouseX();
@@ -39,7 +39,8 @@ namespace MachineControlPanel.Framework
                     Game1.mouseCursors2,
                     new((int)origin.X, (int)origin.Y, 80, 80),
                     new Rectangle(154, 154, 20, 20),
-                    Color.White, 0f,
+                    Color.White,
+                    0f,
                     Vector2.Zero,
                     SpriteEffects.None,
                     1f
@@ -65,7 +66,7 @@ namespace MachineControlPanel.Framework
     internal enum DefaultPageOption
     {
         Rules = 1,
-        Inputs = 2
+        Inputs = 2,
     }
 
     /// <summary>
@@ -75,10 +76,14 @@ namespace MachineControlPanel.Framework
     {
         /// <summary>Key for opening control panel when next to a machine</summary>
         public KeybindList ControlPanelKey { get; set; } = KeybindList.Parse($"{SButton.Q}");
+
         /// <summary>Key for opening machine selection page</summary>
-        public KeybindList MachineSelectKey { get; set; } = KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
+        public KeybindList MachineSelectKey { get; set; } =
+            KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
+
         /// <summary>Default page to use</summary>
         public DefaultPageOption DefaultPage { get; set; } = DefaultPageOption.Rules;
+
         /// <summary>Save any changed rules when closing the menu</summary>
         public bool SaveOnChange { get; set; } = true;
 
@@ -89,9 +94,15 @@ namespace MachineControlPanel.Framework
             DefaultPage = DefaultPageOption.Rules;
         }
 
-        public void Register(IModHelper helper, IManifest mod, Func<MachineMenu> GetMachineSelectMenu)
+        public void Register(
+            IModHelper helper,
+            IManifest mod,
+            Func<MachineMenu> GetMachineSelectMenu
+        )
         {
-            var GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            var GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>(
+                "spacechase0.GenericModConfigMenu"
+            );
             if (GMCM == null)
             {
                 helper.WriteConfig(this);
@@ -99,48 +110,80 @@ namespace MachineControlPanel.Framework
             }
             GMCM.Register(
                 mod: mod,
-                reset: () => { Reset(); helper.WriteConfig(this); },
-                save: () => { helper.WriteConfig(this); },
+                reset: () =>
+                {
+                    Reset();
+                    helper.WriteConfig(this);
+                },
+                save: () =>
+                {
+                    helper.WriteConfig(this);
+                },
                 titleScreenOnly: false
             );
             GMCM.AddKeybindList(
                 mod,
-                getValue: () => { return ControlPanelKey; },
-                setValue: (value) => { ControlPanelKey = value; },
+                getValue: () =>
+                {
+                    return ControlPanelKey;
+                },
+                setValue: (value) =>
+                {
+                    ControlPanelKey = value;
+                },
                 name: I18n.Config_ControlPanelKey_Name,
                 tooltip: I18n.Config_ControlPanelKey_Description
             );
             GMCM.AddKeybindList(
                 mod,
-                getValue: () => { return MachineSelectKey; },
-                setValue: (value) => { MachineSelectKey = value; },
+                getValue: () =>
+                {
+                    return MachineSelectKey;
+                },
+                setValue: (value) =>
+                {
+                    MachineSelectKey = value;
+                },
                 name: I18n.Config_MachineSelectKey_Name,
                 tooltip: I18n.Config_MachineSelectKey_Description
             );
             GMCM.AddBoolOption(
                 mod,
-                getValue: () => { return SaveOnChange; },
-                setValue: (value) => { SaveOnChange = value; },
+                getValue: () =>
+                {
+                    return SaveOnChange;
+                },
+                setValue: (value) =>
+                {
+                    SaveOnChange = value;
+                },
                 name: I18n.Config_SaveOnChange_Name,
                 tooltip: I18n.Config_SaveOnChange_Description
             );
             GMCM.AddTextOption(
                 mod,
-                getValue: () => { return DefaultPage.ToString(); },
-                setValue: (value) => { DefaultPage = Enum.Parse<DefaultPageOption>(value); },
-                allowedValues: Enum.GetNames<DefaultPageOption>(),
-                formatAllowedValue: value => value switch
+                getValue: () =>
                 {
-                    nameof(DefaultPageOption.Rules) => I18n.Config_DefaultPage_MachineRules(),
-                    nameof(DefaultPageOption.Inputs) => I18n.Config_DefaultPage_ItemInputs(),
-                    _ => "???" // should never happen
+                    return DefaultPage.ToString();
                 },
+                setValue: (value) =>
+                {
+                    DefaultPage = Enum.Parse<DefaultPageOption>(value);
+                },
+                allowedValues: Enum.GetNames<DefaultPageOption>(),
+                formatAllowedValue: value =>
+                    value switch
+                    {
+                        nameof(DefaultPageOption.Rules) => I18n.Config_DefaultPage_MachineRules(),
+                        nameof(DefaultPageOption.Inputs) => I18n.Config_DefaultPage_ItemInputs(),
+                        _ =>
+                            "???" // should never happen
+                        ,
+                    },
                 name: I18n.Config_DefaultPage_Name,
                 tooltip: I18n.Config_DefaultPage_Description
             );
-            OpenMenuButton menuBtn = new(
-                GetMachineSelectMenu
-            );
+            OpenMenuButton menuBtn = new(GetMachineSelectMenu);
             GMCM.AddComplexOption(
                 mod,
                 name: I18n.Config_OpenMachineSelectMenu_Name,

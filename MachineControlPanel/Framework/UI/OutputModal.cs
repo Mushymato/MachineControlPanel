@@ -12,9 +12,13 @@ namespace MachineControlPanel.Framework.UI
     internal sealed class OutputModalButton : Button
     {
         private readonly List<IView> outputPanels;
-        private static readonly Sprite bgSprite = new(Game1.mouseCursors, new Rectangle(392, 361, 10, 11));
-        private static readonly Sprite bgHoverSprite = new(Game1.mouseCursors, new Rectangle(402, 361, 10, 11));
-        public OutputModalButton(List<IView> outputPanels) : base()
+        private static readonly Sprite bgSprite =
+            new(Game1.mouseCursors, new Rectangle(392, 361, 10, 11));
+        private static readonly Sprite bgHoverSprite =
+            new(Game1.mouseCursors, new Rectangle(402, 361, 10, 11));
+
+        public OutputModalButton(List<IView> outputPanels)
+            : base()
         {
             this.outputPanels = outputPanels;
             LeftClick += OpenOutputModal;
@@ -22,6 +26,7 @@ namespace MachineControlPanel.Framework.UI
             Margin = new(16, 14);
             Tooltip = I18n.RuleList_MoreOutputs(outputPanels.Count);
         }
+
         private void OpenOutputModal(object? sender, ClickEventArgs e)
         {
             var overlay = new OutputModal(outputPanels);
@@ -32,6 +37,7 @@ namespace MachineControlPanel.Framework.UI
     internal sealed class OutputModal(List<IView> outputPanels) : FullScreenOverlay
     {
         private const int GRID_COUNT = 8;
+
         protected override Frame CreateView()
         {
             xTile.Dimensions.Size viewportSize = Game1.uiViewport.Size;
@@ -55,8 +61,8 @@ namespace MachineControlPanel.Framework.UI
                     {
                         Children = outputPanels,
                         ItemLayout = new GridItemLayout.Count(GRID_COUNT),
-                    }
-                }
+                    },
+                },
             };
         }
     }

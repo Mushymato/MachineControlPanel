@@ -1,10 +1,10 @@
+using MachineControlPanel.Framework.UI.Integration;
 using Microsoft.Xna.Framework;
+using StardewUI.Graphics;
+using StardewUI.Layout;
+using StardewUI.Widgets;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
-using MachineControlPanel.Framework.UI.Integration;
-using StardewUI.Graphics;
-using StardewUI.Widgets;
-using StardewUI.Layout;
 
 namespace MachineControlPanel.Framework.UI
 {
@@ -13,10 +13,13 @@ namespace MachineControlPanel.Framework.UI
     /// </summary>
     internal class MachineCell : HoveredItemPanel
     {
-        internal static readonly Sprite bgSprite = new(Game1.mouseCursors, new(384, 396, 15, 15), new(5), new(Scale: 4));
+        internal static readonly Sprite bgSprite =
+            new(Game1.mouseCursors, new(384, 396, 15, 15), new(5), new(Scale: 4));
         internal RuleHelper ruleHelper;
         private readonly Frame innerFrame;
-        internal MachineCell(RuleHelper ruleHelper, ParsedItemData itemData) : base()
+
+        internal MachineCell(RuleHelper ruleHelper, ParsedItemData itemData)
+            : base()
         {
             this.ruleHelper = ruleHelper;
             innerFrame = new Frame()
@@ -31,8 +34,8 @@ namespace MachineControlPanel.Framework.UI
                     Sprite = new(itemData.GetTexture(), itemData.GetSourceRect()),
                     Layout = LayoutParameters.FixedSize(64, 128),
                     ShadowAlpha = 1,
-                    Focusable = false
-                }
+                    Focusable = false,
+                },
             };
             Children = [innerFrame];
             UpdateEdited();
@@ -46,6 +49,5 @@ namespace MachineControlPanel.Framework.UI
         {
             innerFrame.BackgroundTint = Color.White * (ruleHelper.HasDisabled ? 1 : 0.5f);
         }
-
     }
 }

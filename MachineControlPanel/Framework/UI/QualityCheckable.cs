@@ -23,7 +23,8 @@ namespace MachineControlPanel.Framework.UI
         internal readonly int Quality;
         internal readonly Color BaseColor = Color.White;
 
-        internal QualityCheckable(int quality, bool canCheck) : base()
+        internal QualityCheckable(int quality, bool canCheck)
+            : base()
         {
             Quality = quality;
             Sprite = RuleHelper.Quality(quality);

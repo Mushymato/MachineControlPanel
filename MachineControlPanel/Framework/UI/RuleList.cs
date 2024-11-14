@@ -30,20 +30,18 @@ namespace MachineControlPanel.Framework.UI
         private const int OUTPUT_MAX = 8;
         private static Sprite RightCaret => new(Game1.mouseCursors, new(448, 96, 24, 32));
         private static Sprite ThinHDivider =>
-            new(
-                Game1.menuTexture,
-                SourceRect: new(64, 412, 64, 8)
-            );
+            new(Game1.menuTexture, SourceRect: new(64, 412, 64, 8));
         private static Sprite ThinVDivider =>
-            new(
-                Game1.menuTexture,
-                SourceRect: new(156, 384, 8, 64)
-            );
-        private static Sprite TabButton => new(Game1.menuTexture, new(0, 256, 44, 60), new(16, 16, 0, 16));
-        internal static readonly Sprite OutputGroup = new(Game1.mouseCursors, new(403, 373, 9, 9), new(2), new(Scale: 4));
+            new(Game1.menuTexture, SourceRect: new(156, 384, 8, 64));
+        private static Sprite TabButton =>
+            new(Game1.menuTexture, new(0, 256, 44, 60), new(16, 16, 0, 16));
+        internal static readonly Sprite OutputGroup =
+            new(Game1.mouseCursors, new(403, 373, 9, 9), new(2), new(Scale: 4));
         private static readonly IReadOnlyList<Sprite> Digits = Enumerable
             .Range(0, 10)
-            .Select((digit) => new Sprite(Game1.mouseCursors, new Rectangle(368 + digit * 5, 56, 5, 7)))
+            .Select(
+                (digit) => new Sprite(Game1.mouseCursors, new Rectangle(368 + digit * 5, 56, 5, 7))
+            )
             .ToImmutableList();
         private readonly Edges tabButtonPassive = new(Bottom: ROW_MARGIN * 2);
         private readonly Edges tabButtonActive = new(Bottom: ROW_MARGIN * 2, Right: -6);
@@ -79,21 +77,26 @@ namespace MachineControlPanel.Framework.UI
                 Content = rulesList,
             };
 
-            Frame scrollBox = new()
-            {
-                Name = "RuleList.Frame",
-                Layout = LayoutParameters.FitContent(),
-                Background = UiSprites.MenuBackground,
-                Border = UiSprites.MenuBorder,
-                BorderThickness = UiSprites.MenuBorderThickness,
-                Content = container,
-            };
+            Frame scrollBox =
+                new()
+                {
+                    Name = "RuleList.Frame",
+                    Layout = LayoutParameters.FitContent(),
+                    Background = UiSprites.MenuBackground,
+                    Border = UiSprites.MenuBorder,
+                    BorderThickness = UiSprites.MenuBorderThickness,
+                    Content = container,
+                };
 
             if (ruleHelper.ValidInputs.Any())
             {
                 inputsGrid = CreateInputsGrid();
                 container.Measure(new(viewportSize.Width, viewportSize.Height));
-                inputsGrid.Layout = new() { Width = Length.Px(rulesList!.ContentSize.X), Height = Length.Content() };
+                inputsGrid.Layout = new()
+                {
+                    Width = Length.Px(rulesList!.ContentSize.X),
+                    Height = Length.Content(),
+                };
                 scrollBox.FloatingElements.Add(new(CreateSidebar(), FloatingPosition.BeforeParent));
 
                 if (ModEntry.Config.DefaultPage == DefaultPageOption.Inputs)
@@ -101,39 +104,42 @@ namespace MachineControlPanel.Framework.UI
                 UpdateTabButtons();
             }
 
-            Banner banner = new()
-            {
-                Layout = LayoutParameters.FitContent(),
-                Margin = new(Top: -85),
-                Padding = new(12),
-                Background = UiSprites.BannerBackground,
-                BackgroundBorderThickness =
-                (UiSprites.BannerBackground.FixedEdges ?? Edges.NONE)
-                * (UiSprites.BannerBackground.SliceSettings?.Scale ?? 1),
-                Text = ruleHelper.Name
-            };
+            Banner banner =
+                new()
+                {
+                    Layout = LayoutParameters.FitContent(),
+                    Margin = new(Top: -85),
+                    Padding = new(12),
+                    Background = UiSprites.BannerBackground,
+                    BackgroundBorderThickness =
+                        (UiSprites.BannerBackground.FixedEdges ?? Edges.NONE)
+                        * (UiSprites.BannerBackground.SliceSettings?.Scale ?? 1),
+                    Text = ruleHelper.Name,
+                };
 
             vItems.Add(banner);
             vItems.Add(scrollBox);
             vItems.Add(CreateFooter());
 
-            Lane center = new()
-            {
-                Name = "RuleList.Body",
-                Layout = LayoutParameters.FitContent(),
-                Orientation = Orientation.Vertical,
-                HorizontalContentAlignment = Alignment.Middle,
-                VerticalContentAlignment = Alignment.Middle,
-                Children = vItems,
-            };
+            Lane center =
+                new()
+                {
+                    Name = "RuleList.Body",
+                    Layout = LayoutParameters.FitContent(),
+                    Orientation = Orientation.Vertical,
+                    HorizontalContentAlignment = Alignment.Middle,
+                    VerticalContentAlignment = Alignment.Middle,
+                    Children = vItems,
+                };
             if (exitThisMenu != null)
             {
-                Button closeBtn = new()
-                {
-                    DefaultBackground = MachineSelect.CloseButton,
-                    Margin = new Edges(Left: 48),
-                    Layout = LayoutParameters.FixedSize(48, 48)
-                };
+                Button closeBtn =
+                    new()
+                    {
+                        DefaultBackground = MachineSelect.CloseButton,
+                        Margin = new Edges(Left: 48),
+                        Layout = LayoutParameters.FixedSize(48, 48),
+                    };
                 closeBtn.LeftClick += ExitMenu;
                 center.FloatingElements.Add(new(closeBtn, FloatingPosition.AfterParent));
             }
@@ -151,24 +157,16 @@ namespace MachineControlPanel.Framework.UI
             {
                 DefaultBackground = TabButton,
                 Name = "RulesBtn",
-                Content = new Label()
-                {
-                    Text = I18n.RuleList_Rules(),
-                    Margin = new(Left: 12)
-                },
+                Content = new Label() { Text = I18n.RuleList_Rules(), Margin = new(Left: 12) },
                 Layout = LayoutParameters.FixedSize(108, 64),
-                Margin = tabButtonActive
+                Margin = tabButtonActive,
             };
             rulesBtn.LeftClick += ShowRules;
             inputsBtn = new()
             {
                 DefaultBackground = TabButton,
                 Name = "InputsBtn",
-                Content = new Label()
-                {
-                    Text = I18n.RuleList_Inputs(),
-                    Margin = new(Left: 12)
-                },
+                Content = new Label() { Text = I18n.RuleList_Inputs(), Margin = new(Left: 12) },
                 Layout = LayoutParameters.FixedSize(108, 64),
                 Margin = tabButtonPassive,
             };
@@ -182,7 +180,7 @@ namespace MachineControlPanel.Framework.UI
                 HorizontalContentAlignment = Alignment.End,
                 Orientation = Orientation.Vertical,
                 Children = [rulesBtn, inputsBtn],
-                ZIndex = 2
+                ZIndex = 2,
             };
         }
 
@@ -219,12 +217,12 @@ namespace MachineControlPanel.Framework.UI
                     rulesBtn.Margin = tabButtonActive;
                     inputsBtn.Margin = tabButtonPassive;
                 }
-                rulesBtn.Text = ruleHelper.HasDisabledRules ?
-                    I18n.RuleList_Rules() + I18n.RuleList_Edited() :
-                    I18n.RuleList_Rules();
-                inputsBtn.Text = ruleHelper.HasDisabledInputs ?
-                    I18n.RuleList_Inputs() + I18n.RuleList_Edited() :
-                    I18n.RuleList_Inputs();
+                rulesBtn.Text = ruleHelper.HasDisabledRules
+                    ? I18n.RuleList_Rules() + I18n.RuleList_Edited()
+                    : I18n.RuleList_Rules();
+                inputsBtn.Text = ruleHelper.HasDisabledInputs
+                    ? I18n.RuleList_Inputs() + I18n.RuleList_Edited()
+                    : I18n.RuleList_Inputs();
                 if (toggleAllBtn != null)
                     toggleAllBtn.Text = GetToggleButtonText();
             }
@@ -239,55 +237,58 @@ namespace MachineControlPanel.Framework.UI
             List<IView> children;
             if (Game1.IsMasterGame)
             {
-
                 toggleAllBtn = new()
                 {
                     HoverBackground = UiSprites.ButtonLight,
                     Name = "ToggleAllBtn",
                     Text = GetToggleButtonText(),
-                    Margin = new(ROW_MARGIN)
+                    Margin = new(ROW_MARGIN),
                 };
                 toggleAllBtn.LeftClick += ToggleAllChecks;
-                Button resetBtn = new()
-                {
-                    HoverBackground = UiSprites.ButtonLight,
-                    Name = "ResetBtn",
-                    Text = I18n.RuleList_Reset(),
-                    Margin = new(ROW_MARGIN)
-                };
+                Button resetBtn =
+                    new()
+                    {
+                        HoverBackground = UiSprites.ButtonLight,
+                        Name = "ResetBtn",
+                        Text = I18n.RuleList_Reset(),
+                        Margin = new(ROW_MARGIN),
+                    };
                 resetBtn.LeftClick += ResetRules;
                 if (ModEntry.Config.SaveOnChange)
                     children = [toggleAllBtn, resetBtn];
                 else
                 {
-                    Button saveBtn = new()
-                    {
-                        HoverBackground = UiSprites.ButtonLight,
-                        Name = "SaveBtn",
-                        Text = I18n.RuleList_Save(),
-                        Margin = new(ROW_MARGIN)
-                    };
+                    Button saveBtn =
+                        new()
+                        {
+                            HoverBackground = UiSprites.ButtonLight,
+                            Name = "SaveBtn",
+                            Text = I18n.RuleList_Save(),
+                            Margin = new(ROW_MARGIN),
+                        };
                     saveBtn.LeftClick += SaveRules;
                     children = [toggleAllBtn, saveBtn, resetBtn];
                 }
             }
             else
             {
-                children = [new Frame(){
-                    Padding = new(12),
-                    Background = UiSprites.ButtonDark,
-                    BorderThickness = UiSprites.ButtonLight.FixedEdges!,
-                    Content = new Label(){
-                        Text = I18n.RuleList_FooterNote()
-                    }
-                }];
+                children =
+                [
+                    new Frame()
+                    {
+                        Padding = new(12),
+                        Background = UiSprites.ButtonDark,
+                        BorderThickness = UiSprites.ButtonLight.FixedEdges!,
+                        Content = new Label() { Text = I18n.RuleList_FooterNote() },
+                    },
+                ];
             }
 
             return new Lane()
             {
                 Layout = LayoutParameters.FitContent(),
                 Orientation = Orientation.Horizontal,
-                Children = children
+                Children = children,
             };
         }
 
@@ -445,59 +446,72 @@ namespace MachineControlPanel.Framework.UI
         private Lane CreateInputsGrid()
         {
             List<IView> qualityChecksUI = [];
-            foreach (int quality in new int[] { SObject.lowQuality, SObject.medQuality, SObject.highQuality, SObject.bestQuality })
-            {
-                QualityCheckable qualityCheckable = new(quality, Game1.IsMasterGame)
+            foreach (
+                int quality in new int[]
                 {
-                    IsChecked = !ruleHelper.HasDisabledQuality(quality),
-                    Margin = new(ROW_MARGIN)
-                };
+                    SObject.lowQuality,
+                    SObject.medQuality,
+                    SObject.highQuality,
+                    SObject.bestQuality,
+                }
+            )
+            {
+                QualityCheckable qualityCheckable =
+                    new(quality, Game1.IsMasterGame)
+                    {
+                        IsChecked = !ruleHelper.HasDisabledQuality(quality),
+                        Margin = new(ROW_MARGIN),
+                    };
                 qualityChecksUI.Add(qualityCheckable);
                 if (Game1.IsMasterGame)
                     qualityChecks.Add(qualityCheckable);
             }
-            Lane qualities = new()
-            {
-                Name = "InputsGrid.Quality",
-                Orientation = Orientation.Horizontal,
-                Children = qualityChecksUI
-            };
-            Image divider = new()
-            {
-                Layout = new() { Width = Length.Stretch(), Height = Length.Px(ThinHDivider.Size.Y) },
-                Fit = ImageFit.Stretch,
-                Sprite = ThinHDivider,
-            };
+            Lane qualities =
+                new()
+                {
+                    Name = "InputsGrid.Quality",
+                    Orientation = Orientation.Horizontal,
+                    Children = qualityChecksUI,
+                };
+            Image divider =
+                new()
+                {
+                    Layout = new()
+                    {
+                        Width = Length.Stretch(),
+                        Height = Length.Px(ThinHDivider.Size.Y),
+                    },
+                    Fit = ImageFit.Stretch,
+                    Sprite = ThinHDivider,
+                };
             List<IView> inputChecksUI = [];
             foreach ((string key, ValidInput input) in ruleHelper.ValidInputs)
             {
                 Panel itemPanel = FormRuleItemPanel(input.Rule, showDigits: false);
                 itemPanel.Margin = new(ROW_MARGIN);
-                InputCheckable inputCheck = new(
-                    input,
-                    itemPanel,
-                    Game1.IsMasterGame
-                )
-                {
-                    IsChecked = !ruleHelper.HasDisabledInput(key),
-                    IsImplicitOff = ruleHelper.IsImplicitDisabled(input.Idents)
-                };
+                InputCheckable inputCheck =
+                    new(input, itemPanel, Game1.IsMasterGame)
+                    {
+                        IsChecked = !ruleHelper.HasDisabledInput(key),
+                        IsImplicitOff = ruleHelper.IsImplicitDisabled(input.Idents),
+                    };
                 inputChecksUI.Add(inputCheck.Content);
                 if (Game1.IsMasterGame)
                     inputChecks.Add(inputCheck);
             }
-            Grid inputs = new()
-            {
-                Name = "InputsGrid.Inputs",
-                ItemLayout = new GridItemLayout.Length(ROW_W),
-                Children = inputChecksUI
-            };
+            Grid inputs =
+                new()
+                {
+                    Name = "InputsGrid.Inputs",
+                    ItemLayout = new GridItemLayout.Length(ROW_W),
+                    Children = inputChecksUI,
+                };
 
             return new Lane()
             {
                 Name = "InputsGrid",
                 Orientation = Orientation.Vertical,
-                Children = [qualities, divider, inputs]
+                Children = [qualities, divider, inputs],
             };
         }
 
@@ -543,34 +557,56 @@ namespace MachineControlPanel.Framework.UI
             foreach (var rulesC in rulesColumns)
             {
                 int inputSize = rulesC.Max((rule) => rule.Inputs.Count);
-                int outputSize = rulesC.Max((rule) =>
-                {
-                    int count = rule.Outputs.Count;
-                    foreach (var output in rule.Outputs)
+                int outputSize = rulesC.Max(
+                    (rule) =>
                     {
-                        count += output.Extra != null ? output.Extra.Count : 0;
+                        int count = rule.Outputs.Count;
+                        foreach (var output in rule.Outputs)
+                        {
+                            count += output.Extra != null ? output.Extra.Count : 0;
+                        }
+                        return count > OUTPUT_MAX ? 1 : count;
                     }
-                    return count > OUTPUT_MAX ? 1 : count;
-                });
-                LayoutParameters inputLayout = new() { Width = Length.Px(ROW_W * inputSize + ROW_MARGIN * 2), Height = Length.Content() };
-                LayoutParameters outputLayout = new() { Width = Length.Px(ROW_W * outputSize + ROW_MARGIN * 2), Height = Length.Content() };
+                );
+                LayoutParameters inputLayout =
+                    new()
+                    {
+                        Width = Length.Px(ROW_W * inputSize + ROW_MARGIN * 2),
+                        Height = Length.Content(),
+                    };
+                LayoutParameters outputLayout =
+                    new()
+                    {
+                        Width = Length.Px(ROW_W * outputSize + ROW_MARGIN * 2),
+                        Height = Length.Content(),
+                    };
 
                 if (columns.Any())
                 {
-                    columns.Add(new Image()
-                    {
-                        Layout = new() { Width = Length.Px(ThinVDivider.Size.X), Height = Length.Stretch() },
-                        Fit = ImageFit.Stretch,
-                        Sprite = ThinVDivider,
-                    });
+                    columns.Add(
+                        new Image()
+                        {
+                            Layout = new()
+                            {
+                                Width = Length.Px(ThinVDivider.Size.X),
+                                Height = Length.Stretch(),
+                            },
+                            Fit = ImageFit.Stretch,
+                            Sprite = ThinVDivider,
+                        }
+                    );
                 }
-                columns.Add(new Lane()
-                {
-                    Name = $"RuleListColumn_{++seq}",
-                    Orientation = Orientation.Vertical,
-                    Children = rulesC.Select((rule) => CreateRuleListEntry(rule, inputLayout, outputLayout)).ToList(),
-                    Margin = new(COL_MARGIN),
-                });
+                columns.Add(
+                    new Lane()
+                    {
+                        Name = $"RuleListColumn_{++seq}",
+                        Orientation = Orientation.Vertical,
+                        Children = rulesC
+                            .Select((rule) => CreateRuleListEntry(rule, inputLayout, outputLayout))
+                            .ToList(),
+                        Margin = new(COL_MARGIN),
+                    }
+                );
             }
 
             return new Lane()
@@ -590,7 +626,11 @@ namespace MachineControlPanel.Framework.UI
         /// <param name="inputLayout"></param>
         /// <param name="outputLayout"></param>
         /// <returns></returns>
-        private IView CreateRuleListEntry(RuleEntry rule, LayoutParameters inputLayout, LayoutParameters outputLayout)
+        private IView CreateRuleListEntry(
+            RuleEntry rule,
+            LayoutParameters inputLayout,
+            LayoutParameters outputLayout
+        )
         {
             List<IView> children = [];
             if (Game1.IsMasterGame)
@@ -601,60 +641,70 @@ namespace MachineControlPanel.Framework.UI
                 }
                 else
                 {
-                    CheckBox checkBox = new()
-                    {
-                        IsChecked = !ruleHelper.HasDisabledRule(rule.Ident),
+                    CheckBox checkBox =
+                        new()
+                        {
+                            IsChecked = !ruleHelper.HasDisabledRule(rule.Ident),
 #if DEBUG
-                        Tooltip = $"O: {rule.Ident.OutputId}\nT: {rule.Ident.TriggerId}",
+                            Tooltip = $"O: {rule.Ident.OutputId}\nT: {rule.Ident.TriggerId}",
 #endif
-                    };
+                        };
                     ruleCheckBoxes[rule.Ident] = checkBox;
                     children.Add(checkBox);
                 }
             }
             else
             {
-                children.Add(new Image()
-                {
-                    Sprite = ruleHelper.HasDisabledRule(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
-                    Tint = Color.White * 0.5f,
-                    Layout = LayoutParameters.FitContent(),
-                    Focusable = false
-                });
+                children.Add(
+                    new Image()
+                    {
+                        Sprite = ruleHelper.HasDisabledRule(rule.Ident)
+                            ? UiSprites.CheckboxUnchecked
+                            : UiSprites.CheckboxChecked,
+                        Tint = Color.White * 0.5f,
+                        Layout = LayoutParameters.FitContent(),
+                        Focusable = false,
+                    }
+                );
             }
 
-            children.Add(new Lane()
-            {
-                Name = $"{rule.Repr}.Inputs",
-                Layout = inputLayout,
-                Orientation = Orientation.Horizontal,
-                HorizontalContentAlignment = Alignment.End,
-                VerticalContentAlignment = Alignment.Middle,
-                Children = FormRuleItemPanels(rule.Inputs)
-            });
+            children.Add(
+                new Lane()
+                {
+                    Name = $"{rule.Repr}.Inputs",
+                    Layout = inputLayout,
+                    Orientation = Orientation.Horizontal,
+                    HorizontalContentAlignment = Alignment.End,
+                    VerticalContentAlignment = Alignment.Middle,
+                    Children = FormRuleItemPanels(rule.Inputs),
+                }
+            );
 
-            children.Add(new Image()
-            {
-                Name = $"{rule.Repr}.Arrow",
-                Layout = LayoutParameters.FitContent(),
-                Padding = new(20, 16),
-                Sprite = RightCaret
-            });
-
+            children.Add(
+                new Image()
+                {
+                    Name = $"{rule.Repr}.Arrow",
+                    Layout = LayoutParameters.FitContent(),
+                    Padding = new(20, 16),
+                    Sprite = RightCaret,
+                }
+            );
 
             List<IView> outputPanels = FormRuleItemPanels(rule.Outputs);
             if (outputPanels.Count > 4)
                 outputPanels = [new OutputModalButton(outputPanels)];
-            children.Add(new Lane()
-            {
-                Name = $"{rule.Repr}.Outputs",
-                Layout = outputLayout,
-                Orientation = Orientation.Horizontal,
-                HorizontalContentAlignment = Alignment.Start,
-                VerticalContentAlignment = Alignment.Middle,
-                Children = outputPanels,
-                Margin = new(Left: ROW_MARGIN * 1)
-            });
+            children.Add(
+                new Lane()
+                {
+                    Name = $"{rule.Repr}.Outputs",
+                    Layout = outputLayout,
+                    Orientation = Orientation.Horizontal,
+                    HorizontalContentAlignment = Alignment.Start,
+                    VerticalContentAlignment = Alignment.Middle,
+                    Children = outputPanels,
+                    Margin = new(Left: ROW_MARGIN * 1),
+                }
+            );
 
             return new Lane()
             {
@@ -684,17 +734,19 @@ namespace MachineControlPanel.Framework.UI
                 {
                     List<IView> withExtraOut = [itemPanel];
                     withExtraOut.AddRange(ruleItem.Extra.Select((rule) => FormRuleItemPanel(rule)));
-                    content.Add(new Frame()
-                    {
-                        Border = OutputGroup,
-                        BorderThickness = OutputGroup.FixedEdges!,
-                        Content = new Lane()
+                    content.Add(
+                        new Frame()
                         {
-                            Orientation = Orientation.Horizontal,
-                            Children = withExtraOut,
-                            Margin = new(4, 2),
+                            Border = OutputGroup,
+                            BorderThickness = OutputGroup.FixedEdges!,
+                            Content = new Lane()
+                            {
+                                Orientation = Orientation.Horizontal,
+                                Children = withExtraOut,
+                                Margin = new(4, 2),
+                            },
                         }
-                    });
+                    );
                 }
                 else
                 {
@@ -716,25 +768,28 @@ namespace MachineControlPanel.Framework.UI
             List<IView> iconImgs = [];
             foreach (var icon in ruleItem.Icons)
             {
-                iconImgs.Add(new Image()
-                {
-                    Layout = LayoutParameters.FixedSize(
-                        icon.Img.Size.X * icon.Scale,
-                        icon.Img.Size.X * icon.Scale
-                    ),
-                    Padding = icon.Edge,
-                    Sprite = icon.Img,
-                    Tint = icon.Tint ?? Color.White
-                });
+                iconImgs.Add(
+                    new Image()
+                    {
+                        Layout = LayoutParameters.FixedSize(
+                            icon.Img.Size.X * icon.Scale,
+                            icon.Img.Size.X * icon.Scale
+                        ),
+                        Padding = icon.Edge,
+                        Sprite = icon.Img,
+                        Tint = icon.Tint ?? Color.White,
+                    }
+                );
             }
-            HoveredItemPanel itemPanel = new()
-            {
-                Layout = IconLayout,
-                Children = iconImgs,
-                Tooltip = string.Join('\n', ruleItem.Tooltip.Select((tip) => tip.Trim())),
-                Focusable = true,
-                HoveredItem = ruleItem.Item
-            };
+            HoveredItemPanel itemPanel =
+                new()
+                {
+                    Layout = IconLayout,
+                    Children = iconImgs,
+                    Tooltip = string.Join('\n', ruleItem.Tooltip.Select((tip) => tip.Trim())),
+                    Focusable = true,
+                    HoveredItem = ruleItem.Item,
+                };
             if (showDigits && ruleItem.Count > 1)
             {
                 int num = ruleItem.Count;
@@ -743,12 +798,14 @@ namespace MachineControlPanel.Framework.UI
                 {
                     // final digit
                     int digit = num % 10;
-                    itemPanel.Children.Add(new Image()
-                    {
-                        Layout = LayoutParameters.FixedSize(15, 21),
-                        Padding = new(Left: offset, Top: 48),
-                        Sprite = Digits[digit]
-                    });
+                    itemPanel.Children.Add(
+                        new Image()
+                        {
+                            Layout = LayoutParameters.FixedSize(15, 21),
+                            Padding = new(Left: offset, Top: 48),
+                            Sprite = Digits[digit],
+                        }
+                    );
                     // unclear why this looks the best, shouldnt it be scale * 5?
                     offset -= 12;
                     num /= 10;

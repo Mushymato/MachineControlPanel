@@ -11,10 +11,9 @@ namespace MachineControlPanel.Framework
         ImmutableHashSet<string> Inputs,
         bool[] Quality
     );
-    public sealed record ModSaveDataEntryMessage(
-        string QId,
-        ModSaveDataEntry? Entry
-    );
+
+    public sealed record ModSaveDataEntryMessage(string QId, ModSaveDataEntry? Entry);
+
     public sealed class ModSaveData
     {
         public ISemanticVersion Version { get; set; } = new SemanticVersion(1, 0, 0);
@@ -31,7 +30,10 @@ namespace MachineControlPanel.Framework
             var machinesData = DataLoader.Machines(Game1.content);
             foreach ((string qId, ModSaveDataEntry msdEntry) in Disabled)
             {
-                if (ItemRegistry.GetData(qId) is not ParsedItemData itemData || !machinesData.TryGetValue(qId, out MachineData? machine))
+                if (
+                    ItemRegistry.GetData(qId) is not ParsedItemData itemData
+                    || !machinesData.TryGetValue(qId, out MachineData? machine)
+                )
                 {
                     Disabled.Remove(qId);
                     ModEntry.Log($"Remove nonexistent machine {qId} from save data");
@@ -50,8 +52,13 @@ namespace MachineControlPanel.Framework
                 }
 
                 var newRules = msdEntry.Rules.Where(allIdents.Contains).ToImmutableHashSet();
-                var newInputs = msdEntry.Inputs.Where((input) => ItemRegistry.GetData(input) != null).ToImmutableHashSet();
-                if (newRules.Count != msdEntry.Rules.Count || newInputs.Count != msdEntry.Inputs.Count)
+                var newInputs = msdEntry
+                    .Inputs.Where((input) => ItemRegistry.GetData(input) != null)
+                    .ToImmutableHashSet();
+                if (
+                    newRules.Count != msdEntry.Rules.Count
+                    || newInputs.Count != msdEntry.Inputs.Count
+                )
                 {
                     ModEntry.Log($"Clear nonexistent rules of machine {qId} from save data");
                     hasChange = true;

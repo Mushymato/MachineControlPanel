@@ -13,7 +13,13 @@ namespace MachineControlPanel.Framework
         /// <param name="getId"></param>
         /// <param name="setIdSeq"></param>
         /// <param name="process"></param>
-        private static void EnsureUniqueId<T>(string debugText, List<T>? modelList, Func<T, string> getId, Action<T, int> setIdSeq, Action<T>? process = null)
+        private static void EnsureUniqueId<T>(
+            string debugText,
+            List<T>? modelList,
+            Func<T, string> getId,
+            Action<T, int> setIdSeq,
+            Action<T>? process = null
+        )
         {
             if (modelList == null)
                 return;
@@ -68,14 +74,19 @@ namespace MachineControlPanel.Framework
                     qItemId,
                     machine.OutputRules,
                     (rule) => rule.Id,
-                    (rule, seq) => rule.Id = rule.Id == null ? $"null-rule-{seq}" : $"{rule.Id}-rule-{seq}",
+                    (rule, seq) =>
+                        rule.Id = rule.Id == null ? $"null-rule-{seq}" : $"{rule.Id}-rule-{seq}",
                     (rule) =>
                     {
                         EnsureUniqueId(
                             $"{qItemId}-{rule.Id}",
                             rule.Triggers,
                             (trigger) => trigger.Id,
-                            (trigger, seq) => trigger.Id = trigger.Id == null ? $"null-trigger-{seq}" : $"{trigger.Id}-trigger-{seq}"
+                            (trigger, seq) =>
+                                trigger.Id =
+                                    trigger.Id == null
+                                        ? $"null-trigger-{seq}"
+                                        : $"{trigger.Id}-trigger-{seq}"
                         );
                     }
                 );

@@ -13,26 +13,26 @@
   "Version": "1.1.0",
   "Description": "A control panel for machine rules.",
   "MinimumApiVersion": "4.1",
-  "MinimumGameVersion": "1.6.10",
+  "MinimumGameVersion": "1.6.14",
   "EntryDll": "MachineControlPanel.dll",
   "Dependencies": [
     {
       "UniqueID": "focustense.StardewUI",
-      "MinimumVersion": "0.2.5"
+      "MinimumVersion": "0.3.0"
     },
     {
       "UniqueID": "Pathoschild.ContentPatcher",
-      "MinimumVersion": "2.4.0",
+      "MinimumVersion": "2.4.4",
       "IsRequired": false
     },
     {
       "UniqueID": "Pathoschild.LookupAnything",
-      "MinimumVersion": "1.46.0",
+      "MinimumVersion": "1.46.2",
       "IsRequired": false
     },
     {
       "UniqueID": "selph.ExtraMachineConfig",
-      "MinimumVersion": "1.11.0",
+      "MinimumVersion": "1.12.1",
       "IsRequired": false
     },
     {

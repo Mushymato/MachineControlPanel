@@ -28,6 +28,5 @@ namespace MachineControlPanel.Framework.UI
             if (ModEntry.Config.SaveOnChange)
                 View.SaveAllRules();
         }
-
     }
 }
