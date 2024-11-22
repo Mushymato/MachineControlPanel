@@ -33,8 +33,7 @@ internal sealed class MachineSelect(
         xTile.Dimensions.Size viewportSize = Game1.uiViewport.Size;
         cells.First().Measure(new(viewportSize.Width, viewportSize.Height));
         Vector2 gridSize = cells.First().ActualBounds.Size;
-        gridCount = (int)
-            MathF.Min(gridCount, MathF.Floor((viewportSize.Width - GUTTER) / gridSize.X));
+        gridCount = (int)MathF.Min(gridCount, MathF.Floor((viewportSize.Width - GUTTER) / gridSize.X));
         float menuWidth = gridCount * gridSize.X;
         float menuHeight = MathF.Min(
             MathF.Max(400, viewportSize.Height - gridSize.X),
@@ -83,14 +82,7 @@ internal sealed class MachineSelect(
             if (ItemRegistry.GetData(qId) is not ParsedItemData itemData)
                 continue;
 
-            if (
-                RuleHelperCache.TryGetRuleHelper(
-                    itemData.QualifiedItemId,
-                    itemData.DisplayName,
-                    machine,
-                    out RuleHelper? ruleHelper
-                )
-            )
+            if (RuleHelperCache.TryGetRuleHelper(itemData.QualifiedItemId, itemData.DisplayName, machine, out RuleHelper? ruleHelper))
             {
                 MachineCell cell = new(ruleHelper, itemData) { Name = $"MachineSelect.{qId}" };
                 cell.LeftClick += ShowPanel;
@@ -112,12 +104,7 @@ internal sealed class MachineSelect(
         {
             if (machineCell.ruleHelper.GetRuleEntries())
             {
-                var overlay = new RuleListOverlay(
-                    machineCell.ruleHelper,
-                    saveMachineRules,
-                    setHoverEvents,
-                    machineCell.UpdateEdited
-                );
+                var overlay = new RuleListOverlay(machineCell.ruleHelper, saveMachineRules, setHoverEvents, machineCell.UpdateEdited);
                 Overlay.Push(overlay);
             }
         }

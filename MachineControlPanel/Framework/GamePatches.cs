@@ -25,23 +25,14 @@ internal static class GamePatches
         try
         {
             harmony.Patch(
-                original: AccessTools.Method(
-                    typeof(MachineDataUtility),
-                    nameof(MachineDataUtility.CanApplyOutput)
-                ),
+                original: AccessTools.Method(typeof(MachineDataUtility), nameof(MachineDataUtility.CanApplyOutput)),
                 // prefix: new HarmonyMethod(typeof(GamePatches), nameof(MachineDataUtility_CanApplyOutput_Prefix)),
-                transpiler: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(MachineDataUtility_CanApplyOutput_Transpiler)
-                )
+                transpiler: new HarmonyMethod(typeof(GamePatches), nameof(MachineDataUtility_CanApplyOutput_Transpiler))
             );
             ModEntry.Log($"Applied MachineDataUtility.CanApplyOutput Transpiler", LogLevel.Trace);
             harmony.Patch(
                 original: AccessTools.Method(typeof(SObject), nameof(SObject.PlaceInMachine)),
-                transpiler: new HarmonyMethod(
-                    typeof(GamePatches),
-                    nameof(SObject_PlaceInMachine_Transpiler)
-                )
+                transpiler: new HarmonyMethod(typeof(GamePatches), nameof(SObject_PlaceInMachine_Transpiler))
             );
             ModEntry.Log($"Applied MachineDataUtility.PlaceInMachine Transpiler", LogLevel.Trace);
         }
@@ -60,12 +51,7 @@ internal static class GamePatches
     /// <param name="inputItem"></param>
     /// <param name="idx"></param>
     /// <returns></returns>
-    private static bool ShouldSkipMachineInput(
-        MachineOutputTriggerRule trigger2,
-        SObject machine,
-        MachineOutputRule rule,
-        Item inputItem
-    )
+    private static bool ShouldSkipMachineInput(MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem)
     {
         RuleIdent ident = new(rule.Id, trigger2.Id);
         if (!ModEntry.TryGetSavedEntry(machine.QualifiedItemId, out ModSaveDataEntry? msdEntry))
@@ -83,17 +69,13 @@ internal static class GamePatches
         {
             if (msdEntry.Inputs.Contains(inputItem.QualifiedItemId))
             {
-                ModEntry.LogOnce(
-                    $"{machine.QualifiedItemId} Input {inputItem.QualifiedItemId} disabled."
-                );
+                ModEntry.LogOnce($"{machine.QualifiedItemId} Input {inputItem.QualifiedItemId} disabled.");
                 skipped = SkipReason.Input;
                 return true;
             }
             if (msdEntry.Quality[inputItem.Quality])
             {
-                ModEntry.LogOnce(
-                    $"{machine.QualifiedItemId} Quality {inputItem.Quality} disabled."
-                );
+                ModEntry.LogOnce($"{machine.QualifiedItemId} Quality {inputItem.Quality} disabled.");
                 skipped = SkipReason.Quality;
                 return true;
             }
@@ -140,10 +122,7 @@ internal static class GamePatches
     /// <param name="instructions"></param>
     /// <param name="generator"></param>
     /// <returns></returns>
-    private static IEnumerable<CodeInstruction> MachineDataUtility_CanApplyOutput_Transpiler(
-        IEnumerable<CodeInstruction> instructions,
-        ILGenerator generator
-    )
+    private static IEnumerable<CodeInstruction> MachineDataUtility_CanApplyOutput_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         try
         {
@@ -171,18 +150,9 @@ internal static class GamePatches
                     [
                         new(OpCodes.Brfalse_S),
                         ldlocAny,
-                        new(
-                            OpCodes.Callvirt,
-                            AccessTools.PropertyGetter(
-                                typeof(MachineOutputTriggerRule),
-                                nameof(MachineOutputTriggerRule.RequiredCount)
-                            )
-                        ),
+                        new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(MachineOutputTriggerRule), nameof(MachineOutputTriggerRule.RequiredCount))),
                         new(OpCodes.Ldarg_3),
-                        new(
-                            OpCodes.Callvirt,
-                            AccessTools.PropertyGetter(typeof(Item), nameof(Item.Stack))
-                        ),
+                        new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Item), nameof(Item.Stack))),
                     ]
                 )
                 .ThrowIfNotMatch("Failed to find 'if (trigger2.RequiredCount > inputItem.Stack)'");
@@ -201,13 +171,7 @@ internal static class GamePatches
                         new(OpCodes.Ldarg_1), // MachineOutputRule rule
                         new(OpCodes.Ldarg_3), // Item inputItem
                         // new(OpCodes.Ldloc, idx), // foreach idx
-                        new(
-                            OpCodes.Call,
-                            AccessTools.DeclaredMethod(
-                                typeof(GamePatches),
-                                nameof(ShouldSkipMachineInput)
-                            )
-                        ),
+                        new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldSkipMachineInput))),
                         new(OpCodes.Brtrue, lbl),
                         ldloc, // MachineOutputTriggerRule trigger2
                     ]
@@ -236,13 +200,7 @@ internal static class GamePatches
                         new(OpCodes.Ldarg_1), // MachineOutputRule rule
                         new(OpCodes.Ldarg_3), // Item inputItem
                         // new(OpCodes.Ldloc, idx), // foreach idx
-                        new(
-                            OpCodes.Call,
-                            AccessTools.DeclaredMethod(
-                                typeof(GamePatches),
-                                nameof(ShouldSkipMachineInput_DayUpdate)
-                            )
-                        ),
+                        new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldSkipMachineInput_DayUpdate))),
                         new(OpCodes.Brtrue, lbl),
                         new(OpCodes.Ldarg_S, (byte)6),
                     ]
@@ -272,10 +230,7 @@ internal static class GamePatches
         }
         catch (Exception err)
         {
-            ModEntry.Log(
-                $"Error in MachineDataUtility_CanApplyOutput_Transpiler:\n{err}",
-                LogLevel.Error
-            );
+            ModEntry.Log($"Error in MachineDataUtility_CanApplyOutput_Transpiler:\n{err}", LogLevel.Error);
             return instructions;
         }
     }
@@ -313,10 +268,7 @@ internal static class GamePatches
     /// <param name="instructions"></param>
     /// <param name="generator"></param>
     /// <returns></returns>
-    private static IEnumerable<CodeInstruction> SObject_PlaceInMachine_Transpiler(
-        IEnumerable<CodeInstruction> instructions,
-        ILGenerator generator
-    )
+    private static IEnumerable<CodeInstruction> SObject_PlaceInMachine_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
     {
         try
         {
@@ -326,13 +278,7 @@ internal static class GamePatches
                 .Start()
                 .MatchStartForward(
                     [
-                        new(
-                            OpCodes.Stfld,
-                            AccessTools.Field(
-                                typeof(Farmer),
-                                nameof(Farmer.ignoreItemConsumptionThisFrame)
-                            )
-                        ),
+                        new(OpCodes.Stfld, AccessTools.Field(typeof(Farmer), nameof(Farmer.ignoreItemConsumptionThisFrame))),
                         new(OpCodes.Ldc_I4_0),
                         new(OpCodes.Ret),
                         new(OpCodes.Ldarg_3),
@@ -346,10 +292,7 @@ internal static class GamePatches
                 [
                     new(OpCodes.Ldarg_2),
                     new(OpCodes.Ldarg_S, (sbyte)4),
-                    new(
-                        OpCodes.Call,
-                        AccessTools.Method(typeof(GamePatches), nameof(ShowSkippedReasonMessage))
-                    ),
+                    new(OpCodes.Call, AccessTools.Method(typeof(GamePatches), nameof(ShowSkippedReasonMessage))),
                 ]
             );
             matcher.CreateLabel(out Label lbl);
@@ -363,14 +306,7 @@ internal static class GamePatches
                         AccessTools.Method(
                             typeof(GameStateQuery),
                             nameof(GameStateQuery.CheckConditions),
-                            [
-                                typeof(string),
-                                typeof(GameLocation),
-                                typeof(Farmer),
-                                typeof(Item),
-                                typeof(Random),
-                                typeof(HashSet<string>),
-                            ]
+                            [typeof(string), typeof(GameLocation), typeof(Farmer), typeof(Item), typeof(Random), typeof(HashSet<string>)]
                         )
                     ),
                     new(OpCodes.Brfalse_S),
@@ -379,16 +315,7 @@ internal static class GamePatches
             matcher.Operand = lbl;
 
             matcher.MatchEndBackwards(
-                [
-                    new(
-                        OpCodes.Ldfld,
-                        AccessTools.Field(
-                            typeof(MachineData),
-                            nameof(MachineData.InvalidItemMessage)
-                        )
-                    ),
-                    new(OpCodes.Brfalse_S),
-                ]
+                [new(OpCodes.Ldfld, AccessTools.Field(typeof(MachineData), nameof(MachineData.InvalidItemMessage))), new(OpCodes.Brfalse_S)]
             );
             matcher.Operand = lbl;
 
@@ -396,10 +323,7 @@ internal static class GamePatches
         }
         catch (Exception err)
         {
-            ModEntry.Log(
-                $"Error in MachineDataUtility_CanApplyOutput_Transpiler:\n{err}",
-                LogLevel.Error
-            );
+            ModEntry.Log($"Error in MachineDataUtility_CanApplyOutput_Transpiler:\n{err}", LogLevel.Error);
             return instructions;
         }
     }

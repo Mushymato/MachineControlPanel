@@ -15,12 +15,7 @@ internal sealed class RuleListOverlay(
     {
         if (ModEntry.Config.SaveOnChange)
             Close += OnClose;
-        return new(
-            ruleHelper,
-            saveMachineRules,
-            setHoverEvents: setHoverEvents,
-            updateEdited: updateEdited
-        );
+        return new(ruleHelper, saveMachineRules, setHoverEvents: setHoverEvents, updateEdited: updateEdited);
     }
 
     /// <summary>Save on close handler</summary>

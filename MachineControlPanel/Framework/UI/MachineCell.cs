@@ -13,8 +13,7 @@ namespace MachineControlPanel.Framework.UI;
 /// </summary>
 internal class MachineCell : HoveredItemPanel
 {
-    internal static readonly Sprite bgSprite =
-        new(Game1.mouseCursors, new(384, 396, 15, 15), new(5), new(Scale: 4));
+    internal static readonly Sprite bgSprite = new(Game1.mouseCursors, new(384, 396, 15, 15), new(5), new(Scale: 4));
     internal RuleHelper ruleHelper;
     private readonly Frame innerFrame;
 

@@ -12,10 +12,8 @@ namespace MachineControlPanel.Framework.UI.Modal;
 internal sealed class OverflowOutputModalButton : Button
 {
     private readonly List<IView> outputPanels;
-    private static readonly Sprite bgSprite =
-        new(Game1.mouseCursors, new Rectangle(392, 361, 10, 11));
-    private static readonly Sprite bgHoverSprite =
-        new(Game1.mouseCursors, new Rectangle(402, 361, 10, 11));
+    private static readonly Sprite bgSprite = new(Game1.mouseCursors, new Rectangle(392, 361, 10, 11));
+    private static readonly Sprite bgHoverSprite = new(Game1.mouseCursors, new Rectangle(402, 361, 10, 11));
 
     public OverflowOutputModalButton(List<IView> outputPanels)
         : base()

@@ -37,10 +37,7 @@ internal sealed class ModEntry : Mod
     /// <param name="QId"></param>
     /// <param name="msdEntry"></param>
     /// <returns></returns>
-    internal static bool TryGetSavedEntry(
-        string QId,
-        [NotNullWhen(true)] out ModSaveDataEntry? msdEntry
-    )
+    internal static bool TryGetSavedEntry(string QId, [NotNullWhen(true)] out ModSaveDataEntry? msdEntry)
     {
         msdEntry = null;
         if (saveData != null)
@@ -76,17 +73,9 @@ internal sealed class ModEntry : Mod
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
 
-        helper.ConsoleCommands.Add(
-            "mcp_reset_savedata",
-            "Reset save data associated with this mod.",
-            ConsoleResetSaveData
-        );
+        helper.ConsoleCommands.Add("mcp_reset_savedata", "Reset save data associated with this mod.", ConsoleResetSaveData);
 #if DEBUG
-        helper.ConsoleCommands.Add(
-            "mcp_export_iqc",
-            "export the item query cache",
-            ConsoleExportItemQueryCache
-        );
+        helper.ConsoleCommands.Add("mcp_export_iqc", "export the item query cache", ConsoleExportItemQueryCache);
 #endif
     }
 
@@ -167,12 +156,7 @@ internal sealed class ModEntry : Mod
         if (!Game1.IsMasterGame)
             return;
 
-        Helper.Multiplayer.SendMessage(
-            saveData,
-            SAVEDATA,
-            modIDs: [ModManifest.UniqueID],
-            playerIDs: [e.Peer.PlayerID]
-        );
+        Helper.Multiplayer.SendMessage(saveData, SAVEDATA, modIDs: [ModManifest.UniqueID], playerIDs: [e.Peer.PlayerID]);
     }
 
     /// <summary>
@@ -252,12 +236,7 @@ internal sealed class ModEntry : Mod
     /// <param name="bigCraftableId"></param>
     /// <param name="disabledRules"></param>
     /// <param name="disabledInputs"></param>
-    private void SaveMachineRules(
-        string bigCraftableId,
-        IEnumerable<RuleIdent> disabledRules,
-        IEnumerable<string> disabledInputs,
-        bool[] disabledQuality
-    )
+    private void SaveMachineRules(string bigCraftableId, IEnumerable<RuleIdent> disabledRules, IEnumerable<string> disabledInputs, bool[] disabledQuality)
     {
         if (!Game1.IsMasterGame)
             return;
@@ -274,19 +253,11 @@ internal sealed class ModEntry : Mod
         }
         else
         {
-            msdEntry = new(
-                disabledRules.ToImmutableHashSet(),
-                disabledInputs.ToImmutableHashSet(),
-                disabledQuality
-            );
+            msdEntry = new(disabledRules.ToImmutableHashSet(), disabledInputs.ToImmutableHashSet(), disabledQuality);
             saveData.Disabled[bigCraftableId] = msdEntry;
         }
         saveData.Version = ModManifest.Version;
-        Helper.Multiplayer.SendMessage(
-            new ModSaveDataEntryMessage(bigCraftableId, msdEntry),
-            SAVEDATA_ENTRY,
-            modIDs: [ModManifest.UniqueID]
-        );
+        Helper.Multiplayer.SendMessage(new ModSaveDataEntryMessage(bigCraftableId, msdEntry), SAVEDATA_ENTRY, modIDs: [ModManifest.UniqueID]);
         Helper.Data.WriteSaveData(SAVEDATA, saveData);
 #if DEBUG
         LogSaveData(bigCraftableId);
@@ -313,11 +284,7 @@ internal sealed class ModEntry : Mod
     /// <returns></returns>
     private bool ShowMachineSelect()
     {
-        if (
-            Game1.activeClickableMenu == null
-            && Config.MachineSelectKey.JustPressed()
-            && saveData != null
-        )
+        if (Game1.activeClickableMenu == null && Config.MachineSelectKey.JustPressed() && saveData != null)
         {
             Game1.activeClickableMenu = GetMachineSelectMenu();
         }
@@ -339,27 +306,14 @@ internal sealed class ModEntry : Mod
     /// <returns></returns>
     private bool ShowPanel()
     {
-        if (
-            Game1.activeClickableMenu == null
-            && Config.ControlPanelKey.JustPressed()
-            && saveData != null
-        )
+        if (Game1.activeClickableMenu == null && Config.ControlPanelKey.JustPressed() && saveData != null)
         {
             // ICursorPosition.GrabTile is unreliable with gamepad controls. Instead recreate game logic.
             Vector2 cursorTile = Game1.currentCursorTile;
-            Point tile = Utility.tileWithinRadiusOfPlayer(
-                (int)cursorTile.X,
-                (int)cursorTile.Y,
-                1,
-                Game1.player
-            )
+            Point tile = Utility.tileWithinRadiusOfPlayer((int)cursorTile.X, (int)cursorTile.Y, 1, Game1.player)
                 ? cursorTile.ToPoint()
                 : Game1.player.GetGrabTile().ToPoint();
-            SObject? bigCraftable = Game1.player.currentLocation.getObjectAtTile(
-                tile.X,
-                tile.Y,
-                ignorePassables: true
-            );
+            SObject? bigCraftable = Game1.player.currentLocation.getObjectAtTile(tile.X, tile.Y, ignorePassables: true);
             if (bigCraftable != null && bigCraftable.bigCraftable.Value)
             {
                 return ShowPanelFor(bigCraftable);
@@ -379,12 +333,8 @@ internal sealed class ModEntry : Mod
             return false;
 
         if (
-            RuleHelperCache.TryGetRuleHelper(
-                bigCraftable.QualifiedItemId,
-                bigCraftable.DisplayName,
-                machine,
-                out RuleHelper? ruleHelper
-            ) && ruleHelper.GetRuleEntries()
+            RuleHelperCache.TryGetRuleHelper(bigCraftable.QualifiedItemId, bigCraftable.DisplayName, machine, out RuleHelper? ruleHelper)
+            && ruleHelper.GetRuleEntries()
         )
         {
             Game1.activeClickableMenu = new RuleListMenu(ruleHelper, SaveMachineRules, true);

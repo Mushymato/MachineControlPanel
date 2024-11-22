@@ -11,13 +11,7 @@ internal sealed class RuleListMenu(
 {
     protected override RuleListView CreateView()
     {
-        return new(
-            ruleHelper,
-            saveMachineRules,
-            showExitX ? exitThisMenu : null,
-            ModEntry.HasLookupAnying ? SetHoverEvents : null,
-            updateEdited: updateEdited
-        );
+        return new(ruleHelper, saveMachineRules, showExitX ? exitThisMenu : null, ModEntry.HasLookupAnying ? SetHoverEvents : null, updateEdited: updateEdited);
     }
 
     /// <summary>

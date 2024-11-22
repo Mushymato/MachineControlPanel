@@ -25,11 +25,7 @@ internal static class DataExtensions
     /// <param name="key"></param>
     /// <param name="createValue"></param>
     /// <returns></returns>
-    public static TValue GetOrCreateValue<TValue>(
-        this Dictionary<string, TValue> dict,
-        string key,
-        Func<string, TValue> createValue
-    )
+    public static TValue GetOrCreateValue<TValue>(this Dictionary<string, TValue> dict, string key, Func<string, TValue> createValue)
     {
         if (dict.TryGetValue(key, out TValue? result))
             return result;
@@ -47,9 +43,7 @@ internal static class DataExtensions
     /// <exception cref="ArgumentException"></exception>
     public static Sprite GetItemSprite(this Item item, int offset = 0)
     {
-        ParsedItemData data =
-            ItemRegistry.GetData(item.QualifiedItemId)
-            ?? throw new ArgumentException($"Error item '{item.QualifiedItemId}'");
+        ParsedItemData data = ItemRegistry.GetData(item.QualifiedItemId) ?? throw new ArgumentException($"Error item '{item.QualifiedItemId}'");
         return new(data.GetTexture(), data.GetSourceRect(offset));
     }
 
@@ -80,32 +74,15 @@ internal static class RuleHelperCache
         ruleHelperCache.Clear();
     }
 
-    internal static bool TryGetRuleHelper(
-        string bigCraftableId,
-        string displayName,
-        MachineData machine,
-        [NotNullWhen(true)] out RuleHelper? ruleHelper
-    )
+    internal static bool TryGetRuleHelper(string bigCraftableId, string displayName, MachineData machine, [NotNullWhen(true)] out RuleHelper? ruleHelper)
     {
-        ruleHelper = ruleHelperCache.GetOrCreateValue(
-            bigCraftableId,
-            (bcId) => CreateRuleHelper(bcId, displayName, machine)
-        );
+        ruleHelper = ruleHelperCache.GetOrCreateValue(bigCraftableId, (bcId) => CreateRuleHelper(bcId, displayName, machine));
         return ruleHelper != null;
     }
 
-    internal static RuleHelper? CreateRuleHelper(
-        string qId,
-        string displayName,
-        MachineData machine
-    )
+    internal static RuleHelper? CreateRuleHelper(string qId, string displayName, MachineData machine)
     {
-        if (
-            machine.IsIncubator
-            || machine.OutputRules == null
-            || machine.OutputRules.Count == 0
-            || !machine.AllowFairyDust
-        )
+        if (machine.IsIncubator || machine.OutputRules == null || machine.OutputRules.Count == 0 || !machine.AllowFairyDust)
             return null;
         return new(qId, displayName, machine);
         // return ruleHelper.GetRuleEntries() ? ruleHelper : null;
@@ -115,8 +92,7 @@ internal static class RuleHelperCache
 /// <summary>Cache info about items matching a condition</summary>
 internal static class ItemQueryCache
 {
-    internal static IconEdge EmojiNote =>
-        new(new(ChatBox.emojiTexture, new Rectangle(81, 81, 9, 9)), Scale: 3f);
+    internal static IconEdge EmojiNote => new(new(ChatBox.emojiTexture, new Rectangle(81, 81, 9, 9)), Scale: 3f);
 
     // internal static IconEdge EmojiX => new(new(ChatBox.emojiTexture, new Rectangle(45, 81, 9, 9)), new(14), 4f);
     private static readonly List<string> ItemGSQ =
@@ -153,14 +129,7 @@ internal static class ItemQueryCache
             if (ItemRegistry.GetData(qId) is not ParsedItemData item)
                 continue;
 
-            if (
-                RuleHelperCache.TryGetRuleHelper(
-                    item.QualifiedItemId,
-                    item.DisplayName,
-                    machine,
-                    out RuleHelper? ruleHelper
-                )
-            )
+            if (RuleHelperCache.TryGetRuleHelper(item.QualifiedItemId, item.DisplayName, machine, out RuleHelper? ruleHelper))
             {
                 ruleHelper.GetRuleEntries();
             }
@@ -168,20 +137,13 @@ internal static class ItemQueryCache
 
         helper.Data.WriteJsonFile(
             "item_query_cache.json",
-            conditionItemDataCache.ToDictionary(
-                (kv) => kv.Key,
-                (kv) => kv.Value?.Select((kv1) => kv1.QualifiedItemId).ToList()
-            )
+            conditionItemDataCache.ToDictionary((kv) => kv.Key, (kv) => kv.Value?.Select((kv1) => kv1.QualifiedItemId).ToList())
         );
     }
 
     /// <summary>Probe the complex output delegate to verify that the item data is valid</summary>
     /// <param name="complexOutput"></param>
-    internal static IEnumerable<Item> FilterByOutputMethod(
-        string qId,
-        List<MachineItemOutput> outputs,
-        IEnumerable<Item>? itemDatas
-    )
+    internal static IEnumerable<Item> FilterByOutputMethod(string qId, List<MachineItemOutput> outputs, IEnumerable<Item>? itemDatas)
     {
         SObject machineObj = ItemRegistry.Create<SObject>(qId, allowNull: true);
         // magic knowledge that anvil takes trinkets
@@ -189,16 +151,12 @@ internal static class ItemQueryCache
             itemDatas ??= ItemRegistry
                 .RequireTypeDefinition<TrinketDataDefinition>("(TR)")
                 .GetAllData()
-                .Select(
-                    (itemData) => ItemRegistry.Create(itemData.QualifiedItemId, allowNull: true)
-                );
+                .Select((itemData) => ItemRegistry.Create(itemData.QualifiedItemId, allowNull: true));
         else
             itemDatas ??= ItemRegistry
                 .GetObjectTypeDefinition()
                 .GetAllData()
-                .Select(
-                    (itemData) => ItemRegistry.Create(itemData.QualifiedItemId, allowNull: true)
-                );
+                .Select((itemData) => ItemRegistry.Create(itemData.QualifiedItemId, allowNull: true));
         return itemDatas.Where(
             (item) =>
             {
@@ -207,13 +165,8 @@ internal static class ItemQueryCache
                     foreach (MachineItemOutput output in outputs)
                     {
                         if (
-                            StaticDelegateBuilder.TryCreateDelegate<MachineOutputDelegate>(
-                                output.OutputMethod,
-                                out var createdDelegate,
-                                out var _
-                            )
-                            && createdDelegate(machineObj, item, true, output, Game1.player, out _)
-                                != null
+                            StaticDelegateBuilder.TryCreateDelegate<MachineOutputDelegate>(output.OutputMethod, out var createdDelegate, out var _)
+                            && createdDelegate(machineObj, item, true, output, Game1.player, out _) != null
                         )
                         {
                             return true;
@@ -230,12 +183,7 @@ internal static class ItemQueryCache
     /// <param name="tags"></param>
     /// <param name="nonItemConditions"></param>
     /// <returns></returns>
-    internal static string? NormalizeCondition(
-        string? condition,
-        IEnumerable<string>? tags,
-        out List<string> nonItemConditions,
-        out List<string> skippedTags
-    )
+    internal static string? NormalizeCondition(string? condition, IEnumerable<string>? tags, out List<string> nonItemConditions, out List<string> skippedTags)
     {
         nonItemConditions = [];
         skippedTags = [];
@@ -275,10 +223,7 @@ internal static class ItemQueryCache
     /// <param name="tag"></param>
     /// <param name="itemDatas"></param>
     /// <returns></returns>
-    internal static bool TryGetConditionItemDatas(
-        string condition,
-        [NotNullWhen(true)] out ImmutableList<Item>? itemDatas
-    )
+    internal static bool TryGetConditionItemDatas(string condition, [NotNullWhen(true)] out ImmutableList<Item>? itemDatas)
     {
         itemDatas = conditionItemDataCache.GetOrCreateValue(condition, CreateConditionItemDatas);
         return itemDatas != null;
@@ -297,10 +242,7 @@ internal static class ItemQueryCache
     {
         itemDatas = null;
         if (condition != null)
-            itemDatas = conditionItemDataCache.GetOrCreateValue(
-                condition,
-                CreateConditionItemDatas
-            );
+            itemDatas = conditionItemDataCache.GetOrCreateValue(condition, CreateConditionItemDatas);
         if (complexOutputs.Any())
             itemDatas = FilterByOutputMethod(qId, complexOutputs, itemDatas).ToImmutableList();
         return itemDatas != null && itemDatas.Any();
@@ -312,11 +254,7 @@ internal static class ItemQueryCache
     private static ImmutableList<Item>? CreateConditionItemDatas(string condition)
     {
         // get all item data that matches a condition
-        if (
-            ItemQueryResolver.TryResolve("ALL_ITEMS", context, ItemQuerySearchMode.All, condition)
-                is ItemQueryResult[] results
-            && results.Any()
-        )
+        if (ItemQueryResolver.TryResolve("ALL_ITEMS", context, ItemQuerySearchMode.All, condition) is ItemQueryResult[] results && results.Any())
         {
             List<Item> resultItems = [];
             foreach (var res in results)
@@ -333,12 +271,7 @@ internal static class ItemQueryCache
     /// <param name="matchingItemDatas"></param>
     /// <param name="condition"></param>
     /// <returns></returns>
-    internal static RuleItem GetReprRuleItem(
-        ImmutableList<Item> matchingItemDatas,
-        string condition,
-        int count,
-        IEnumerable<string>? skippedTags = null
-    )
+    internal static RuleItem GetReprRuleItem(ImmutableList<Item> matchingItemDatas, string condition, int count, IEnumerable<string>? skippedTags = null)
     {
         // ParsedItemData reprItem = Random.Shared.ChooseFrom(matchingItemDatas);
         Item reprItem = matchingItemDatas.First();
@@ -347,32 +280,17 @@ internal static class ItemQueryCache
             if (skippedTags != null)
                 if (GetPreserveRuleItem(skippedTags, count, reprItem) is RuleItem preserve)
                     return preserve;
-            return new RuleItem(
-                [new(reprItem.GetItemSprite())],
-                [reprItem.DisplayName],
-                Count: count,
-                Item: reprItem
-            );
+            return new RuleItem([new(reprItem.GetItemSprite())], [reprItem.DisplayName], Count: count, Item: reprItem);
         }
         else
         {
             List<string> tooltips = [];
             foreach (string cond in condition.Split(','))
             {
-                if (
-                    cond.StartsWith("ITEM_CONTEXT_TAG Target ")
-                    || cond.StartsWith("!ITEM_CONTEXT_TAG Target ")
-                )
+                if (cond.StartsWith("ITEM_CONTEXT_TAG Target ") || cond.StartsWith("!ITEM_CONTEXT_TAG Target "))
                 {
                     bool negate = cond[0] == '!';
-                    string[] condTags = cond[
-                        (
-                            negate
-                                ? "!ITEM_CONTEXT_TAG Target ".Length
-                                : "ITEM_CONTEXT_TAG Target ".Length
-                        )..
-                    ]
-                        .Split(' ');
+                    string[] condTags = cond[(negate ? "!ITEM_CONTEXT_TAG Target ".Length : "ITEM_CONTEXT_TAG Target ".Length)..].Split(' ');
                     foreach (string tag in condTags)
                     {
                         if (tag == "")
@@ -389,11 +307,7 @@ internal static class ItemQueryCache
                     tooltips.Add(cond);
                 }
             }
-            return new RuleItem(
-                [new(reprItem.GetItemSprite(), Tint: Color.White * 0.5f), EmojiNote],
-                tooltips,
-                count
-            );
+            return new RuleItem([new(reprItem.GetItemSprite(), Tint: Color.White * 0.5f), EmojiNote], tooltips, count);
         }
     }
 
@@ -403,25 +317,14 @@ internal static class ItemQueryCache
     /// <param name="baseItem"></param>
     /// <param name="preserveTag"></param>
     /// <returns></returns>
-    internal static RuleItem? GetPreserveRuleItem(
-        IEnumerable<string> tags,
-        int count,
-        Item baseItem
-    )
+    internal static RuleItem? GetPreserveRuleItem(IEnumerable<string> tags, int count, Item baseItem)
     {
         foreach (string tag in tags)
         {
-            if (
-                tag == $"preserve_sheet_index_{SObject.WildHoneyPreservedId}"
-                && baseItem.QualifiedItemId == "(O)340"
-            )
+            if (tag == $"preserve_sheet_index_{SObject.WildHoneyPreservedId}" && baseItem.QualifiedItemId == "(O)340")
             {
                 // special case wild honey
-                return new RuleItem(
-                    [new(baseItem.GetItemSprite())],
-                    [Game1.content.LoadString("Strings\\Objects:Honey_Wild_Name")],
-                    Count: count
-                );
+                return new RuleItem([new(baseItem.GetItemSprite())], [Game1.content.LoadString("Strings\\Objects:Honey_Wild_Name")], Count: count);
             }
             bool negate = tag.StartsWith('!');
             string realTag = negate ? tag[1..] : tag;
@@ -444,18 +347,14 @@ internal static class ItemQueryCache
                 )
                 {
                     Color? tint;
-                    if (
-                        baseItem.QualifiedItemId == "(O)812"
-                        && preserveItem.QualifiedItemId == "(O)698"
-                    )
+                    if (baseItem.QualifiedItemId == "(O)812" && preserveItem.QualifiedItemId == "(O)698")
                         tint = new Color(61, 55, 42);
                     else
                         tint = TailoringMenu.GetDyeColor(preserveItem);
                     if (tint == null)
                         return null;
                     List<IconEdge> icons = [];
-                    if (
-                        Game1.objectData.TryGetValue(baseItem.ItemId, out var value)
+                    if (Game1.objectData.TryGetValue(baseItem.ItemId, out var value)
 #if !SDV_168
                         && value.ColorOverlayFromNextIndex
 #endif
@@ -468,12 +367,7 @@ internal static class ItemQueryCache
                     {
                         icons.Add(new(baseItem.GetItemSprite(), Tint: tint));
                     }
-                    return new RuleItem(
-                        icons,
-                        [$"{baseItem.DisplayName} ({preserveItem.DisplayName})"],
-                        Count: count,
-                        Item: baseItem
-                    );
+                    return new RuleItem(icons, [$"{baseItem.DisplayName} ({preserveItem.DisplayName})"], Count: count, Item: baseItem);
                 }
             }
         }

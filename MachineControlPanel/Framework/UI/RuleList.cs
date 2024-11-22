@@ -32,10 +32,8 @@ internal sealed class RuleListView(
     private static Sprite RightCaret => new(Game1.mouseCursors, new(448, 96, 24, 32));
     internal static Sprite ThinHDivider => new(Game1.menuTexture, SourceRect: new(64, 412, 64, 8));
     internal static Sprite ThinVDivider => new(Game1.menuTexture, SourceRect: new(156, 384, 8, 64));
-    private static Sprite TabButton =>
-        new(Game1.menuTexture, new(0, 256, 44, 60), new(16, 16, 0, 16));
-    internal static readonly Sprite OutputGroup =
-        new(Game1.mouseCursors, new(403, 373, 9, 9), new(2), new(Scale: 4));
+    private static Sprite TabButton => new(Game1.menuTexture, new(0, 256, 44, 60), new(16, 16, 0, 16));
+    internal static readonly Sprite OutputGroup = new(Game1.mouseCursors, new(403, 373, 9, 9), new(2), new(Scale: 4));
     private static readonly IReadOnlyList<Sprite> Digits = Enumerable
         .Range(0, 10)
         .Select((digit) => new Sprite(Game1.mouseCursors, new Rectangle(368 + digit * 5, 56, 5, 7)))
@@ -89,11 +87,7 @@ internal sealed class RuleListView(
         {
             inputsGrid = CreateInputsGrid();
             container.Measure(new(viewportSize.Width, viewportSize.Height));
-            inputsGrid.Layout = new()
-            {
-                Width = Length.Px(rulesList!.ContentSize.X),
-                Height = Length.Content(),
-            };
+            inputsGrid.Layout = new() { Width = Length.Px(rulesList!.ContentSize.X), Height = Length.Content() };
             scrollBox.FloatingElements.Add(new(CreateSidebar(), FloatingPosition.BeforeParent));
 
             if (ModEntry.Config.DefaultPage == DefaultPageOption.Inputs)
@@ -108,9 +102,7 @@ internal sealed class RuleListView(
                 Margin = new(Top: -85),
                 Padding = new(12),
                 Background = UiSprites.BannerBackground,
-                BackgroundBorderThickness =
-                    (UiSprites.BannerBackground.FixedEdges ?? Edges.NONE)
-                    * (UiSprites.BannerBackground.SliceSettings?.Scale ?? 1),
+                BackgroundBorderThickness = (UiSprites.BannerBackground.FixedEdges ?? Edges.NONE) * (UiSprites.BannerBackground.SliceSettings?.Scale ?? 1),
                 Text = ruleHelper.Name,
             };
 
@@ -214,12 +206,8 @@ internal sealed class RuleListView(
                 rulesBtn.Margin = tabButtonActive;
                 inputsBtn.Margin = tabButtonPassive;
             }
-            rulesBtn.Text = ruleHelper.HasDisabledRules
-                ? I18n.RuleList_Rules() + I18n.RuleList_Edited()
-                : I18n.RuleList_Rules();
-            inputsBtn.Text = ruleHelper.HasDisabledInputs
-                ? I18n.RuleList_Inputs() + I18n.RuleList_Edited()
-                : I18n.RuleList_Inputs();
+            rulesBtn.Text = ruleHelper.HasDisabledRules ? I18n.RuleList_Rules() + I18n.RuleList_Edited() : I18n.RuleList_Rules();
+            inputsBtn.Text = ruleHelper.HasDisabledInputs ? I18n.RuleList_Inputs() + I18n.RuleList_Edited() : I18n.RuleList_Inputs();
             if (toggleAllBtn != null)
                 toggleAllBtn.Text = GetToggleButtonText();
         }
@@ -443,22 +431,10 @@ internal sealed class RuleListView(
     private Lane CreateInputsGrid()
     {
         List<IView> qualityChecksUI = [];
-        foreach (
-            int quality in new int[]
-            {
-                SObject.lowQuality,
-                SObject.medQuality,
-                SObject.highQuality,
-                SObject.bestQuality,
-            }
-        )
+        foreach (int quality in new int[] { SObject.lowQuality, SObject.medQuality, SObject.highQuality, SObject.bestQuality })
         {
             QualityCheckable qualityCheckable =
-                new(quality, Game1.IsMasterGame)
-                {
-                    IsChecked = !ruleHelper.HasDisabledQuality(quality),
-                    Margin = new(ROW_MARGIN),
-                };
+                new(quality, Game1.IsMasterGame) { IsChecked = !ruleHelper.HasDisabledQuality(quality), Margin = new(ROW_MARGIN) };
             qualityChecksUI.Add(qualityCheckable);
             if (Game1.IsMasterGame)
                 qualityChecks.Add(qualityCheckable);
@@ -473,11 +449,7 @@ internal sealed class RuleListView(
         Image divider =
             new()
             {
-                Layout = new()
-                {
-                    Width = Length.Stretch(),
-                    Height = Length.Px(ThinHDivider.Size.Y),
-                },
+                Layout = new() { Width = Length.Stretch(), Height = Length.Px(ThinHDivider.Size.Y) },
                 Fit = ImageFit.Stretch,
                 Sprite = ThinHDivider,
             };
@@ -554,32 +526,16 @@ internal sealed class RuleListView(
         foreach (var rulesC in rulesColumns)
         {
             int inputSize = rulesC.Max((rule) => rule.Inputs.Count);
-            int outputSize = rulesC.Max(
-                (rule) => rule.Outputs.Count > OUTPUT_MAX ? 1 : rule.Outputs.Count
-            );
-            LayoutParameters inputLayout =
-                new()
-                {
-                    Width = Length.Px(ROW_W * inputSize + ROW_MARGIN * 2),
-                    Height = Length.Content(),
-                };
-            LayoutParameters outputLayout =
-                new()
-                {
-                    Width = Length.Px(ROW_W * outputSize + ROW_MARGIN * 2),
-                    Height = Length.Content(),
-                };
+            int outputSize = rulesC.Max((rule) => rule.Outputs.Count > OUTPUT_MAX ? 1 : rule.Outputs.Count);
+            LayoutParameters inputLayout = new() { Width = Length.Px(ROW_W * inputSize + ROW_MARGIN * 2), Height = Length.Content() };
+            LayoutParameters outputLayout = new() { Width = Length.Px(ROW_W * outputSize + ROW_MARGIN * 2), Height = Length.Content() };
 
             if (columns.Any())
             {
                 columns.Add(
                     new Image()
                     {
-                        Layout = new()
-                        {
-                            Width = Length.Px(ThinVDivider.Size.X),
-                            Height = Length.Stretch(),
-                        },
+                        Layout = new() { Width = Length.Px(ThinVDivider.Size.X), Height = Length.Stretch() },
                         Fit = ImageFit.Stretch,
                         Sprite = ThinVDivider,
                     }
@@ -590,9 +546,7 @@ internal sealed class RuleListView(
                 {
                     Name = $"RuleListColumn_{++seq}",
                     Orientation = Orientation.Vertical,
-                    Children = rulesC
-                        .Select((rule) => CreateRuleListEntry(rule, inputLayout, outputLayout))
-                        .ToList(),
+                    Children = rulesC.Select((rule) => CreateRuleListEntry(rule, inputLayout, outputLayout)).ToList(),
                     Margin = new(COL_MARGIN),
                 }
             );
@@ -615,11 +569,7 @@ internal sealed class RuleListView(
     /// <param name="inputLayout"></param>
     /// <param name="outputLayout"></param>
     /// <returns></returns>
-    private IView CreateRuleListEntry(
-        RuleEntry rule,
-        LayoutParameters inputLayout,
-        LayoutParameters outputLayout
-    )
+    private IView CreateRuleListEntry(RuleEntry rule, LayoutParameters inputLayout, LayoutParameters outputLayout)
     {
         List<IView> children = [];
         if (Game1.IsMasterGame)
@@ -647,9 +597,7 @@ internal sealed class RuleListView(
             children.Add(
                 new Image()
                 {
-                    Sprite = ruleHelper.HasDisabledRule(rule.Ident)
-                        ? UiSprites.CheckboxUnchecked
-                        : UiSprites.CheckboxChecked,
+                    Sprite = ruleHelper.HasDisabledRule(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
                     Tint = Color.White * 0.5f,
                     Layout = LayoutParameters.FitContent(),
                     Focusable = false,
@@ -723,9 +671,7 @@ internal sealed class RuleListView(
             content.Add(itemPanel);
 
             if (ruleItem.Extra != null)
-                itemPanel.ExtraItems = ruleItem
-                    .Extra.Select<RuleItem, IView>((rule) => FormRuleItemPanel(rule))
-                    .ToList();
+                itemPanel.ExtraItems = ruleItem.Extra.Select<RuleItem, IView>((rule) => FormRuleItemPanel(rule)).ToList();
         }
         return content;
     }
@@ -744,10 +690,7 @@ internal sealed class RuleListView(
             iconImgs.Add(
                 new Image()
                 {
-                    Layout = LayoutParameters.FixedSize(
-                        icon.Img.Size.X * icon.Scale,
-                        icon.Img.Size.X * icon.Scale
-                    ),
+                    Layout = LayoutParameters.FixedSize(icon.Img.Size.X * icon.Scale, icon.Img.Size.X * icon.Scale),
                     Padding = icon.Edge,
                     Sprite = icon.Img,
                     Tint = icon.Tint ?? Color.White,
@@ -759,7 +702,7 @@ internal sealed class RuleListView(
             {
                 Layout = IconLayout,
                 Children = iconImgs,
-                Tooltip = string.Join('\n', ruleItem.Tooltip.Select((tip) => tip.Trim())),
+                Tooltip = ruleItem.GetTooltipData(),
                 Focusable = true,
                 HoveredItem = ruleItem.Item,
             };

@@ -20,9 +20,7 @@ internal class OpenMenuButton(Func<MachineMenu> getMachineSelectMenu)
         if (Game1.gameMode == Game1.playingGameMode)
         {
             origin.Y -= 4;
-            bool mouseThisFrame =
-                Game1.input.GetMouseState().LeftButton == ButtonState.Pressed
-                || Game1.input.GetGamePadState().IsButtonDown(Buttons.A);
+            bool mouseThisFrame = Game1.input.GetMouseState().LeftButton == ButtonState.Pressed || Game1.input.GetGamePadState().IsButtonDown(Buttons.A);
             bool justClicked = mouseThisFrame && !mouseLastFrame;
             mouseLastFrame = mouseThisFrame;
             int mouseX = Game1.getMouseX();
@@ -48,12 +46,7 @@ internal class OpenMenuButton(Func<MachineMenu> getMachineSelectMenu)
         }
         else
         {
-            b.DrawString(
-                Game1.dialogueFont,
-                notInGame,
-                new Vector2(origin.X + 12, origin.Y + 4),
-                Game1.textColor
-            );
+            b.DrawString(Game1.dialogueFont, notInGame, new Vector2(origin.X + 12, origin.Y + 4), Game1.textColor);
         }
     }
 }
@@ -78,8 +71,7 @@ internal sealed class ModConfig
     public KeybindList ControlPanelKey { get; set; } = KeybindList.Parse($"{SButton.Q}");
 
     /// <summary>Key for opening machine selection page</summary>
-    public KeybindList MachineSelectKey { get; set; } =
-        KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
+    public KeybindList MachineSelectKey { get; set; } = KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
 
     /// <summary>Default page to use</summary>
     public DefaultPageOption DefaultPage { get; set; } = DefaultPageOption.Rules;
@@ -96,9 +88,7 @@ internal sealed class ModConfig
 
     public void Register(IModHelper helper, IManifest mod, Func<MachineMenu> GetMachineSelectMenu)
     {
-        var GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>(
-            "spacechase0.GenericModConfigMenu"
-        );
+        var GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
         if (GMCM == null)
         {
             helper.WriteConfig(this);
@@ -180,11 +170,6 @@ internal sealed class ModConfig
             tooltip: I18n.Config_DefaultPage_Description
         );
         OpenMenuButton menuBtn = new(GetMachineSelectMenu);
-        GMCM.AddComplexOption(
-            mod,
-            name: I18n.Config_OpenMachineSelectMenu_Name,
-            draw: menuBtn.Draw,
-            height: () => 80
-        );
+        GMCM.AddComplexOption(mod, name: I18n.Config_OpenMachineSelectMenu_Name, draw: menuBtn.Draw, height: () => 80);
     }
 }
