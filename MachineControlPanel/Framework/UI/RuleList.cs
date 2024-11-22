@@ -28,7 +28,7 @@ internal sealed class RuleListView(
     private const int BOX_W = ROW_MARGIN * 3;
     private const int MIN_HEIGHT = 400;
     private const int GUTTER_HEIGHT = 400;
-    private const int OUTPUT_MAX = 8;
+    private const int OUTPUT_MAX = 6;
     private static Sprite RightCaret => new(Game1.mouseCursors, new(448, 96, 24, 32));
     internal static Sprite ThinHDivider => new(Game1.menuTexture, SourceRect: new(64, 412, 64, 8));
     internal static Sprite ThinVDivider => new(Game1.menuTexture, SourceRect: new(156, 384, 8, 64));
@@ -628,7 +628,7 @@ internal sealed class RuleListView(
         );
 
         List<IView> outputPanels = FormRuleItemPanels(rule.Outputs);
-        if (outputPanels.Count > 4)
+        if (outputPanels.Count > OUTPUT_MAX)
             outputPanels = [new OverflowOutputModalButton(outputPanels)];
         children.Add(
             new Lane()
