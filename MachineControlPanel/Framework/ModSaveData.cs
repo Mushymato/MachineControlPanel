@@ -6,7 +6,11 @@ using StardewValley.ItemTypeDefinitions;
 
 namespace MachineControlPanel.Framework;
 
-public sealed record ModSaveDataEntry(ImmutableHashSet<RuleIdent> Rules, ImmutableHashSet<string> Inputs, bool[] Quality);
+public sealed record ModSaveDataEntry(
+    ImmutableHashSet<RuleIdent> Rules,
+    ImmutableHashSet<string> Inputs,
+    bool[] Quality
+);
 
 public sealed record ModSaveDataEntryMessage(string QId, ModSaveDataEntry? Entry);
 
@@ -26,7 +30,10 @@ public sealed class ModSaveData
         var machinesData = DataLoader.Machines(Game1.content);
         foreach ((string qId, ModSaveDataEntry msdEntry) in Disabled)
         {
-            if (ItemRegistry.GetData(qId) is not ParsedItemData itemData || !machinesData.TryGetValue(qId, out MachineData? machine))
+            if (
+                ItemRegistry.GetData(qId) is not ParsedItemData itemData
+                || !machinesData.TryGetValue(qId, out MachineData? machine)
+            )
             {
                 Disabled.Remove(qId);
                 ModEntry.Log($"Remove nonexistent machine {qId} from save data");

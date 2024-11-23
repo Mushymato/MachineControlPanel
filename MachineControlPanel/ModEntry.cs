@@ -73,7 +73,11 @@ internal sealed class ModEntry : Mod
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
 
-        helper.ConsoleCommands.Add("mcp_reset_savedata", "Reset save data associated with this mod.", ConsoleResetSaveData);
+        helper.ConsoleCommands.Add(
+            "mcp_reset_savedata",
+            "Reset save data associated with this mod.",
+            ConsoleResetSaveData
+        );
 #if DEBUG
         helper.ConsoleCommands.Add("mcp_export_iqc", "export the item query cache", ConsoleExportItemQueryCache);
 #endif
@@ -156,7 +160,12 @@ internal sealed class ModEntry : Mod
         if (!Game1.IsMasterGame)
             return;
 
-        Helper.Multiplayer.SendMessage(saveData, SAVEDATA, modIDs: [ModManifest.UniqueID], playerIDs: [e.Peer.PlayerID]);
+        Helper.Multiplayer.SendMessage(
+            saveData,
+            SAVEDATA,
+            modIDs: [ModManifest.UniqueID],
+            playerIDs: [e.Peer.PlayerID]
+        );
     }
 
     /// <summary>
@@ -236,7 +245,12 @@ internal sealed class ModEntry : Mod
     /// <param name="bigCraftableId"></param>
     /// <param name="disabledRules"></param>
     /// <param name="disabledInputs"></param>
-    private void SaveMachineRules(string bigCraftableId, IEnumerable<RuleIdent> disabledRules, IEnumerable<string> disabledInputs, bool[] disabledQuality)
+    private void SaveMachineRules(
+        string bigCraftableId,
+        IEnumerable<RuleIdent> disabledRules,
+        IEnumerable<string> disabledInputs,
+        bool[] disabledQuality
+    )
     {
         if (!Game1.IsMasterGame)
             return;
@@ -257,7 +271,11 @@ internal sealed class ModEntry : Mod
             saveData.Disabled[bigCraftableId] = msdEntry;
         }
         saveData.Version = ModManifest.Version;
-        Helper.Multiplayer.SendMessage(new ModSaveDataEntryMessage(bigCraftableId, msdEntry), SAVEDATA_ENTRY, modIDs: [ModManifest.UniqueID]);
+        Helper.Multiplayer.SendMessage(
+            new ModSaveDataEntryMessage(bigCraftableId, msdEntry),
+            SAVEDATA_ENTRY,
+            modIDs: [ModManifest.UniqueID]
+        );
         Helper.Data.WriteSaveData(SAVEDATA, saveData);
 #if DEBUG
         LogSaveData(bigCraftableId);
@@ -333,8 +351,12 @@ internal sealed class ModEntry : Mod
             return false;
 
         if (
-            RuleHelperCache.TryGetRuleHelper(bigCraftable.QualifiedItemId, bigCraftable.DisplayName, machine, out RuleHelper? ruleHelper)
-            && ruleHelper.GetRuleEntries()
+            RuleHelperCache.TryGetRuleHelper(
+                bigCraftable.QualifiedItemId,
+                bigCraftable.DisplayName,
+                machine,
+                out RuleHelper? ruleHelper
+            ) && ruleHelper.GetRuleEntries()
         )
         {
             Game1.activeClickableMenu = new RuleListMenu(ruleHelper, SaveMachineRules, true);

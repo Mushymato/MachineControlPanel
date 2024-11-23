@@ -82,7 +82,14 @@ internal sealed class MachineSelect(
             if (ItemRegistry.GetData(qId) is not ParsedItemData itemData)
                 continue;
 
-            if (RuleHelperCache.TryGetRuleHelper(itemData.QualifiedItemId, itemData.DisplayName, machine, out RuleHelper? ruleHelper))
+            if (
+                RuleHelperCache.TryGetRuleHelper(
+                    itemData.QualifiedItemId,
+                    itemData.DisplayName,
+                    machine,
+                    out RuleHelper? ruleHelper
+                )
+            )
             {
                 MachineCell cell = new(ruleHelper, itemData) { Name = $"MachineSelect.{qId}" };
                 cell.LeftClick += ShowPanel;
@@ -104,7 +111,12 @@ internal sealed class MachineSelect(
         {
             if (machineCell.ruleHelper.GetRuleEntries())
             {
-                var overlay = new RuleListOverlay(machineCell.ruleHelper, saveMachineRules, setHoverEvents, machineCell.UpdateEdited);
+                var overlay = new RuleListOverlay(
+                    machineCell.ruleHelper,
+                    saveMachineRules,
+                    setHoverEvents,
+                    machineCell.UpdateEdited
+                );
                 Overlay.Push(overlay);
             }
         }

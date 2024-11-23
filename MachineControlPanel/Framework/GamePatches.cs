@@ -51,7 +51,12 @@ internal static class GamePatches
     /// <param name="inputItem"></param>
     /// <param name="idx"></param>
     /// <returns></returns>
-    private static bool ShouldSkipMachineInput(MachineOutputTriggerRule trigger2, SObject machine, MachineOutputRule rule, Item inputItem)
+    private static bool ShouldSkipMachineInput(
+        MachineOutputTriggerRule trigger2,
+        SObject machine,
+        MachineOutputRule rule,
+        Item inputItem
+    )
     {
         RuleIdent ident = new(rule.Id, trigger2.Id);
         if (!ModEntry.TryGetSavedEntry(machine.QualifiedItemId, out ModSaveDataEntry? msdEntry))
@@ -122,7 +127,10 @@ internal static class GamePatches
     /// <param name="instructions"></param>
     /// <param name="generator"></param>
     /// <returns></returns>
-    private static IEnumerable<CodeInstruction> MachineDataUtility_CanApplyOutput_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> MachineDataUtility_CanApplyOutput_Transpiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
     {
         try
         {
@@ -150,7 +158,13 @@ internal static class GamePatches
                     [
                         new(OpCodes.Brfalse_S),
                         ldlocAny,
-                        new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(MachineOutputTriggerRule), nameof(MachineOutputTriggerRule.RequiredCount))),
+                        new(
+                            OpCodes.Callvirt,
+                            AccessTools.PropertyGetter(
+                                typeof(MachineOutputTriggerRule),
+                                nameof(MachineOutputTriggerRule.RequiredCount)
+                            )
+                        ),
                         new(OpCodes.Ldarg_3),
                         new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Item), nameof(Item.Stack))),
                     ]
@@ -171,7 +185,10 @@ internal static class GamePatches
                         new(OpCodes.Ldarg_1), // MachineOutputRule rule
                         new(OpCodes.Ldarg_3), // Item inputItem
                         // new(OpCodes.Ldloc, idx), // foreach idx
-                        new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldSkipMachineInput))),
+                        new(
+                            OpCodes.Call,
+                            AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldSkipMachineInput))
+                        ),
                         new(OpCodes.Brtrue, lbl),
                         ldloc, // MachineOutputTriggerRule trigger2
                     ]
@@ -200,7 +217,10 @@ internal static class GamePatches
                         new(OpCodes.Ldarg_1), // MachineOutputRule rule
                         new(OpCodes.Ldarg_3), // Item inputItem
                         // new(OpCodes.Ldloc, idx), // foreach idx
-                        new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldSkipMachineInput_DayUpdate))),
+                        new(
+                            OpCodes.Call,
+                            AccessTools.DeclaredMethod(typeof(GamePatches), nameof(ShouldSkipMachineInput_DayUpdate))
+                        ),
                         new(OpCodes.Brtrue, lbl),
                         new(OpCodes.Ldarg_S, (byte)6),
                     ]
@@ -268,7 +288,10 @@ internal static class GamePatches
     /// <param name="instructions"></param>
     /// <param name="generator"></param>
     /// <returns></returns>
-    private static IEnumerable<CodeInstruction> SObject_PlaceInMachine_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+    private static IEnumerable<CodeInstruction> SObject_PlaceInMachine_Transpiler(
+        IEnumerable<CodeInstruction> instructions,
+        ILGenerator generator
+    )
     {
         try
         {
@@ -278,7 +301,10 @@ internal static class GamePatches
                 .Start()
                 .MatchStartForward(
                     [
-                        new(OpCodes.Stfld, AccessTools.Field(typeof(Farmer), nameof(Farmer.ignoreItemConsumptionThisFrame))),
+                        new(
+                            OpCodes.Stfld,
+                            AccessTools.Field(typeof(Farmer), nameof(Farmer.ignoreItemConsumptionThisFrame))
+                        ),
                         new(OpCodes.Ldc_I4_0),
                         new(OpCodes.Ret),
                         new(OpCodes.Ldarg_3),
@@ -306,7 +332,14 @@ internal static class GamePatches
                         AccessTools.Method(
                             typeof(GameStateQuery),
                             nameof(GameStateQuery.CheckConditions),
-                            [typeof(string), typeof(GameLocation), typeof(Farmer), typeof(Item), typeof(Random), typeof(HashSet<string>)]
+                            [
+                                typeof(string),
+                                typeof(GameLocation),
+                                typeof(Farmer),
+                                typeof(Item),
+                                typeof(Random),
+                                typeof(HashSet<string>),
+                            ]
                         )
                     ),
                     new(OpCodes.Brfalse_S),
@@ -315,7 +348,10 @@ internal static class GamePatches
             matcher.Operand = lbl;
 
             matcher.MatchEndBackwards(
-                [new(OpCodes.Ldfld, AccessTools.Field(typeof(MachineData), nameof(MachineData.InvalidItemMessage))), new(OpCodes.Brfalse_S)]
+                [
+                    new(OpCodes.Ldfld, AccessTools.Field(typeof(MachineData), nameof(MachineData.InvalidItemMessage))),
+                    new(OpCodes.Brfalse_S),
+                ]
             );
             matcher.Operand = lbl;
 

@@ -102,7 +102,9 @@ internal sealed class RuleListView(
                 Margin = new(Top: -85),
                 Padding = new(12),
                 Background = UiSprites.BannerBackground,
-                BackgroundBorderThickness = (UiSprites.BannerBackground.FixedEdges ?? Edges.NONE) * (UiSprites.BannerBackground.SliceSettings?.Scale ?? 1),
+                BackgroundBorderThickness =
+                    (UiSprites.BannerBackground.FixedEdges ?? Edges.NONE)
+                    * (UiSprites.BannerBackground.SliceSettings?.Scale ?? 1),
                 Text = ruleHelper.Name,
             };
 
@@ -206,8 +208,12 @@ internal sealed class RuleListView(
                 rulesBtn.Margin = tabButtonActive;
                 inputsBtn.Margin = tabButtonPassive;
             }
-            rulesBtn.Text = ruleHelper.HasDisabledRules ? I18n.RuleList_Rules() + I18n.RuleList_Edited() : I18n.RuleList_Rules();
-            inputsBtn.Text = ruleHelper.HasDisabledInputs ? I18n.RuleList_Inputs() + I18n.RuleList_Edited() : I18n.RuleList_Inputs();
+            rulesBtn.Text = ruleHelper.HasDisabledRules
+                ? I18n.RuleList_Rules() + I18n.RuleList_Edited()
+                : I18n.RuleList_Rules();
+            inputsBtn.Text = ruleHelper.HasDisabledInputs
+                ? I18n.RuleList_Inputs() + I18n.RuleList_Edited()
+                : I18n.RuleList_Inputs();
             if (toggleAllBtn != null)
                 toggleAllBtn.Text = GetToggleButtonText();
         }
@@ -431,10 +437,22 @@ internal sealed class RuleListView(
     private Lane CreateInputsGrid()
     {
         List<IView> qualityChecksUI = [];
-        foreach (int quality in new int[] { SObject.lowQuality, SObject.medQuality, SObject.highQuality, SObject.bestQuality })
+        foreach (
+            int quality in new int[]
+            {
+                SObject.lowQuality,
+                SObject.medQuality,
+                SObject.highQuality,
+                SObject.bestQuality,
+            }
+        )
         {
             QualityCheckable qualityCheckable =
-                new(quality, Game1.IsMasterGame) { IsChecked = !ruleHelper.HasDisabledQuality(quality), Margin = new(ROW_MARGIN) };
+                new(quality, Game1.IsMasterGame)
+                {
+                    IsChecked = !ruleHelper.HasDisabledQuality(quality),
+                    Margin = new(ROW_MARGIN),
+                };
             qualityChecksUI.Add(qualityCheckable);
             if (Game1.IsMasterGame)
                 qualityChecks.Add(qualityCheckable);
@@ -527,8 +545,10 @@ internal sealed class RuleListView(
         {
             int inputSize = rulesC.Max((rule) => rule.Inputs.Count);
             int outputSize = rulesC.Max((rule) => rule.Outputs.Count > OUTPUT_MAX ? 1 : rule.Outputs.Count);
-            LayoutParameters inputLayout = new() { Width = Length.Px(ROW_W * inputSize + ROW_MARGIN * 2), Height = Length.Content() };
-            LayoutParameters outputLayout = new() { Width = Length.Px(ROW_W * outputSize + ROW_MARGIN * 2), Height = Length.Content() };
+            LayoutParameters inputLayout =
+                new() { Width = Length.Px(ROW_W * inputSize + ROW_MARGIN * 2), Height = Length.Content() };
+            LayoutParameters outputLayout =
+                new() { Width = Length.Px(ROW_W * outputSize + ROW_MARGIN * 2), Height = Length.Content() };
 
             if (columns.Any())
             {
@@ -597,7 +617,9 @@ internal sealed class RuleListView(
             children.Add(
                 new Image()
                 {
-                    Sprite = ruleHelper.HasDisabledRule(rule.Ident) ? UiSprites.CheckboxUnchecked : UiSprites.CheckboxChecked,
+                    Sprite = ruleHelper.HasDisabledRule(rule.Ident)
+                        ? UiSprites.CheckboxUnchecked
+                        : UiSprites.CheckboxChecked,
                     Tint = Color.White * 0.5f,
                     Layout = LayoutParameters.FitContent(),
                     Focusable = false,
@@ -671,7 +693,9 @@ internal sealed class RuleListView(
             content.Add(itemPanel);
 
             if (ruleItem.Extra != null)
-                itemPanel.ExtraItems = ruleItem.Extra.Select<RuleItem, IView>((rule) => FormRuleItemPanel(rule)).ToList();
+                itemPanel.ExtraItems = ruleItem
+                    .Extra.Select<RuleItem, IView>((rule) => FormRuleItemPanel(rule))
+                    .ToList();
         }
         return content;
     }

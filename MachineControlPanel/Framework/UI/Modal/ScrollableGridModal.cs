@@ -46,7 +46,11 @@ internal sealed class ScrollableGridModal(IList<IView> outputPanels) : FullScree
                     new Banner() { Text = Heading },
                     new Image()
                     {
-                        Layout = new() { Width = Length.Stretch(), Height = Length.Px(RuleListView.ThinHDivider.Size.Y) },
+                        Layout = new()
+                        {
+                            Width = Length.Stretch(),
+                            Height = Length.Px(RuleListView.ThinHDivider.Size.Y),
+                        },
                         Fit = ImageFit.Stretch,
                         Sprite = RuleListView.ThinHDivider,
                     },

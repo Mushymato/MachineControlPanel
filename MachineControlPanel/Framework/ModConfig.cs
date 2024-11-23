@@ -20,7 +20,9 @@ internal class OpenMenuButton(Func<MachineMenu> getMachineSelectMenu)
         if (Game1.gameMode == Game1.playingGameMode)
         {
             origin.Y -= 4;
-            bool mouseThisFrame = Game1.input.GetMouseState().LeftButton == ButtonState.Pressed || Game1.input.GetGamePadState().IsButtonDown(Buttons.A);
+            bool mouseThisFrame =
+                Game1.input.GetMouseState().LeftButton == ButtonState.Pressed
+                || Game1.input.GetGamePadState().IsButtonDown(Buttons.A);
             bool justClicked = mouseThisFrame && !mouseLastFrame;
             mouseLastFrame = mouseThisFrame;
             int mouseX = Game1.getMouseX();

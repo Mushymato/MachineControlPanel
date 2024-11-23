@@ -13,7 +13,13 @@ internal static class Quirks
     /// <param name="getId"></param>
     /// <param name="setIdSeq"></param>
     /// <param name="process"></param>
-    private static void EnsureUniqueId<T>(string debugText, List<T>? modelList, Func<T, string> getId, Action<T, int> setIdSeq, Action<T>? process = null)
+    private static void EnsureUniqueId<T>(
+        string debugText,
+        List<T>? modelList,
+        Func<T, string> getId,
+        Action<T, int> setIdSeq,
+        Action<T>? process = null
+    )
     {
         if (modelList == null)
             return;
@@ -75,7 +81,8 @@ internal static class Quirks
                         $"{qItemId}-{rule.Id}",
                         rule.Triggers,
                         (trigger) => trigger.Id,
-                        (trigger, seq) => trigger.Id = trigger.Id == null ? $"null-trigger-{seq}" : $"{trigger.Id}-trigger-{seq}"
+                        (trigger, seq) =>
+                            trigger.Id = trigger.Id == null ? $"null-trigger-{seq}" : $"{trigger.Id}-trigger-{seq}"
                     );
                 }
             );
