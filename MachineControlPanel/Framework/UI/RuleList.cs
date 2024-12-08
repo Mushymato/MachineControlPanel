@@ -144,8 +144,8 @@ internal sealed class RuleListView(
     /// <returns></returns>
     private Lane CreateSidebar()
     {
-        const int WIDTH = 108;
-        var btnLayout = new LayoutParameters() { Width = Length.Content(), Height = Length.Px(64) };
+        const int WIDTH = 128;
+        var btnLayout = LayoutParameters.FixedSize(WIDTH, 64);
         rulesBtn = new()
         {
             DefaultBackground = TabButton,
@@ -153,7 +153,7 @@ internal sealed class RuleListView(
             Content = new Label()
             {
                 Text = I18n.RuleList_Rules(),
-                // Margin = new(Left: 4),
+                Margin = new(Left: 4),
                 MaxLines = 1,
             },
             Layout = btnLayout,
@@ -164,7 +164,12 @@ internal sealed class RuleListView(
         {
             DefaultBackground = TabButton,
             Name = "InputsBtn",
-            Content = new Label() { Text = I18n.RuleList_Inputs(), MaxLines = 1 },
+            Content = new Label()
+            {
+                Text = I18n.RuleList_Inputs(),
+                Margin = new(Left: 4),
+                MaxLines = 1,
+            },
             Layout = btnLayout,
             Margin = tabButtonPassive,
         };
