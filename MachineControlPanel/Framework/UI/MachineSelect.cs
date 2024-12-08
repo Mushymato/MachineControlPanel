@@ -77,10 +77,16 @@ internal sealed class MachineSelect(
     {
         var machinesData = DataLoader.Machines(Game1.content);
         List<IView> cells = [];
+        int hidden = 0;
         foreach ((string qId, MachineData machine) in machinesData)
         {
             if (ItemRegistry.GetData(qId) is not ParsedItemData itemData)
                 continue;
+            if (ModEntry.Config.ProgressionMode && !PlayerHasItemCache.HasItem(qId))
+            {
+                hidden++;
+                continue;
+            }
 
             if (
                 RuleHelperCache.TryGetRuleHelper(
@@ -96,6 +102,24 @@ internal sealed class MachineSelect(
                 setHoverEvents?.Invoke(cell);
                 cells.Add(cell);
             }
+        }
+        if (hidden > 0)
+        {
+            Frame hiddenCnt =
+                new()
+                {
+                    Padding = new(16),
+                    Background = MachineCell.bgSprite,
+                    BorderThickness = MachineCell.bgSprite.FixedEdges!,
+                    Focusable = true,
+                    Tooltip = I18n.MachineSelect_HiddenByProgressionMode(),
+                    Content = new Label() { Text = $"+{hidden}" },
+                    Layout = LayoutParameters.FixedSize(64, 128),
+                    BackgroundTint = Color.White * 0.5f,
+                    HorizontalContentAlignment = Alignment.Middle,
+                    VerticalContentAlignment = Alignment.Middle,
+                };
+            cells.Add(hiddenCnt);
         }
         return cells;
     }

@@ -440,3 +440,31 @@ internal static class ItemQueryCache
         return null;
     }
 }
+
+internal static class PlayerHasItemCache
+{
+    private static readonly HashSet<string> playerHasItem = [];
+
+    internal static void Populate()
+    {
+        playerHasItem.Clear();
+        Utility.ForEachItem(
+            (item) =>
+            {
+                if (item.HasBeenInInventory)
+                    playerHasItem.Add(item.QualifiedItemId);
+                return true;
+            }
+        );
+    }
+
+    internal static void AddItem(string qId)
+    {
+        playerHasItem.Add(qId);
+    }
+
+    internal static bool HasItem(string qId)
+    {
+        return playerHasItem.Contains(qId);
+    }
+}

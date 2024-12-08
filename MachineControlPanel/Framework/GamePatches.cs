@@ -62,13 +62,6 @@ internal static class GamePatches
         if (!ModEntry.TryGetSavedEntry(machine.QualifiedItemId, out ModSaveDataEntry? msdEntry))
             return false;
 
-        if (msdEntry.Rules.Contains(ident))
-        {
-            ModEntry.LogOnce($"{machine.QualifiedItemId} Rule {ident} disabled.");
-            if (skipped != SkipReason.Input)
-                skipped = SkipReason.Rule;
-            return true;
-        }
         // maybe better to check once in the postfix rather than in the iteration, but eh
         if (inputItem != null)
         {
@@ -84,6 +77,13 @@ internal static class GamePatches
                 skipped = SkipReason.Quality;
                 return true;
             }
+        }
+        if (msdEntry.Rules.Contains(ident))
+        {
+            ModEntry.LogOnce($"{machine.QualifiedItemId} Rule {ident} disabled.");
+            if (skipped != SkipReason.Input)
+                skipped = SkipReason.Rule;
+            return true;
         }
         return false;
     }
@@ -135,14 +135,6 @@ internal static class GamePatches
         try
         {
             CodeMatcher matcher = new(instructions, generator);
-
-            // // track enumeration index
-            // // starting at -1 out of laziness
-            // LocalBuilder idx = generator.DeclareLocal(typeof(int));
-            // matcher.Start().Insert([
-            //     new(OpCodes.Ldc_I4, -1),
-            //     new(OpCodes.Stloc, idx)
-            // ]);
 
             CodeMatch ldlocAny = new(OpCodes.Ldloc_0);
             ldlocAny.opcodes.Add(OpCodes.Ldloc_1);

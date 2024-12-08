@@ -61,6 +61,7 @@ Only the host player is allowed to change machine rules, but everyone can open t
 * `Machine Select Key`: Press this key to open a selection menu for all machines in the game
     * Default: LeftControl+Q
 * `Save on Change`: Automatically save changes when closing the control panel or when changing pages.
+* `Progression Mode`: On the machine select page, hide not yet obtained machines.
 * `Default Page`: Page of control panel to display by default.
 * `Open Machine Select Menu`: Once a save is loaded, this option will display a button that opens the machine select menu, useful in case you are out of keybindings.
 

@@ -68,6 +68,7 @@ internal sealed class ModEntry : Mod
         helper.Events.Input.ButtonsChanged += OnButtonsChanged;
         helper.Events.Content.AssetRequested += OnAssetRequested;
         helper.Events.Content.AssetsInvalidated += OnAssetInvalidated;
+        helper.Events.Player.InventoryChanged += OnInventoryChanged;
 
         // host only events
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
@@ -81,6 +82,12 @@ internal sealed class ModEntry : Mod
 #if DEBUG
         helper.ConsoleCommands.Add("mcp_export_iqc", "export the item query cache", ConsoleExportItemQueryCache);
 #endif
+    }
+
+    private void OnInventoryChanged(object? sender, InventoryChangedEventArgs e)
+    {
+        foreach (var item in e.Added)
+            PlayerHasItemCache.AddItem(item.QualifiedItemId);
     }
 
     /// <summary>
@@ -213,12 +220,15 @@ internal sealed class ModEntry : Mod
     }
 
     /// <summary>
+    /// Populate the has item cache
     /// Read save data on the host
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
+        if (Config.ProgressionMode)
+            PlayerHasItemCache.Populate();
         if (!Game1.IsMasterGame)
             return;
         try

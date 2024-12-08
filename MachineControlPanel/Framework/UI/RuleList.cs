@@ -144,12 +144,19 @@ internal sealed class RuleListView(
     /// <returns></returns>
     private Lane CreateSidebar()
     {
+        const int WIDTH = 108;
+        var btnLayout = new LayoutParameters() { Width = Length.Content(), Height = Length.Px(64) };
         rulesBtn = new()
         {
             DefaultBackground = TabButton,
             Name = "RulesBtn",
-            Content = new Label() { Text = I18n.RuleList_Rules(), Margin = new(Left: 12) },
-            Layout = LayoutParameters.FixedSize(108, 64),
+            Content = new Label()
+            {
+                Text = I18n.RuleList_Rules(),
+                // Margin = new(Left: 4),
+                MaxLines = 1,
+            },
+            Layout = btnLayout,
             Margin = tabButtonActive,
         };
         rulesBtn.LeftClick += ShowRules;
@@ -157,15 +164,15 @@ internal sealed class RuleListView(
         {
             DefaultBackground = TabButton,
             Name = "InputsBtn",
-            Content = new Label() { Text = I18n.RuleList_Inputs(), Margin = new(Left: 12) },
-            Layout = LayoutParameters.FixedSize(108, 64),
+            Content = new Label() { Text = I18n.RuleList_Inputs(), MaxLines = 1 },
+            Layout = btnLayout,
             Margin = tabButtonPassive,
         };
         inputsBtn.LeftClick += ShowInputs;
 
         return new Lane()
         {
-            Layout = new() { Width = Length.Px(108), Height = Length.Content() },
+            Layout = new() { Width = Length.Px(WIDTH), Height = Length.Content() },
             Padding = new(Top: 32),
             Margin = new(Right: -20),
             HorizontalContentAlignment = Alignment.End,

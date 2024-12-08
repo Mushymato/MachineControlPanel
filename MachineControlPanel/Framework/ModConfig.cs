@@ -81,6 +81,9 @@ internal sealed class ModConfig
     /// <summary>Save any changed rules when closing the menu</summary>
     public bool SaveOnChange { get; set; } = true;
 
+    /// <summary>On the machine selection page, hide machines the player don't not have yet.</summary>
+    public bool ProgressionMode { get; set; } = true;
+
     private void Reset()
     {
         ControlPanelKey = KeybindList.Parse($"{SButton.MouseLeft}, {SButton.ControllerB}");
@@ -111,53 +114,41 @@ internal sealed class ModConfig
         );
         GMCM.AddKeybindList(
             mod,
-            getValue: () =>
-            {
-                return ControlPanelKey;
-            },
-            setValue: (value) =>
-            {
-                ControlPanelKey = value;
-            },
+            getValue: () => ControlPanelKey,
+            setValue: (value) => ControlPanelKey = value,
             name: I18n.Config_ControlPanelKey_Name,
             tooltip: I18n.Config_ControlPanelKey_Description
         );
         GMCM.AddKeybindList(
             mod,
-            getValue: () =>
-            {
-                return MachineSelectKey;
-            },
-            setValue: (value) =>
-            {
-                MachineSelectKey = value;
-            },
+            getValue: () => MachineSelectKey,
+            setValue: (value) => MachineSelectKey = value,
             name: I18n.Config_MachineSelectKey_Name,
             tooltip: I18n.Config_MachineSelectKey_Description
         );
         GMCM.AddBoolOption(
             mod,
-            getValue: () =>
-            {
-                return SaveOnChange;
-            },
-            setValue: (value) =>
-            {
-                SaveOnChange = value;
-            },
+            getValue: () => SaveOnChange,
+            setValue: (value) => SaveOnChange = value,
             name: I18n.Config_SaveOnChange_Name,
             tooltip: I18n.Config_SaveOnChange_Description
         );
-        GMCM.AddTextOption(
+        GMCM.AddBoolOption(
             mod,
-            getValue: () =>
-            {
-                return DefaultPage.ToString();
-            },
+            getValue: () => ProgressionMode,
             setValue: (value) =>
             {
-                DefaultPage = Enum.Parse<DefaultPageOption>(value);
+                ProgressionMode = value;
+                if (value)
+                    PlayerHasItemCache.Populate();
             },
+            name: I18n.Config_ProgressionMode_Name,
+            tooltip: I18n.Config_ProgressionMode_Description
+        );
+        GMCM.AddTextOption(
+            mod,
+            getValue: () => DefaultPage.ToString(),
+            setValue: (value) => DefaultPage = Enum.Parse<DefaultPageOption>(value),
             allowedValues: Enum.GetNames<DefaultPageOption>(),
             formatAllowedValue: value =>
                 value switch

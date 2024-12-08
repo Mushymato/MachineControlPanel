@@ -11,9 +11,12 @@
     "config.default-page.item-inputs": "输入物品",
     "config.open-machine-select-menu.name": "打开机器选择菜单",
     "config.open-machine-select-menu.description": "（加载存档后可使用）",
+    "config.progression-mode.name": "进度模式",
+    "config.progression-mode.description": "在机器选择菜单中隐藏未获取的机器",
     "rule-list.same-as-input": "与输入一致",
     "rule-list.special-input": "特殊输入",
     "rule-list.special-output": "特殊输出： {{method}}",
+    // these button text can't be too long, they are fixed size on the UI
     "rule-list.save": "保存",
     "rule-list.reset": "重置",
     "rule-list.rules": "机器规则",
@@ -22,8 +25,11 @@
     "rule-list.enable-all": "启用全部",
     "rule-list.more-outputs": "全{{Count}}个产品",
     "rule-list.byproducts": "副产品",
+    // this char is appeneded after Rules or Inputs if edits exist for one
+    // most languages should use * but in english it looks angry
     "rule-list.edited": "*",
     "rule-list.footer-note": "只有房主可以更改机器设置",
+    "machine-select.hidden-by-progression-mode": "未获取的机器因“进度模式”而隐藏，更改此设置即可显示所有机器",
     "skip-reason.rules": "{{Name}}因规则设置而退回",
     "skip-reason.inputs": "{{Name}}因输入设置而退回",
     "skip-reason.quality": "{{Name}}因品质设置而退回"
