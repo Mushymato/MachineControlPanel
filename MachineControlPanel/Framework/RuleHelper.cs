@@ -54,7 +54,7 @@ internal sealed record RuleItem(
     {
         if (Item != null)
         {
-            return new TooltipData(Item.getDescription(), Title: Item.DisplayName, Item: Item);
+            return new TooltipData(Item.getDescription(), Title: Item.DisplayName.Trim(), Item: Item);
         }
         return new TooltipData(string.Join('\n', Tooltip.Select((tip) => tip.Trim())));
     }
