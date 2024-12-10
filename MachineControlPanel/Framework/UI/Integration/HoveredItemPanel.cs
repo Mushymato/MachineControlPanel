@@ -14,6 +14,7 @@ namespace MachineControlPanel.Framework.UI.Integration;
 internal class HoveredItemPanel : Panel
 {
     internal Item? HoveredItem { get; set; } = null;
+    internal string? ExtraItemsHeading { get; set; } = null;
     private IList<IView>? extraItems;
     internal IList<IView>? ExtraItems
     {
@@ -30,33 +31,6 @@ internal class HoveredItemPanel : Panel
 
     internal void ShowExtraOutputsOverlay(object? sender, ClickEventArgs e)
     {
-        Overlay.Push(new ScrollableGridModal(ExtraItems!) { Heading = I18n.RuleList_Byproducts() });
+        Overlay.Push(new ScrollableGridModal(ExtraItems!) { Heading = ExtraItemsHeading });
     }
-
-    // internal void AddExtraOutputsDisplay(IList<IView> extraItems)
-    // {
-    //     ExtraItemsFrame = new Frame()
-    //     {
-    //         Border = RuleListView.OutputGroup,
-    //         BorderThickness = RuleListView.OutputGroup.FixedEdges!,
-    //         Visibility = Visibility.Hidden,
-    //         ZIndex = 2,
-    //         Margin = new Edges(0, -80, 0, 0),
-    //         Content = new Lane() { Orientation = Orientation.Horizontal, Children = extraItems },
-    //     };
-    //     // FloatingElements.Add(new(extraItemsFrame, FloatingPosition.AboveParent));
-    //     // this.Children.Add(extraItemsFrame);
-    // }
-
-    // internal void ShowExtraItems()
-    // {
-    //     if (extraItemsFrame != null)
-    //         extraItemsFrame.Visibility = Visibility.Visible;
-    // }
-
-    // internal void HideExtraItems()
-    // {
-    //     if (extraItemsFrame != null)
-    //         extraItemsFrame.Visibility = Visibility.Hidden;
-    // }
 }

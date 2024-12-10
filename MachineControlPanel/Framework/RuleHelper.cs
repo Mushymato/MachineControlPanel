@@ -38,14 +38,22 @@ internal sealed record RuleItem(
     List<string> Tooltip,
     int Count = 0,
     Item? Item = null,
-    List<RuleItem>? Extra = null
+    List<RuleItem>? Extra = null,
+    string? ExtraItemsHeading = null
 )
 {
     /// <summary>Make shallow copy</summary>
     /// <returns></returns>
     internal RuleItem Copy()
     {
-        return new RuleItem(new(Icons), new(Tooltip), Count: Count, Item: Item, Extra: Extra);
+        return new RuleItem(
+            new(Icons),
+            new(Tooltip),
+            Count: Count,
+            Item: Item,
+            Extra: Extra,
+            ExtraItemsHeading: ExtraItemsHeading
+        );
     }
 
     /// <summary>Get tooltip data for a vanilla tooltip</summary>
@@ -499,7 +507,14 @@ internal sealed class RuleHelper
         }
         if (output.ItemId == "DROP_IN")
         {
-            optLine.Add(new RuleItem([QuestionIcon], [I18n.RuleList_SameAsInput()], Extra: extraOptLine));
+            optLine.Add(
+                new RuleItem(
+                    [QuestionIcon],
+                    [I18n.RuleList_SameAsInput()],
+                    Extra: extraOptLine,
+                    ExtraItemsHeading: I18n.RuleList_Byproducts()
+                )
+            );
         }
         else if (output.ItemId != null)
         {

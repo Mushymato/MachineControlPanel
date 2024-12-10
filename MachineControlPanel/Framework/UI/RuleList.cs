@@ -705,9 +705,12 @@ internal sealed class RuleListView(
             content.Add(itemPanel);
 
             if (ruleItem.Extra != null)
+            {
+                itemPanel.ExtraItemsHeading = ruleItem.ExtraItemsHeading;
                 itemPanel.ExtraItems = ruleItem
                     .Extra.Select<RuleItem, IView>((rule) => FormRuleItemPanel(rule))
                     .ToList();
+            }
         }
         return content;
     }

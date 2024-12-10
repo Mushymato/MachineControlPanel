@@ -364,7 +364,14 @@ internal static class ItemQueryCache
                     tooltips.Add(cond);
                 }
             }
-            return new RuleItem([new(reprItem.GetItemSprite(), Tint: Color.White * 0.5f), EmojiNote], tooltips, count);
+            return new RuleItem(
+                [new(reprItem.GetItemSprite(), Tint: Color.White * 0.5f), EmojiNote],
+                tooltips,
+                count,
+                Extra: matchingItemDatas
+                    .Select((mItem) => new RuleItem([new(mItem.GetItemSprite())], [mItem.DisplayName], Item: mItem))
+                    .ToList()
+            );
         }
     }
 
