@@ -84,11 +84,15 @@ internal sealed class ModConfig
     /// <summary>On the machine selection page, hide machines the player don't not have yet.</summary>
     public bool ProgressionMode { get; set; } = true;
 
+    /// <summary>Use the more visible question mark icon that recolors rarely seem to touch :(</summary>
+    public bool AltQuestionMark { get; set; } = false;
+
     private void Reset()
     {
         ControlPanelKey = KeybindList.Parse($"{SButton.MouseLeft}, {SButton.ControllerB}");
         MachineSelectKey = KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
         DefaultPage = DefaultPageOption.Rules;
+        AltQuestionMark = false;
     }
 
     public void Register(IModHelper helper, IManifest mod, Func<MachineMenu> GetMachineSelectMenu)
@@ -144,6 +148,13 @@ internal sealed class ModConfig
             },
             name: I18n.Config_ProgressionMode_Name,
             tooltip: I18n.Config_ProgressionMode_Description
+        );
+        GMCM.AddBoolOption(
+            mod,
+            getValue: () => AltQuestionMark,
+            setValue: (value) => AltQuestionMark = value,
+            name: I18n.Config_AltQuestionMark_Name,
+            tooltip: I18n.Config_AltQuestionMark_Description
         );
         GMCM.AddTextOption(
             mod,

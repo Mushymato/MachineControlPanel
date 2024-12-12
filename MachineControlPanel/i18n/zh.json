@@ -13,6 +13,8 @@
     "config.open-machine-select-menu.description": "（加载存档后可使用）",
     "config.progression-mode.name": "进度模式",
     "config.progression-mode.description": "在机器选择菜单中隐藏未获取的机器",
+    "config.alt-question-mark.name": "显眼问号标志",
+    "config.alt-question-mark.description": "使用更显眼的问号标志",
     "rule-list.same-as-input": "与输入一致",
     "rule-list.special-input": "特殊输入",
     "rule-list.special-output": "特殊输出： {{method}}",
@@ -32,5 +34,7 @@
     "machine-select.hidden-by-progression-mode": "未获取的机器因“进度模式”而隐藏，更改此设置即可显示所有机器",
     "skip-reason.rules": "{{Name}}因规则设置而退回",
     "skip-reason.inputs": "{{Name}}因输入设置而退回",
-    "skip-reason.quality": "{{Name}}因品质设置而退回"
+    "skip-reason.quality": "{{Name}}因品质设置而退回",
+    // placeholder default flavor object
+    "object.thing.display-name": "东西",
 }

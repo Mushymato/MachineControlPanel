@@ -20,7 +20,7 @@ Additional items required for a machine (i.e. fuel) are displayed with a "bolt" 
 
 Artisan machines, as of 1.6, operate on a priority list of rules dictating the outputs of a machine. The most common category of rules are those which trigger when player places an item into the machine. Each item is checked against rule from first to last, and the first matching rule accepts the input item and determine what the output item will be.
 
-Some rules take a number of different items, based on conditions or context tags. These are displayed as semi-transparent item with a "note" icon. The tooltip provides more info about their conditions. Some rules have hard to determine output items, in those cases a question mark icon is displayed instead. Question mark icon is also the placeholder for when a rule has no input item.
+Some rules take a number of different items, based on conditions or context tags. These are displayed as semi-transparent item with a "note" icon. The tooltip provides more info about their conditions, and clicking the icon displays all matched items. Some rules have hard to determine output items, in those cases a question mark icon is displayed instead. Question mark icon is also the placeholder for rules that don't accept input items.
 
 Besides the item based rules, this mod also let you turn off rules that produce without need for input, such as Coffee Maker. Disabling this type of rule may cause placed machines to not work even after enabling the rule again, until the machine in question is removed and placed again.
 

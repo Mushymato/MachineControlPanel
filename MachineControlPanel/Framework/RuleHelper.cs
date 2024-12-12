@@ -60,11 +60,10 @@ internal sealed record RuleItem(
     /// <returns></returns>
     internal TooltipData GetTooltipData()
     {
+        string tooltipStr = string.Join('\n', Tooltip.Select((tip) => tip.Trim()));
         if (Item != null)
-        {
-            return new TooltipData(Item.getDescription(), Title: Item.DisplayName.Trim(), Item: Item);
-        }
-        return new TooltipData(string.Join('\n', Tooltip.Select((tip) => tip.Trim())));
+            return new TooltipData(Item.getDescription(), Title: Item.DisplayName, Item: Item);
+        return new TooltipData(tooltipStr);
     }
 
     internal void AddMiniExtraIcon()
@@ -106,7 +105,10 @@ internal sealed class RuleHelper
 {
     internal const string PLACEHOLDER_TRIGGER = "PLACEHOLDER_TRIGGER";
     internal static Integration.IExtraMachineConfigApi? EMC { get; set; } = null;
-    internal static IconEdge QuestionIcon => new(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)));
+    internal static IconEdge QuestionIcon =>
+        ModEntry.Config.AltQuestionMark
+            ? new(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)))
+            : new(new(Game1.mouseCursors, new Rectangle(175, 425, 12, 12)), new(8));
     internal static IconEdge EmojiExclaim =>
         new(new(ChatBox.emojiTexture, new Rectangle(54, 81, 9, 9)), new(Top: 37), 3f);
     internal static IconEdge EmojiBolt =>
@@ -311,7 +313,6 @@ internal sealed class RuleHelper
             {
                 RuleIdent ident = new(rule.Id, trigger.Id);
                 List<RuleItem> inputLine = [];
-                List<ParsedItemData> inputItems = [];
                 IconEdge? qualityIcon = null;
                 List<string> nonItemConditions = [];
                 // no item input
@@ -526,8 +527,12 @@ internal sealed class RuleHelper
                     ItemQueryCache.Context,
                     formatItemId: id =>
                         id != null
-                            ? Regex.Replace(id, "(DROP_IN_ID|DROP_IN_PRESERVE|NEARBY_FLOWER_ID|DROP_IN_QUALITY)", "0")
+                            ? id.Replace("DROP_IN_ID", ModEntry.DefaultThingId)
+                                .Replace("DROP_IN_PRESERVE", ModEntry.DefaultThingId)
+                                .Replace("DROP_IN_QUALITY", SObject.lowQuality.ToString())
+                                .Replace("NEARBY_FLOWER_ID", SObject.WildHoneyPreservedId)
                             : id
+                // inputItem: ModEntry.DefaultThing
                 );
                 List<Tuple<Item, ParsedItemData>> filteredItems = [];
                 foreach (ItemQueryResult res in itemQueryResults.ToList())
@@ -536,7 +541,11 @@ internal sealed class RuleHelper
                         res.Item is Item item
                         && ItemRegistry.GetData(res.Item.QualifiedItemId) is ParsedItemData itemData
                     )
+                    {
+                        if (res.Item is SObject sobj)
+                            sobj.preservedParentSheetIndex.Value = ModEntry.DefaultThingId;
                         filteredItems.Add(new(item, itemData));
+                    }
                 }
                 foreach (
                     (Item item, ParsedItemData itemData) in filteredItems.OrderBy((val) => val.Item1.QualifiedItemId)
@@ -554,12 +563,28 @@ internal sealed class RuleHelper
                         icons.Add(QualityIconEdge(item.Quality));
                     }
                     tooltip.Add(itemData.DisplayName);
-                    optLine.Add(new RuleItem(icons, tooltip, Count: item.Stack, Item: item, Extra: extraOptLine));
+                    optLine.Add(
+                        new RuleItem(
+                            icons,
+                            tooltip,
+                            Count: item.Stack,
+                            Item: item,
+                            Extra: extraOptLine,
+                            ExtraItemsHeading: I18n.RuleList_Byproducts()
+                        )
+                    );
                 }
             }
             catch (NullReferenceException)
             {
-                optLine.Add(new RuleItem([QuestionIcon], [output.ItemId], Extra: extraOptLine));
+                optLine.Add(
+                    new RuleItem(
+                        [QuestionIcon],
+                        [output.ItemId],
+                        Extra: extraOptLine,
+                        ExtraItemsHeading: I18n.RuleList_Byproducts()
+                    )
+                );
             }
         }
         foreach (var ruleItem in optLine)

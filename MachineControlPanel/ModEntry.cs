@@ -10,6 +10,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.GameData.Machines;
+using StardewValley.GameData.Objects;
 
 namespace MachineControlPanel;
 
@@ -30,6 +31,8 @@ internal sealed class ModEntry : Mod
     private static ModSaveData? saveData = null;
     internal static ModConfig Config = null!;
     internal static bool HasLookupAnying = false;
+    internal static string DefaultThingId = "0";
+    internal static Item? DefaultThing = null;
 
     /// <summary>
     /// Attempt to get a save data entry for a machine
@@ -98,9 +101,25 @@ internal sealed class ModEntry : Mod
     private void OnAssetRequested(object? sender, AssetRequestedEventArgs e)
     {
         if (e.Name.IsEquivalentTo("Data/Machines"))
-        {
             e.Edit(Quirks.EnsureUniqueMachineOutputRuleId, AssetEditPriority.Late + 100);
-        }
+        if (e.Name.IsEquivalentTo("Data/Objects"))
+            e.Edit(AddDefaultItemNamedSomethingOtherThanWeedses, AssetEditPriority.Default);
+    }
+
+    private void AddDefaultItemNamedSomethingOtherThanWeedses(IAssetData asset)
+    {
+        DefaultThingId = $"{ModManifest.UniqueID}_DefaultItem";
+        IDictionary<string, ObjectData> data = asset.AsDictionary<string, ObjectData>().Data;
+        data[DefaultThingId] = new()
+        {
+            Name = DefaultThingId,
+            DisplayName = I18n.Object_Thing_DisplayName(),
+            Description = "Where did you get this? Put it back where you found it >:(",
+            Type = "Basic",
+            Category = -20,
+            SpriteIndex = 923,
+            Edibility = 0,
+        };
     }
 
     /// <summary>
@@ -229,6 +248,7 @@ internal sealed class ModEntry : Mod
     {
         if (Config.ProgressionMode)
             PlayerHasItemCache.Populate();
+        DefaultThing = ItemRegistry.Create(DefaultThingId);
         if (!Game1.IsMasterGame)
             return;
         try

@@ -15,11 +15,12 @@ internal sealed class ScrollableGridModal(IList<IView> outputPanels) : FullScree
 
     protected override Frame CreateView()
     {
+        int gridCount = Math.Min(GRID_COUNT, outputPanels.Count);
         xTile.Dimensions.Size viewportSize = Game1.uiViewport.Size;
         outputPanels.First().Measure(new(viewportSize.Width, viewportSize.Height));
-        Vector2 gridSize = outputPanels.First().ActualBounds.Size;
+        Vector2 gridSize = outputPanels.First().OuterSize;
         float menuHeight = MathF.Min(
-            MathF.Max(400, viewportSize.Height - gridSize.X),
+            viewportSize.Height - gridSize.Y * 2,
             // min needed height
             MathF.Ceiling((float)outputPanels.Count / GRID_COUNT) * gridSize.Y
         );
@@ -31,7 +32,7 @@ internal sealed class ScrollableGridModal(IList<IView> outputPanels) : FullScree
             {
                 Layout = LayoutParameters.FitContent(),
                 Children = outputPanels,
-                ItemLayout = new GridItemLayout.Count(GRID_COUNT),
+                ItemLayout = new GridItemLayout.Count(gridCount),
                 HorizontalItemAlignment = Alignment.Middle,
             },
         };
@@ -57,6 +58,10 @@ internal sealed class ScrollableGridModal(IList<IView> outputPanels) : FullScree
                     content,
                 ],
             };
+        }
+        else
+        {
+            content.Layout = LayoutParameters.FixedSize(gridCount * gridSize.X, menuHeight);
         }
 
         return new Frame()
