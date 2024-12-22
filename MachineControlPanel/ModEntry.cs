@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Extensions;
 using StardewValley.GameData.Machines;
 using StardewValley.GameData.Objects;
 
@@ -33,6 +34,7 @@ internal sealed class ModEntry : Mod
     internal static bool HasLookupAnying = false;
     internal static string DefaultThingId = "0";
     internal static Item? DefaultThing = null;
+    IIconicFrameworkApi? iconicFrameworkApi;
 
     /// <summary>
     /// Attempt to get a save data entry for a machine
@@ -171,6 +173,19 @@ internal sealed class ModEntry : Mod
         if (EMC != null)
             RuleHelper.EMC = EMC;
         HasLookupAnying = Helper.ModRegistry.IsLoaded("Pathoschild.LookupAnything");
+
+        iconicFrameworkApi = Helper.ModRegistry.GetApi<IIconicFrameworkApi>("furyx639.ToolbarIcons");
+        if (iconicFrameworkApi != null)
+        {
+            iconicFrameworkApi.AddToolbarIcon(
+                $"{ModManifest.UniqueID}_MachineSelect",
+                "LooseSprites/emojis",
+                new Rectangle(72, 54, 9, 9),
+                I18n.Iconic_MachineSelect_Title,
+                I18n.Iconic_MachineSelect_Description
+            );
+            iconicFrameworkApi.Subscribe(HandleIconicFrameworkEvent);
+        }
 
         Harmony harmony = new(ModManifest.UniqueID);
         GamePatches.Apply(harmony);
@@ -323,7 +338,20 @@ internal sealed class ModEntry : Mod
             return;
         if (ShowPanel())
             return;
-        ShowMachineSelect();
+        if (Config.MachineSelectKey.JustPressed())
+            ShowMachineSelect();
+    }
+
+    /// <summary>
+    /// Handle iconic framework event
+    /// </summary>
+    /// <param name="e"></param>
+    private void HandleIconicFrameworkEvent(IIconPressedEventArgs e)
+    {
+        if (e.Id.EqualsIgnoreCase($"{ModManifest.UniqueID}_MachineSelect"))
+        {
+            ShowMachineSelect();
+        }
     }
 
     /// <summary>
@@ -332,7 +360,7 @@ internal sealed class ModEntry : Mod
     /// <returns></returns>
     private bool ShowMachineSelect()
     {
-        if (Game1.activeClickableMenu == null && Config.MachineSelectKey.JustPressed() && saveData != null)
+        if (Game1.activeClickableMenu == null && saveData != null)
         {
             Game1.activeClickableMenu = GetMachineSelectMenu();
         }

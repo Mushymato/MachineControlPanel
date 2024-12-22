@@ -37,4 +37,7 @@
     "skip-reason.quality": "{{Name}} rejected due to disabled quality.",
     // placeholder default flavor object
     "object.thing.display-name": "Thing",
+    // iconic framework
+    "iconic.machine-select.title": "Machine Control Panel",
+    "iconic.machine-select.description": "Open the machine selection menu for machine control panel."
 }
