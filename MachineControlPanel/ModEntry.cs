@@ -137,8 +137,8 @@ internal sealed class ModEntry : Mod
         }
         if (e.Names.Any((name) => name.IsEquivalentTo("Data/Objects")))
         {
-            RuleHelperCache.Invalidate();
             ItemQueryCache.Invalidate();
+            RuleHelperCache.Invalidate();
         }
     }
 
@@ -261,8 +261,11 @@ internal sealed class ModEntry : Mod
     /// <param name="e"></param>
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
+        ItemQueryCache.PopulateContextTagLookupCache();
         if (Config.ProgressionMode)
             PlayerHasItemCache.Populate();
+        if (Config.PrefetchCaches)
+            RuleHelperCache.Prefetch();
         DefaultThing = ItemRegistry.Create(DefaultThingId);
         if (!Game1.IsMasterGame)
             return;

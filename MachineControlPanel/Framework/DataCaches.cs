@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
@@ -78,6 +77,28 @@ internal static class RuleHelperCache
     internal static void Invalidate()
     {
         ruleHelperCache.Clear();
+        if (ModEntry.Config?.PrefetchCaches ?? false)
+            Prefetch();
+    }
+
+    internal static void Prefetch()
+    {
+        var machinesData = DataLoader.Machines(Game1.content);
+        float count = 0;
+        foreach ((string qId, MachineData machine) in machinesData)
+        {
+            if (ItemRegistry.GetData(qId) is not ParsedItemData itemData)
+                continue;
+            if (ModEntry.Config.ProgressionMode && !PlayerHasItemCache.HasItem(qId))
+            {
+                continue;
+            }
+            if (TryGetRuleHelper(itemData.QualifiedItemId, itemData.DisplayName, machine, out RuleHelper? ruleHelper))
+            {
+                ruleHelper.GetRuleEntries();
+            }
+            count++;
+        }
     }
 
     internal static bool TryGetRuleHelper(
@@ -130,7 +151,8 @@ internal static class ItemQueryCache
         "ITEM_EDIBILITY ",
     ];
     private static readonly Regex ExcludeTags = new("(quality_|preserve_sheet_index_).+");
-    private static readonly Dictionary<string, ImmutableList<Item>?> conditionItemDataCache = [];
+    private static readonly Dictionary<string, List<Item>?> conditionItemDataCache = [];
+    private static readonly Dictionary<string, HashSet<string>> contextTagLookupCache = [];
     private static readonly ItemQueryContext context = new();
     internal static ItemQueryContext Context => context;
 
@@ -138,6 +160,8 @@ internal static class ItemQueryCache
     internal static void Invalidate()
     {
         conditionItemDataCache.Clear();
+        contextTagLookupCache.Clear();
+        PopulateContextTagLookupCache();
     }
 
     internal static void Export(IModHelper helper)
@@ -168,6 +192,67 @@ internal static class ItemQueryCache
                 (kv) => kv.Value?.Select((kv1) => kv1.QualifiedItemId).ToList()
             )
         );
+
+        contextTagLookupCache.Clear();
+        PopulateContextTagLookupCache();
+        helper.Data.WriteJsonFile(
+            "context_Tag_lookup.json",
+            contextTagLookupCache.ToDictionary((kv) => kv.Key, (kv) => kv.Value?.Select((kv1) => kv1).ToList())
+        );
+    }
+
+    internal static void PopulateContextTagLookupCache()
+    {
+        foreach (ItemQueryResult result in ItemQueryResolver.TryResolve("ALL_ITEMS", context))
+        {
+            if (result.Item is not Item item)
+                continue;
+            foreach (string tag in item.GetContextTags())
+            {
+                if (!contextTagLookupCache.TryGetValue(tag, out HashSet<string>? cached))
+                {
+                    cached = [];
+                    contextTagLookupCache[tag] = cached;
+                }
+                cached.Add(item.QualifiedItemId);
+            }
+        }
+    }
+
+    internal static bool TryFindInContextTagLookupCache(List<string> tags, [NotNullWhen(true)] out List<Item>? items)
+    {
+        List<HashSet<string>> results = [];
+        HashSet<string> exclude = [];
+        foreach (string tag in tags)
+        {
+            bool negate = tag[0] == '!';
+            string realTag = negate ? tag[1..] : tag;
+            if (contextTagLookupCache.TryGetValue(realTag, out HashSet<string>? cached))
+            {
+                if (negate)
+                    exclude.AddRange(cached);
+                else
+                    results.Add(cached);
+            }
+        }
+        if (results.Any())
+        {
+            items = results
+                .Aggregate(
+                    (acc, next) =>
+                    {
+                        acc.IntersectWith(next);
+                        return acc;
+                    }
+                )
+                .Except(exclude)
+                .Select((itemId) => ItemRegistry.Create(itemId))
+                .ToList();
+            return true;
+        }
+        // do not bother handling the only !tag case, fall through to regular item query
+        items = null;
+        return false;
     }
 
     /// <summary>Probe the complex output delegate to verify that the item data is valid</summary>
@@ -224,11 +309,13 @@ internal static class ItemQueryCache
         string? condition,
         IEnumerable<string>? tags,
         out List<string> nonItemConditions,
-        out List<string> skippedTags
+        out List<string>? skippedTags,
+        out List<string>? filteredTags
     )
     {
         nonItemConditions = [];
-        skippedTags = [];
+        skippedTags = null;
+        filteredTags = null;
         SortedSet<string> mergedConds = [];
         if (condition != null)
         {
@@ -243,7 +330,8 @@ internal static class ItemQueryCache
         }
         if (tags != null)
         {
-            List<string> filteredTags = [];
+            skippedTags = [];
+            filteredTags = [];
             foreach (string rawTag in tags)
             {
                 string tag = rawTag.Trim();
@@ -253,7 +341,13 @@ internal static class ItemQueryCache
                     filteredTags.Add(tag);
             }
             if (filteredTags.Any())
+            {
+                bool onlyHasTag = !nonItemConditions.Any() && !mergedConds.Any();
                 mergedConds.Add($"ITEM_CONTEXT_TAG Target {string.Join(' ', filteredTags)}");
+                // determine if tags should be used to determine items
+                if (!onlyHasTag)
+                    filteredTags = null;
+            }
         }
         if (!mergedConds.Any())
             return null;
@@ -267,10 +361,16 @@ internal static class ItemQueryCache
     /// <returns></returns>
     internal static bool TryGetConditionItemDatas(
         string condition,
-        [NotNullWhen(true)] out ImmutableList<Item>? itemDatas
+        List<string>? filteredTags,
+        [NotNullWhen(true)] out List<Item>? itemDatas
     )
     {
-        itemDatas = conditionItemDataCache.GetOrCreateValue(condition, CreateConditionItemDatas);
+        if (conditionItemDataCache.TryGetValue(condition, out itemDatas))
+            return itemDatas != null;
+        if (filteredTags != null && TryFindInContextTagLookupCache(filteredTags, out itemDatas))
+            conditionItemDataCache[condition] = itemDatas;
+        else
+            itemDatas = conditionItemDataCache.GetOrCreateValue(condition, CreateConditionItemDatas);
         return itemDatas != null;
     }
 
@@ -280,25 +380,25 @@ internal static class ItemQueryCache
     /// <returns></returns>
     internal static bool TryGetConditionItemDatas(
         string? condition,
+        List<string>? filteredTags,
         string qId,
         List<MachineItemOutput> complexOutputs,
-        [NotNullWhen(true)] out ImmutableList<Item>? itemDatas
+        [NotNullWhen(true)] out List<Item>? itemDatas
     )
     {
         itemDatas = null;
         if (condition != null)
-            itemDatas = conditionItemDataCache.GetOrCreateValue(condition, CreateConditionItemDatas);
+            TryGetConditionItemDatas(condition, filteredTags, out itemDatas);
         if (complexOutputs.Any())
-            itemDatas = FilterByOutputMethod(qId, complexOutputs, itemDatas).ToImmutableList();
+            itemDatas = FilterByOutputMethod(qId, complexOutputs, itemDatas).ToList();
         return itemDatas != null && itemDatas.Any();
     }
 
     /// <summary>Get list of <see cref="Item"/> matching a particular condition</summary>
     /// <param name="condition"></param>
     /// <returns></returns>
-    private static ImmutableList<Item>? CreateConditionItemDatas(string condition)
+    private static List<Item>? CreateConditionItemDatas(string condition)
     {
-        // get all item data that matches a condition
         if (
             ItemQueryResolver.TryResolve("ALL_ITEMS", context, ItemQuerySearchMode.All, condition)
                 is ItemQueryResult[] results
@@ -311,7 +411,7 @@ internal static class ItemQueryCache
                 if (res.Item is Item itm)
                     resultItems.Add(itm);
             }
-            return resultItems.ToImmutableList();
+            return resultItems.ToList();
         }
         return null;
     }
@@ -321,7 +421,7 @@ internal static class ItemQueryCache
     /// <param name="condition"></param>
     /// <returns></returns>
     internal static RuleItem GetReprRuleItem(
-        ImmutableList<Item> matchingItemDatas,
+        List<Item> matchingItemDatas,
         string condition,
         int count,
         IEnumerable<string>? skippedTags = null

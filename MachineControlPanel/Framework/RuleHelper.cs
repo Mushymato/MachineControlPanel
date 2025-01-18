@@ -1,7 +1,3 @@
-using System.Collections.Immutable;
-using System.Data;
-using System.Text.RegularExpressions;
-using MachineControlPanel.Framework.UI;
 using Microsoft.Xna.Framework;
 using StardewUI.Data;
 using StardewUI.Graphics;
@@ -230,17 +226,6 @@ internal sealed class RuleHelper
 
             // rule outputs
             List<Tuple<List<RuleItem>, List<RuleItem>>> withEmcFuel = [];
-            // List<MachineItemOutput> allOutputs = [];
-            // if (EMC != null)
-            // {
-            //     allOutputs.AddRange(rule.OutputItem);
-            //     foreach (MachineItemOutput output in rule.OutputItem)
-            //         allOutputs.AddRange(EMC.GetExtraOutputs(output, machine));
-            // }
-            // else
-            // {
-            //     allOutputs = rule.OutputItem;
-            // }
             List<RuleItem> outputLine = [];
             foreach (MachineItemOutput output in rule.OutputItem)
             {
@@ -279,13 +264,15 @@ internal sealed class RuleHelper
                             null,
                             tags,
                             out List<string> _,
-                            out List<string> _
+                            out List<string>? _,
+                            out List<string>? filteredTags
                         );
                         if (
                             normalized != null
                             && ItemQueryCache.TryGetConditionItemDatas(
                                 normalized,
-                                out ImmutableList<Item>? matchingItemDatas
+                                filteredTags,
+                                out List<Item>? matchingItemDatas
                             )
                         )
                         {
@@ -365,14 +352,16 @@ internal sealed class RuleHelper
                             trigger.Condition,
                             trigger.RequiredTags,
                             out nonItemConditions,
-                            out List<string> skippedTags
+                            out List<string>? skippedTags,
+                            out List<string>? filteredTags
                         );
                         if (
                             ItemQueryCache.TryGetConditionItemDatas(
                                 normalized,
+                                filteredTags,
                                 QId,
                                 complexOutputs,
-                                out ImmutableList<Item>? matchingItemDatas
+                                out List<Item>? matchingItemDatas
                             )
                         )
                         {

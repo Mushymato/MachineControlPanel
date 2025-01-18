@@ -87,6 +87,9 @@ internal sealed class ModConfig
     /// <summary>Use the more visible question mark icon that recolors rarely seem to touch :(</summary>
     public bool AltQuestionMark { get; set; } = false;
 
+    /// <summary>Preemptively fetch rule caches on invalidate</summary>
+    public bool PrefetchCaches { get; set; } = true;
+
     private void Reset()
     {
         ControlPanelKey = KeybindList.Parse($"{SButton.MouseLeft}, {SButton.ControllerB}");
