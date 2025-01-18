@@ -159,6 +159,13 @@ internal sealed class ModConfig
             name: I18n.Config_AltQuestionMark_Name,
             tooltip: I18n.Config_AltQuestionMark_Description
         );
+        GMCM.AddBoolOption(
+            mod,
+            getValue: () => PrefetchCaches,
+            setValue: (value) => PrefetchCaches = value,
+            name: I18n.Config_PrefetchCaches_Name,
+            tooltip: I18n.Config_PrefetchCaches_Description
+        );
         GMCM.AddTextOption(
             mod,
             getValue: () => DefaultPage.ToString(),

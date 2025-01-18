@@ -15,6 +15,8 @@
     "config.progression-mode.description": "在机器选择菜单中隐藏未获取的机器",
     "config.alt-question-mark.name": "显眼问号标志",
     "config.alt-question-mark.description": "使用更显眼的问号标志",
+    "config.prefetch-caches.name": "预取缓存",
+    "config.prefetch-caches.description": "提前加载一些信息，缩短菜单加载时间。这个设置大部分时候没问题，但其他不规范模组有可能会导致此模组频繁重新加载缓存，让游戏变得很卡。",
     "rule-list.same-as-input": "与输入一致",
     "rule-list.special-input": "特殊输入",
     "rule-list.special-output": "特殊输出： {{method}}",

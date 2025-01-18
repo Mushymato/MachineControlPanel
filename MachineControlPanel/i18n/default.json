@@ -15,6 +15,8 @@
     "config.progression-mode.description": "On the machine select page, hide not yet obtained machines.",
     "config.alt-question-mark.name": "Alt Question Mark",
     "config.alt-question-mark.description": "Use a more visible question mark icon (previously the default).",
+    "config.prefetch-caches.name": "Prefetch Caches",
+    "config.prefetch-caches.description": "Preemptively cache relevant data to make menu open faster in game. Generally not an issue to enable, but another misbehaving mod can cause this mod to frequently reload the cache, leading to lag.",
     "rule-list.same-as-input": "Same as Input",
     "rule-list.special-input": "Special Input",
     "rule-list.special-output": "Special Output: {{method}}",

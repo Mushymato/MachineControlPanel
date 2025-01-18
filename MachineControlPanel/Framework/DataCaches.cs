@@ -89,10 +89,6 @@ internal static class RuleHelperCache
         {
             if (ItemRegistry.GetData(qId) is not ParsedItemData itemData)
                 continue;
-            if (ModEntry.Config.ProgressionMode && !PlayerHasItemCache.HasItem(qId))
-            {
-                continue;
-            }
             if (TryGetRuleHelper(itemData.QualifiedItemId, itemData.DisplayName, machine, out RuleHelper? ruleHelper))
             {
                 ruleHelper.GetRuleEntries();
