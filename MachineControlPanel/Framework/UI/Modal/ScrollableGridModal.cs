@@ -23,6 +23,7 @@ internal sealed class ScrollableGridModal(IList<IView> outputPanels) : FullScree
             viewportSize.Height - gridSize.Y * 2,
             // min needed height
             MathF.Ceiling((float)outputPanels.Count / GRID_COUNT) * gridSize.Y
+                + 4
         );
 
         IView content = new ScrollableView()

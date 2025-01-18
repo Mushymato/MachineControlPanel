@@ -271,23 +271,49 @@ internal static class ItemQueryCache
                 .GetObjectTypeDefinition()
                 .GetAllData()
                 .Select((itemData) => ItemRegistry.Create(itemData.QualifiedItemId, allowNull: true));
+        Item firstItem = itemDatas.First();
+        List<Tuple<MachineItemOutput, MachineOutputDelegate>> outputDelegates = [];
+        foreach (MachineItemOutput output in outputs)
+        {
+            if (
+                !StaticDelegateBuilder.TryCreateDelegate<MachineOutputDelegate>(
+                    output.OutputMethod,
+                    out var createdDelegate,
+                    out var error
+                )
+            )
+            {
+                ModEntry.LogOnce($"Error creating '{output.OutputMethod}' (from {qId}): {error}");
+                continue;
+            }
+            try
+            {
+                createdDelegate(machineObj, firstItem, true, output, Game1.player, out _);
+            }
+            catch (Exception)
+            {
+                ModEntry.LogOnce($"Error running '{output.OutputMethod}' (from {qId})");
+                continue;
+            }
+            outputDelegates.Add(new(output, createdDelegate));
+        }
         return itemDatas.Where(
             (item) =>
             {
                 if (item != null)
                 {
-                    foreach (MachineItemOutput output in outputs)
+                    foreach ((MachineItemOutput output, MachineOutputDelegate createdDelegate) in outputDelegates)
                     {
-                        if (
-                            StaticDelegateBuilder.TryCreateDelegate<MachineOutputDelegate>(
-                                output.OutputMethod,
-                                out var createdDelegate,
-                                out var _
-                            )
-                            && createdDelegate(machineObj, item, true, output, Game1.player, out _) != null
-                        )
+                        try
                         {
-                            return true;
+                            if (createdDelegate(machineObj, item, true, output, Game1.player, out _) != null)
+                                return true;
+                        }
+                        catch (Exception)
+                        {
+                            ModEntry.LogOnce(
+                                $"Error testing {item.QualifiedItemId} on '{output.OutputMethod}' (from {qId})"
+                            );
                         }
                     }
                 }
