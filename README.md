@@ -63,6 +63,8 @@ Only the host player is allowed to change machine rules, but everyone can open t
 * `Save on Change`: Automatically save changes when closing the control panel or when changing pages.
 * `Progression Mode`: On the machine select page, hide not yet obtained machines.
 * `Default Page`: Page of control panel to display by default.
+* `Alt Question Mark`: Use a more visible question mark icon for special outputs (previously the default icon).
+* `Prefetch Caches`: Preemptively cache relevant data to make menu open faster in game. Generally not an issue to enable, but another misbehaving mod can cause this mod to frequently reload the cache, leading to lag.
 * `Open Machine Select Menu`: Once a save is loaded, this option will display a button that opens the machine select menu, useful in case you are out of keybindings.
 
 ### Save Data
