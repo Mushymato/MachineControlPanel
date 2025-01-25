@@ -88,7 +88,7 @@ internal sealed class ModConfig
     public bool AltQuestionMark { get; set; } = false;
 
     /// <summary>Preemptively fetch rule caches on invalidate</summary>
-    public bool PrefetchCaches { get; set; } = true;
+    public bool PrefetchCaches { get; set; } = false;
 
     private void Reset()
     {

@@ -344,6 +344,8 @@ internal static class ItemQueryCache
             foreach (string rawCond in condition.Split(','))
             {
                 string cond = rawCond.Trim();
+                if (cond.Length == 0)
+                    continue;
                 if (ItemGSQ.Any((gsq) => cond.StartsWith(gsq) || cond[1..].StartsWith(gsq)))
                     mergedConds.Add(cond.Replace(" Input ", " Target "));
                 else
