@@ -7,7 +7,7 @@ internal sealed class RuleListMenu(
     Action<string, IEnumerable<RuleIdent>, IEnumerable<string>, bool[]> saveMachineRules,
     bool showExitX = false,
     Action? updateEdited = null
-) : HoveredItemMenu<RuleListView>
+) : HoveredItemMenu
 {
     protected override RuleListView CreateView()
     {
@@ -26,6 +26,6 @@ internal sealed class RuleListMenu(
     protected override void cleanupBeforeExit()
     {
         if (ModEntry.Config.SaveOnChange)
-            View.SaveAllRules();
+            (View as RuleListView)?.SaveAllRules();
     }
 }

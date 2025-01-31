@@ -7,8 +7,7 @@ namespace MachineControlPanel.Framework.UI.Integration;
 /// <summary>
 /// Integration with lookup anything, which expects a Item field called "hoveredItem" (or "HoveredItem")
 /// </summary>
-public abstract class HoveredItemMenu<T> : ViewMenu<T>
-    where T : IView
+public abstract class HoveredItemMenu : ViewMenu
 {
     public Item? hoveredItem; // wish this was a prop weh
 

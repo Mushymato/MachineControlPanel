@@ -726,6 +726,8 @@ internal sealed class RuleListView(
         List<IView> iconImgs = [];
         foreach (var icon in ruleItem.Icons)
         {
+            if (icon.Img == null)
+                continue;
             iconImgs.Add(
                 new Image()
                 {
