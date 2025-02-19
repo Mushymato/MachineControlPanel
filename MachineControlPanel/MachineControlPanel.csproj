@@ -16,13 +16,13 @@
     <Description>A control panel for machine rules.</Description>
     <UniqueId>mushymato.MachineControlPanel</UniqueId>
     <UpdateKeys>nexus:28261</UpdateKeys>
-    <Version>1.3.4</Version>
+    <Version>1.4.0</Version>
     <MinimumApiVersion_Behavior>Update</MinimumApiVersion_Behavior>
     <MinimumGameVersion_Behavior>UpdateFull</MinimumGameVersion_Behavior>
     <Dependencies_VersionBehavior>UpdateFull</Dependencies_VersionBehavior>
   </PropertyGroup>
   <ItemGroup>
-    <SMAPIDependency Include="focustense.StardewUI" Version="0.2.5" Reference="true" />
+    <SMAPIDependency Include="focustense.StardewUI" Required="true" />
     <SMAPIDependency Include="Pathoschild.LookupAnything" Required="false" />
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Required="false" />
     <SMAPIDependency Include="selph.ExtraMachineConfig" Required="false" />

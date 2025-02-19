@@ -1,57 +1,52 @@
-using MachineControlPanel.Framework.UI;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
-using StardewValley;
 
-namespace MachineControlPanel.Framework;
+namespace MachineControlPanel;
 
-// Adds a button in GMCM, credit to ichortower
-// https://github.com/ichortower/Nightshade/blob/dev/src/GMCM.cs#L79
-internal class OpenMenuButton(Func<MachineMenu> getMachineSelectMenu)
-{
-    private bool mouseLastFrame = false;
-    private readonly string notInGame = I18n.Config_OpenMachineSelectMenu_Description();
+// // Adds a button in GMCM, credit to ichortower
+// // https://github.com/ichortower/Nightshade/blob/dev/src/GMCM.cs#L79
+// internal class OpenMenuButton(Func<MachineMenu> getMachineSelectMenu)
+// {
+//     private bool mouseLastFrame = false;
+//     private readonly string notInGame = I18n.Config_OpenMachineSelectMenu_Description();
 
-    public void Draw(SpriteBatch b, Vector2 origin)
-    {
-        if (Game1.gameMode == Game1.playingGameMode)
-        {
-            origin.Y -= 4;
-            bool mouseThisFrame =
-                Game1.input.GetMouseState().LeftButton == ButtonState.Pressed
-                || Game1.input.GetGamePadState().IsButtonDown(Buttons.A);
-            bool justClicked = mouseThisFrame && !mouseLastFrame;
-            mouseLastFrame = mouseThisFrame;
-            int mouseX = Game1.getMouseX();
-            int mouseY = Game1.getMouseY();
-            Rectangle bounds = new((int)origin.X, (int)origin.Y, 80, 80);
-            bool hovering = bounds.Contains(mouseX, mouseY);
-            if (hovering && justClicked)
-            {
-                Game1.playSound("bigSelect");
-                // Game1.activeClickableMenu.SetChildMenu(getMachineSelectMenu());
-                Game1.activeClickableMenu = getMachineSelectMenu();
-            }
-            b.Draw(
-                Game1.mouseCursors2,
-                new((int)origin.X, (int)origin.Y, 80, 80),
-                new Rectangle(154, 154, 20, 20),
-                Color.White,
-                0f,
-                Vector2.Zero,
-                SpriteEffects.None,
-                1f
-            );
-        }
-        else
-        {
-            b.DrawString(Game1.dialogueFont, notInGame, new Vector2(origin.X + 12, origin.Y + 4), Game1.textColor);
-        }
-    }
-}
+//     public void Draw(SpriteBatch b, Vector2 origin)
+//     {
+//         if (Game1.gameMode == Game1.playingGameMode)
+//         {
+//             origin.Y -= 4;
+//             bool mouseThisFrame =
+//                 Game1.input.GetMouseState().LeftButton == ButtonState.Pressed
+//                 || Game1.input.GetGamePadState().IsButtonDown(Buttons.A);
+//             bool justClicked = mouseThisFrame && !mouseLastFrame;
+//             mouseLastFrame = mouseThisFrame;
+//             int mouseX = Game1.getMouseX();
+//             int mouseY = Game1.getMouseY();
+//             Rectangle bounds = new((int)origin.X, (int)origin.Y, 80, 80);
+//             bool hovering = bounds.Contains(mouseX, mouseY);
+//             if (hovering && justClicked)
+//             {
+//                 Game1.playSound("bigSelect");
+//                 // Game1.activeClickableMenu.SetChildMenu(getMachineSelectMenu());
+//                 Game1.activeClickableMenu = getMachineSelectMenu();
+//             }
+//             b.Draw(
+//                 Game1.mouseCursors2,
+//                 new((int)origin.X, (int)origin.Y, 80, 80),
+//                 new Rectangle(154, 154, 20, 20),
+//                 Color.White,
+//                 0f,
+//                 Vector2.Zero,
+//                 SpriteEffects.None,
+//                 1f
+//             );
+//         }
+//         else
+//         {
+//             b.DrawString(Game1.dialogueFont, notInGame, new Vector2(origin.X + 12, origin.Y + 4), Game1.textColor);
+//         }
+//     }
+// }
 
 /// <summary>
 /// Options for default opened page
@@ -98,7 +93,7 @@ internal sealed class ModConfig
         AltQuestionMark = false;
     }
 
-    public void Register(IModHelper helper, IManifest mod, Func<MachineMenu> GetMachineSelectMenu)
+    public void Register(IModHelper helper, IManifest mod)
     {
         var GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
         if (GMCM == null)
@@ -146,8 +141,8 @@ internal sealed class ModConfig
             setValue: (value) =>
             {
                 ProgressionMode = value;
-                if (value)
-                    PlayerHasItemCache.Populate();
+                // if (value)
+                //     PlayerHasItemCache.Populate();
             },
             name: I18n.Config_ProgressionMode_Name,
             tooltip: I18n.Config_ProgressionMode_Description
@@ -183,7 +178,7 @@ internal sealed class ModConfig
             name: I18n.Config_DefaultPage_Name,
             tooltip: I18n.Config_DefaultPage_Description
         );
-        OpenMenuButton menuBtn = new(GetMachineSelectMenu);
-        GMCM.AddComplexOption(mod, name: I18n.Config_OpenMachineSelectMenu_Name, draw: menuBtn.Draw, height: () => 80);
+        // OpenMenuButton menuBtn = new(GetMachineSelectMenu);
+        // GMCM.AddComplexOption(mod, name: I18n.Config_OpenMachineSelectMenu_Name, draw: menuBtn.Draw, height: () => 80);
     }
 }

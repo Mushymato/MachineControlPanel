@@ -1,10 +1,23 @@
 using StardewModdingAPI;
+using StardewValley;
 using StardewValley.GameData.Machines;
+using StardewValley.GameData.Objects;
 
-namespace MachineControlPanel.Framework;
+namespace MachineControlPanel;
 
 internal static class Quirks
 {
+    internal static string DefaultThingId = "(O)0";
+    internal static Item? defaultThing = null;
+    internal static Item DefaultThing
+    {
+        get
+        {
+            defaultThing ??= ItemRegistry.Create(DefaultThingId);
+            return defaultThing;
+        }
+    }
+
     /// <summary>
     /// abuse of functional programming
     /// </summary>
@@ -87,5 +100,24 @@ internal static class Quirks
                 }
             );
         }
+    }
+
+    /// <summary>Add the placeholder item for use in displaying flavored items</summary>
+    /// <param name="asset"></param>
+    internal static void AddDefaultItemNamedSomethingOtherThanWeedses(IAssetData asset)
+    {
+        DefaultThingId = $"{ModEntry.ModId}_DefaultItem";
+        IDictionary<string, ObjectData> data = asset.AsDictionary<string, ObjectData>().Data;
+        data[DefaultThingId] = new()
+        {
+            Name = DefaultThingId,
+            DisplayName = I18n.Object_Thing_DisplayName(),
+            Description =
+                "Where did you get this? Put it back where you found it (this is a placeholder item from Machine Control Panel)",
+            Type = "Basic",
+            Category = -20,
+            SpriteIndex = 923,
+            Edibility = 0,
+        };
     }
 }
