@@ -19,7 +19,7 @@ public sealed record ModSaveDataEntryMessage(string QId, ModSaveDataEntry? Entry
 public sealed class ModSaveData
 {
     /// <summary>Version, for future compat things</summary>
-    public ISemanticVersion Version { get; set; } = new SemanticVersion(0, 0, 0);
+    public ISemanticVersion? Version { get; set; } = null;
 
     /// <summary>Global disabled rules</summary>
     public Dictionary<string, ModSaveDataEntry> Disabled { get; set; } = [];
@@ -125,6 +125,16 @@ public sealed class ModSaveData
         return false;
     }
 
+    /// <summary>
+    /// Set MSD entry
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <param name="msdDict"></param>
+    /// <param name="msdKey"></param>
+    /// <param name="disabledRules"></param>
+    /// <param name="disabledInputs"></param>
+    /// <param name="disabledQuality"></param>
+    /// <returns></returns>
     private static ModSaveDataEntry? SetMSDEntry<TKey>(
         Dictionary<TKey, ModSaveDataEntry> msdDict,
         TKey msdKey,
@@ -161,14 +171,6 @@ public sealed class ModSaveData
         bool[] disabledQuality
     )
     {
-        if (!Game1.IsMasterGame)
-            return null;
-        if (Version.MajorVersion == 0)
-        {
-            ModEntry.Log("Attempted to save machine rules without save loaded", LogLevel.Error);
-            return null;
-        }
-
         ModSaveDataEntry? msdEntry =
             locationName == null
                 ? SetMSDEntry(Disabled, bigCraftableId, disabledRules, disabledInputs, disabledQuality)

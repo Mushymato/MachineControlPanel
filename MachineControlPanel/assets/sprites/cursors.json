@@ -1,0 +1,16 @@
+{
+  "Texture": "LooseSprites/Cursors",
+  "Sprites": {
+    "shopBg": {
+      "SourceRect": "384,396,15,15",
+      "FixedEdges": "5,5,5,5",
+      "Scale": 4
+    },
+    "magifyingGlass": {
+      "SourceRect": "208,321,15,15"
+    },
+    "organize": {
+      "SourceRect": "162,440,16,16"
+    }
+  }
+}

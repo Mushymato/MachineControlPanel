@@ -1,0 +1,20 @@
+{
+  "Texture": "LooseSprites/emojis",
+  "Sprites": {
+    "coffee": {
+      "SourceRect": "72,54,9,9"
+    },
+    "note": {
+      "SourceRect": "81,81,9,9"
+    },
+    "exclaim": {
+      "SourceRect": "54,81,9,9"
+    },
+    "bolt": {
+      "SourceRect": "36,63,9,9"
+    },
+    "plus": {
+      "SourceRect": "108,81,9,9"
+    }
+  }
+}

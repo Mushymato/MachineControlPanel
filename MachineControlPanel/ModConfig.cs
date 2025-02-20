@@ -1,3 +1,4 @@
+using MachineControlPanel.Data;
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 
@@ -141,8 +142,10 @@ internal sealed class ModConfig
             setValue: (value) =>
             {
                 ProgressionMode = value;
-                // if (value)
-                //     PlayerHasItemCache.Populate();
+                if (value)
+                    PlayerProgressionCache.Populate();
+                else
+                    PlayerProgressionCache.Clear();
             },
             name: I18n.Config_ProgressionMode_Name,
             tooltip: I18n.Config_ProgressionMode_Description

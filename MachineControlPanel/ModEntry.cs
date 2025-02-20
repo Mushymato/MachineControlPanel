@@ -1,3 +1,6 @@
+global using SObject = StardewValley.Object;
+using MachineControlPanel.Data;
+using MachineControlPanel.GUI;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -37,20 +40,30 @@ public class ModEntry : Mod
         // shared events
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
         helper.Events.Multiplayer.ModMessageReceived += OnModMessageReceived;
-        // helper.Events.Input.ButtonsChanged += OnButtonsChanged;
+        helper.Events.Input.ButtonsChanged += OnButtonsChanged;
         helper.Events.Content.AssetRequested += OnAssetRequested;
-        // helper.Events.Content.AssetsInvalidated += OnAssetInvalidated;
-        // helper.Events.Player.InventoryChanged += OnInventoryChanged;
+        helper.Events.Content.AssetsInvalidated += OnAssetInvalidated;
+        helper.Events.Player.InventoryChanged += OnInventoryChanged;
 
         // host only events
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
         helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
+
+        helper.ConsoleCommands.Add(
+            "mcp-reset-savedata",
+            "Reset save data associated with this mod.",
+            ConsoleResetSaveData
+        );
+#if DEBUG
+        helper.ConsoleCommands.Add("mcp-export-cache", "export all the data caches", ConsoleExportItemQueryCache);
+#endif
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
     {
         Config = Helper.ReadConfig<ModConfig>();
         Config.Register(Helper, ModManifest);
+        MenuHandler.Register(Helper);
     }
 
     /// <summary>
@@ -94,6 +107,19 @@ public class ModEntry : Mod
     }
 
     /// <summary>
+    /// Try and show either the machine control panel, or page to select machine from
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
+    {
+        if (!Context.IsWorldReady)
+            return;
+        if (Config.MachineSelectKey.JustPressed())
+            MenuHandler.ShowMachineSelect();
+    }
+
+    /// <summary>
     /// Edit machine info to ensure unique rule ids
     /// </summary>
     /// <param name="sender"></param>
@@ -107,6 +133,29 @@ public class ModEntry : Mod
     }
 
     /// <summary>
+    /// When Data/Objects changes, reset the context tag item cache.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void OnAssetInvalidated(object? sender, AssetsInvalidatedEventArgs e)
+    {
+        if (e.Names.Any((name) => name.IsEquivalentTo("Data/Objects")))
+            ItemQueryCache.Invalidate();
+    }
+
+    /// <summary>
+    /// Inventory changed water, to update progression mode
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void OnInventoryChanged(object? sender, InventoryChangedEventArgs e)
+    {
+        if (Config.ProgressionMode)
+            foreach (var item in e.Added)
+                PlayerProgressionCache.AddItem(item.QualifiedItemId);
+    }
+
+    /// <summary>
     /// Populate the has item cache
     /// Read save data on the host
     /// </summary>
@@ -114,12 +163,8 @@ public class ModEntry : Mod
     /// <param name="e"></param>
     private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
     {
-        // ItemQueryCache.PopulateContextTagLookupCache();
-        // if (Config.ProgressionMode)
-        //     PlayerHasItemCache.Populate();
-        // if (Config.PrefetchCaches)
-        //     RuleHelperCache.Prefetch();
-        //
+        if (Config.ProgressionMode)
+            PlayerProgressionCache.Populate();
         if (!Game1.IsMasterGame)
             return;
         try
@@ -157,6 +202,14 @@ public class ModEntry : Mod
         );
     }
 
+    /// <summary>
+    /// Save machine rule for given machine, message peers about it too.
+    /// </summary>
+    /// <param name="bigCraftableId"></param>
+    /// <param name="locationName"></param>
+    /// <param name="disabledRules"></param>
+    /// <param name="disabledInputs"></param>
+    /// <param name="disabledQuality"></param>
     internal void SaveMachineRules(
         string bigCraftableId,
         string? locationName,
@@ -165,12 +218,40 @@ public class ModEntry : Mod
         bool[] disabledQuality
     )
     {
+        if (!Game1.IsMasterGame)
+            return;
+        if (saveData?.Version == null)
+        {
+            Log("Attempted to save machine rules without save loaded", LogLevel.Error);
+            return;
+        }
         saveData.Version = man.Version;
         Helper.Multiplayer.SendMessage(
             saveData.SetMachineRules(bigCraftableId, locationName, disabledRules, disabledInputs, disabledQuality),
             SAVEDATA_ENTRY,
             modIDs: [ModManifest.UniqueID]
         );
+    }
+
+    /// <summary>
+    /// Reset save data from this mod, for when things are looking wrong
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="args"></param>
+    private void ConsoleResetSaveData(string command, string[] args)
+    {
+        if (!Context.IsWorldReady)
+        {
+            Log("Must load save first.", LogLevel.Error);
+            return;
+        }
+        Helper.Data.WriteSaveData<ModSaveData>(SAVEDATA, null);
+        saveData = new() { Version = ModManifest.Version };
+    }
+
+    private void ConsoleExportItemQueryCache(string command, string[] args)
+    {
+        ItemQueryCache.Export(Helper);
     }
 
     /// <summary>SMAPI static monitor Log wrapper</summary>
