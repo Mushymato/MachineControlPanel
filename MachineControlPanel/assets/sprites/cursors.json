@@ -9,8 +9,21 @@
     "magifyingGlass": {
       "SourceRect": "208,321,15,15"
     },
-    "organize": {
-      "SourceRect": "162,440,16,16"
+    "chatBoxEnd": {
+      "SourceRect": "301,288,15,15"
+    },
+    "chatBoxEndSliced": {
+      "SourceRect": "301,288,15,15",
+      "FixedEdges": "5,5,5,5",
+      "Scale": 4
+    },
+    "hotairBalloon": {
+      "SourceRect": "639,766,16,16"
+    },
+    "tabBg": {
+      "SourceRect": "16,368,16,16",
+      "FixedEdges": "5,5,5,1",
+      "Scale": 4
     }
   }
 }

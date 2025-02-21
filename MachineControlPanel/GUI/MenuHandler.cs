@@ -26,7 +26,21 @@ internal static class MenuHandler
 
     internal static void ShowMachineSelect()
     {
-        var context = new MachineSelectContext();
-        Game1.activeClickableMenu = viewEngine.CreateMenuFromAsset(VIEW_ASSET_MACHINE_SELECT, context);
+        Game1.activeClickableMenu = viewEngine.CreateMenuFromAsset(
+            VIEW_ASSET_MACHINE_SELECT,
+            new MachineSelectContext()
+        );
+    }
+
+    internal static void ShowControlPanel(Item machine, bool isGlobal, bool asChildMenu = false)
+    {
+        var controlPanel = viewEngine.CreateMenuFromAsset(
+            VIEW_ASSET_CONTROL_PANEL,
+            new ControlPanelContext(machine, isGlobal)
+        );
+        if (asChildMenu && Game1.activeClickableMenu != null)
+            Game1.activeClickableMenu.SetChildMenu(controlPanel);
+        else
+            Game1.activeClickableMenu = controlPanel;
     }
 }

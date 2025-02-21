@@ -1,22 +1,27 @@
 {
+    // Menu Acces
+    "config.heading.menu-access": "菜单访问",
     "config.control-panel-key.name": "控制面板按键",
     "config.control-panel-key.description": "在机器旁边时，按此键打开控制面板",
     "config.machine-select-key.name": "机器选择按键",
     "config.machine-select-key.description": "按此键打开机器选择菜单",
+    "config.open-machine-select-menu.name": "打开机器选择菜单",
+    "config.open-machine-select-menu.description": "（加载存档后可使用）",
+    // Benaviors
+    "config.heading.behaviors": "特性",
     "config.save-on-change.name": "自动保存",
     "config.save-on-change.description": "关闭控制面板或更改控制面板页面自动保存设定",
     "config.default-page.name": "默认界面",
     "config.default-page.description": "打开控制面板后默认显示的页面",
     "config.default-page.machine-rules": "机器规则",
     "config.default-page.item-inputs": "输入物品",
-    "config.open-machine-select-menu.name": "打开机器选择菜单",
-    "config.open-machine-select-menu.description": "（加载存档后可使用）",
     "config.progression-mode.name": "进度模式",
     "config.progression-mode.description": "在机器选择菜单中隐藏未获取的机器",
+    // Visual
+    "config.heading.visual": "外观",
     "config.alt-question-mark.name": "显眼问号标志",
     "config.alt-question-mark.description": "使用更显眼的问号标志",
-    "config.prefetch-caches.name": "预取缓存",
-    "config.prefetch-caches.description": "提前加载一些信息，缩短菜单加载时间。这个设置大部分时候没问题，但其他不规范模组有可能会导致此模组频繁重新加载缓存，让游戏变得很卡。",
+    // rule list
     "rule-list.same-as-input": "与输入一致",
     "rule-list.special-input": "特殊输入",
     "rule-list.special-output": "特殊输出： {{method}}",
@@ -39,4 +44,7 @@
     "skip-reason.quality": "{{Name}}因品质设置而退回",
     // placeholder default flavor object
     "object.thing.display-name": "东西",
+    // CMCT
+    "cmct.action.machine-select.title": "机器控制面板",
+    "cmct.action.machine-select.description": "打开机器控制面板的选择菜单"
 }

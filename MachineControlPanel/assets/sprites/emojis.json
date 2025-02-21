@@ -7,6 +7,9 @@
     "note": {
       "SourceRect": "81,81,9,9"
     },
+    "lightbulb": {
+      "SourceRect": "54,90,9,9"
+    },
     "exclaim": {
       "SourceRect": "54,81,9,9"
     },
