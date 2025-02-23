@@ -1,22 +1,17 @@
+using MachineControlPanel.GUI.Includes;
 using PropertyChanged.SourceGenerator;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 
 namespace MachineControlPanel.GUI;
 
-public sealed partial class ControlPanelContext(Item machine, bool isGlobal = false)
+public sealed partial class ControlPanelContext(Item machine, GlobalToggleContext? globalToggleContext = null)
 {
     public readonly Item Machine = machine;
     public readonly string MachineName = machine.DisplayName;
     public readonly ParsedItemData MachineData = ItemRegistry.GetData(machine.QualifiedItemId);
 
-    [Notify]
-    public bool isGlobal = isGlobal;
-
-    public void ToggleGlobalLocal()
-    {
-        IsGlobal = !IsGlobal;
-    }
+    public readonly GlobalToggleContext GlobalToggle = globalToggleContext ?? new GlobalToggleContext();
 
     [Notify]
     public int pageIndex = (int)ModEntry.Config.DefaultPage;

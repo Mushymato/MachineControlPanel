@@ -6,24 +6,18 @@
       "FixedEdges": "5,5,5,5",
       "Scale": 4
     },
-    "magifyingGlass": {
-      "SourceRect": "208,321,15,15"
-    },
-    "chatBoxEnd": {
-      "SourceRect": "301,288,15,15"
-    },
-    "chatBoxEndSliced": {
-      "SourceRect": "301,288,15,15",
-      "FixedEdges": "5,5,5,5",
-      "Scale": 4
-    },
-    "hotairBalloon": {
-      "SourceRect": "639,766,16,16"
-    },
     "tabBg": {
       "SourceRect": "16,368,16,16",
       "FixedEdges": "5,5,5,1",
       "Scale": 4
-    }
+    },
+    "insetBg": {
+      "SourceRect": "403,383,6,6",
+      "FixedEdges": "2,2,2,2",
+      "Scale": 4
+    },
+    "magifyingGlass": {
+      "SourceRect": "208,321,15,15"
+    },
   }
 }

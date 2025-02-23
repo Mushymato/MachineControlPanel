@@ -1,18 +1,22 @@
 <lane orientation="vertical" horizontal-content-alignment="middle">
-  <lane orientation="horizontal">
+  <lane orientation="horizontal" vertical-content-alignment="middle">
     <image sprite={:MachineData}
       layout="48px 96px"
+      margin="12,16,0,0"
       fit="Contain"
       horizontal-alignment="middle"
       vertical-alignment="middle"
       />
     <banner text={:MachineName}
-      margin="16,16,0,0"
-      background-border-thickness="48,16"
+      margin="16,24,0,0"
+      background-border-thickness="48,16,48,14"
       background={@Mods/StardewUI/Sprites/BannerBackground}
       layout="content content"/>
+    <panel margin="0,26,0,0">
+      <include name="mushymato.MachineControlPanel/views/includes/global-toggle" *context={:GlobalToggle}/>
+    </panel>
   </lane>
-  <frame layout="1220px 70%[570..]"
+  <frame layout="1220px 70%[550..]"
     background={@Mods/StardewUI/Sprites/MenuBackground}
     border={@Mods/StardewUI/Sprites/MenuBorder}
     border-thickness="36, 36, 36, 36"

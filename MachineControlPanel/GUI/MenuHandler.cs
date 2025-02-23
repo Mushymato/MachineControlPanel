@@ -1,3 +1,4 @@
+using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
 using StardewModdingAPI;
 using StardewValley;
@@ -32,11 +33,15 @@ internal static class MenuHandler
         );
     }
 
-    internal static void ShowControlPanel(Item machine, bool isGlobal, bool asChildMenu = false)
+    internal static void ShowControlPanel(
+        Item machine,
+        GlobalToggleContext? globalToggleContext = null,
+        bool asChildMenu = false
+    )
     {
         var controlPanel = viewEngine.CreateMenuFromAsset(
             VIEW_ASSET_CONTROL_PANEL,
-            new ControlPanelContext(machine, isGlobal)
+            new ControlPanelContext(machine, globalToggleContext)
         );
         if (asChildMenu && Game1.activeClickableMenu != null)
             Game1.activeClickableMenu.SetChildMenu(controlPanel);

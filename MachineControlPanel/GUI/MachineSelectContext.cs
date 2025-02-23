@@ -1,4 +1,5 @@
 using MachineControlPanel.Data;
+using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
 using PropertyChanged.SourceGenerator;
@@ -9,7 +10,12 @@ using StardewValley.ItemTypeDefinitions;
 
 namespace MachineControlPanel.GUI;
 
-public sealed partial record MachineSelectCell(string QId, MachineData Data, Item Machine)
+public sealed partial record MachineSelectCell(
+    string QId,
+    MachineData Data,
+    Item Machine,
+    GlobalToggleContext GlobalToggle
+)
 {
     public readonly ParsedItemData MachineData = ItemRegistry.GetData(QId);
     public readonly SDUITooltipData Tooltip = new(Machine.getDescription(), Machine.DisplayName, Machine);
@@ -17,7 +23,7 @@ public sealed partial record MachineSelectCell(string QId, MachineData Data, Ite
     [Notify]
     private Color backgroundTint = Color.White * 0.5f;
 
-    public void ShowControlPanel(bool isGlobal) => MenuHandler.ShowControlPanel(Machine, isGlobal, asChildMenu: true);
+    public void ShowControlPanel() => MenuHandler.ShowControlPanel(Machine, GlobalToggle, asChildMenu: true);
 }
 
 /// <summary>Context for machine select</summary>
@@ -26,22 +32,15 @@ public sealed partial class MachineSelectContext
     /// <summary>All machine data, loaded everytime menu is opened</summary>
     private readonly Dictionary<string, MachineData> allMachines = DataLoader.Machines(Game1.content);
 
+    public readonly GlobalToggleContext GlobalToggle = new();
+
     [Notify]
     private string searchText = "";
-
-    [Notify]
-    public bool isGlobal = true;
-
-    public void ToggleGlobalLocal()
-    {
-        IsGlobal = !IsGlobal;
-    }
 
     public IEnumerable<MachineSelectCell> MachineCells
     {
         get
         {
-            // List<MachineSelectCell> machineCells = [];
             int hidden = 0;
             string searchText = SearchText;
             foreach ((string key, MachineData value) in allMachines)
@@ -59,12 +58,9 @@ public sealed partial class MachineSelectContext
                     hidden++;
                     continue;
                 }
-                // machineCells.Add(new MachineSelectCell(key, value, machine));
-                yield return new MachineSelectCell(key, value, machine);
+                yield return new MachineSelectCell(key, value, machine, GlobalToggle);
             }
             HiddenByProgressionCount = hidden;
-            // ModEntry.Log(HiddenByProgressionCountLabel);
-            // return machineCells;
         }
     }
 

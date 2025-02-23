@@ -115,6 +115,7 @@ public class ModEntry : Mod
     {
         if (!Context.IsWorldReady)
             return;
+        if (Config.ControlPanelKey.JustPressed()) { }
         if (Config.MachineSelectKey.JustPressed())
             MenuHandler.ShowMachineSelect();
     }

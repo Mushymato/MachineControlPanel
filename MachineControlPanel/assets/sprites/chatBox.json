@@ -1,9 +1,0 @@
-{
-  "Texture": "LooseSprites/chatBox",
-  "Sprites": {
-    "input": {
-      "SourceRect": "0,0,300,56",
-      "FixedEdges": "12,12,12,12"
-    }
-  }
-}
