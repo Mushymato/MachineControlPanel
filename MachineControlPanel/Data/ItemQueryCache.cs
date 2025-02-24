@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using StardewModdingAPI;
@@ -13,32 +14,31 @@ namespace MachineControlPanel.Data;
 /// <summary>Cache info about items matching a condition</summary>
 internal static class ItemQueryCache
 {
-    // internal static IconEdge EmojiNote => new(new(ChatBox.emojiTexture, new Rectangle(81, 81, 9, 9)), Scale: 3f);
-
-    // internal static IconEdge EmojiX => new(new(ChatBox.emojiTexture, new Rectangle(45, 81, 9, 9)), new(14), 4f);
-    internal static readonly HashSet<string> InvariantItemGSQ =
-    [
-        "ITEM_CONTEXT_TAG ",
-        "ITEM_CATEGORY ",
-        "ITEM_HAS_EXPLICIT_OBJECT_CATEGORY ",
-        "ITEM_ID ",
-        "ITEM_ID_PREFIX ",
-        "ITEM_NUMERIC_ID ",
-        "ITEM_OBJECT_TYPE ",
-        "ITEM_TYPE ",
-        "ITEM_EDIBILITY ",
-    ];
+    private const string ALL_ITEMS = "ALL_ITEMS";
+    private static readonly Regex ItemContextTagGSQ = new("\\!?ITEM_CONTEXT_TAG (.+)");
+    private static readonly Regex ItemGSQ =
+        new(
+            "\\!?(ITEM_CATEGORY|ITEM_HAS_EXPLICIT_OBJECT_CATEGORY|ITEM_ID|ITEM_ID_PREFIX|ITEM_NUMERIC_ID|ITEM_OBJECT_TYPE|ITEM_TYPE|ITEM_EDIBILITY) .+"
+        );
     private static readonly Regex ExcludeTags = new("(quality_|preserve_sheet_index_).+");
-    private static readonly Dictionary<string, IReadOnlyList<Item>?> conditionItemDataCache = [];
+    private static readonly Dictionary<string, IReadOnlyList<Item>?> conditionItemCache = [];
+    private static readonly Dictionary<ValueTuple<string, string>, IReadOnlyList<Item>?> outputMethodCache = [];
     private static readonly Dictionary<string, HashSet<string>> contextTagLookupCache = [];
-    private static readonly ItemQueryContext context = new();
-    internal static ItemQueryContext Context => context;
+
+    private static IReadOnlyList<Item>? allItems = null;
+    private static IReadOnlyList<Item> AllItems =>
+        allItems ??= ItemQueryResolver
+            .TryResolve(ALL_ITEMS, Context, filter: ItemQuerySearchMode.AllOfTypeItem)
+            .Select(res => (Item)res.Item)
+            .ToList();
+    internal static ItemQueryContext Context => new();
 
     /// <summary>Clear cache, usually because Data/Objects was invalidated.</summary>
     internal static void Invalidate()
     {
-        conditionItemDataCache.Clear();
+        conditionItemCache.Clear();
         contextTagLookupCache.Clear();
+        allItems = null;
         PopulateContextTagLookupCache();
     }
 
@@ -46,17 +46,19 @@ internal static class ItemQueryCache
     /// <param name="helper"></param>
     internal static void Export(IModHelper helper)
     {
+        var stopwatch = Stopwatch.StartNew();
         contextTagLookupCache.Clear();
         PopulateContextTagLookupCache();
         helper.Data.WriteJsonFile(
-            "context_tag_lookup.json",
+            "export/context_tag_lookup.json",
             contextTagLookupCache.ToDictionary((kv) => kv.Key, (kv) => kv.Value?.Select((kv1) => kv1).ToList())
         );
+        ModEntry.Log($"Wrote export/context_tag_lookup.json in {stopwatch.Elapsed}");
     }
 
     internal static void PopulateContextTagLookupCache()
     {
-        foreach (ItemQueryResult result in ItemQueryResolver.TryResolve("ALL_ITEMS", context))
+        foreach (ItemQueryResult result in ItemQueryResolver.TryResolve(ALL_ITEMS, Context))
         {
             if (result.Item is not Item item)
                 continue;
@@ -76,7 +78,10 @@ internal static class ItemQueryCache
     /// <param name="tags"></param>
     /// <param name="items"></param>
     /// <returns></returns>
-    internal static bool TryContextTagLookupCache(IEnumerable<string> tags, [NotNullWhen(true)] out List<Item>? items)
+    internal static bool TryContextTagLookupCache(
+        IEnumerable<string> tags,
+        [NotNullWhen(true)] out IEnumerable<Item>? items
+    )
     {
         List<HashSet<string>> results = [];
         HashSet<string> exclude = [];
@@ -84,6 +89,8 @@ internal static class ItemQueryCache
         {
             bool negate = tag[0] == '!';
             string realTag = negate ? tag[1..] : tag;
+            if (ExcludeTags.Match(realTag).Success)
+                continue;
             if (contextTagLookupCache.TryGetValue(realTag, out HashSet<string>? cached))
             {
                 if (negate)
@@ -103,8 +110,7 @@ internal static class ItemQueryCache
                     }
                 )
                 .Except(exclude)
-                .Select((itemId) => ItemRegistry.Create(itemId))
-                .ToList();
+                .Select((itemId) => ItemRegistry.Create(itemId));
             return true;
         }
         // do not bother handling the only !tag case, fall through to regular item query
@@ -112,58 +118,52 @@ internal static class ItemQueryCache
         return false;
     }
 
-    /// <summary>Probe the complex output delegate to verify that the item data is valid</summary>
-    /// <param name="complexOutput"></param>
-    internal static IEnumerable<Item> FilterByOutputMethod(
-        string qId,
-        List<MachineItemOutput> outputs,
-        IEnumerable<Item>? itemDatas
+    /// <summary>Do fast lookup of context tags</summary>
+    /// <param name="tags"></param>
+    /// <param name="items"></param>
+    /// <returns></returns>
+    internal static IReadOnlyList<Item>? CreateOutputMethodItemList(
+        ValueTuple<string, string> machineAndMethod,
+        MachineItemOutput output
     )
     {
-        SObject machineObj = ItemRegistry.Create<SObject>(qId, allowNull: true);
+        SObject machineObj = ItemRegistry.Create<SObject>(machineAndMethod.Item1, allowNull: true);
+        string outputMethod = machineAndMethod.Item2;
         // magic knowledge that anvil takes trinkets
-        if (qId == "(BC)Anvil")
-            itemDatas ??= ItemRegistry
+        IEnumerable<Item>? itemDatas;
+        if (machineObj.QualifiedItemId == "(BC)Anvil")
+            itemDatas = ItemRegistry
                 .RequireTypeDefinition<TrinketDataDefinition>("(TR)")
                 .GetAllData()
                 .Select((itemData) => ItemRegistry.Create(itemData.QualifiedItemId, allowNull: true));
         else
-            itemDatas ??= ItemRegistry
-                .GetObjectTypeDefinition()
-                .GetAllData()
-                .Select((itemData) => ItemRegistry.Create(itemData.QualifiedItemId, allowNull: true));
+            itemDatas = AllItems;
         Item firstItem = itemDatas.First();
-        List<Tuple<MachineItemOutput, MachineOutputDelegate>> outputDelegates = [];
-        foreach (MachineItemOutput output in outputs)
-        {
-            if (
-                !StaticDelegateBuilder.TryCreateDelegate<MachineOutputDelegate>(
-                    output.OutputMethod,
-                    out var createdDelegate,
-                    out var error
-                )
+        if (
+            !StaticDelegateBuilder.TryCreateDelegate<MachineOutputDelegate>(
+                outputMethod,
+                out var createdDelegate,
+                out var error
             )
-            {
-                ModEntry.LogOnce($"Error creating '{output.OutputMethod}' (from {qId}): {error}");
-                continue;
-            }
-            try
-            {
-                createdDelegate(machineObj, firstItem, true, output, Game1.player, out _);
-            }
-            catch (Exception)
-            {
-                ModEntry.LogOnce($"Error running '{output.OutputMethod}' (from {qId})");
-                continue;
-            }
-            outputDelegates.Add(new(output, createdDelegate));
+        )
+        {
+            ModEntry.LogOnce($"Error creating '{outputMethod}' (from {machineObj.QualifiedItemId}): {error}");
+            return null;
         }
-        return itemDatas.Where(
-            (item) =>
-            {
-                if (item != null)
+        try
+        {
+            createdDelegate(machineObj, firstItem, true, output, Game1.player, out _);
+        }
+        catch (Exception)
+        {
+            ModEntry.LogOnce($"Error running '{outputMethod}' (from {machineObj.QualifiedItemId})");
+            return null;
+        }
+        return itemDatas
+            .Where(
+                (item) =>
                 {
-                    foreach ((MachineItemOutput output, MachineOutputDelegate createdDelegate) in outputDelegates)
+                    if (item != null)
                     {
                         try
                         {
@@ -173,13 +173,21 @@ internal static class ItemQueryCache
                         catch (Exception)
                         {
                             ModEntry.LogOnce(
-                                $"Error testing {item.QualifiedItemId} on '{output.OutputMethod}' (from {qId})"
+                                $"Error testing {item.QualifiedItemId} on '{output.OutputMethod}' (from {machineObj.QualifiedItemId})"
                             );
                         }
                     }
+                    return false;
                 }
-                return false;
-            }
+            )
+            .ToList();
+    }
+
+    internal static IReadOnlyList<Item>? TryGetOutputMethodItemList(string qId, MachineItemOutput output)
+    {
+        return outputMethodCache.GetOrCreateValue(
+            new ValueTuple<string, string>(qId, output.OutputMethod),
+            (key) => CreateOutputMethodItemList(key, output)
         );
     }
 
@@ -189,7 +197,7 @@ internal static class ItemQueryCache
     internal static IReadOnlyList<Item>? CreateConditionItemList(string condition)
     {
         if (
-            ItemQueryResolver.TryResolve("ALL_ITEMS", context, ItemQuerySearchMode.All, condition, avoidRepeat: true)
+            ItemQueryResolver.TryResolve(ALL_ITEMS, Context, ItemQuerySearchMode.All, condition, avoidRepeat: true)
                 is ItemQueryResult[] results
             && results.Any()
         )
@@ -203,5 +211,68 @@ internal static class ItemQueryCache
             return resultItems.ToList();
         }
         return null;
+    }
+
+    internal static IReadOnlyList<Item>? ResolveItems(
+        IReadOnlyList<string>? contextTags,
+        string? condition,
+        out IReadOnlyList<string>? resolvedContextTags,
+        out string? nonItemCondition
+    )
+    {
+        resolvedContextTags = null;
+        nonItemCondition = null;
+        List<string>? nonItemConditions = null;
+        List<Item>? items = null;
+        // conditions
+        if (condition != null)
+        {
+            nonItemConditions = [];
+            List<string> conditionsToResolve = [];
+            List<string> gsqTags = [];
+            foreach (string rawCond in condition.Replace(" Input", " Target").Split(','))
+            {
+                string cond = rawCond.Trim();
+                if (cond.Length == 0)
+                    continue;
+                if (ItemContextTagGSQ.Match(cond) is Match res && res.Success)
+                {
+                    gsqTags.AddRange(res.Captures[0].ValueSpan.ToString().Split(' '));
+                }
+                if (ItemGSQ.Match(cond).Success)
+                    conditionsToResolve.Add(cond);
+                else
+                    nonItemConditions.Add(cond);
+            }
+            if (contextTags == null)
+                resolvedContextTags = gsqTags;
+            else
+                resolvedContextTags = [.. gsqTags, .. contextTags];
+            nonItemConditions.Sort();
+            nonItemCondition = string.Join(',', nonItemConditions);
+            conditionsToResolve.Sort();
+            string condToResolve = string.Join(',', conditionsToResolve);
+            items = conditionItemCache.GetOrCreateValue(condToResolve, CreateConditionItemList)?.ToList();
+        }
+        else if (contextTags != null)
+        {
+            resolvedContextTags = contextTags;
+        }
+        else
+        {
+            return AllItems;
+        }
+        if (resolvedContextTags == null || !resolvedContextTags.Any())
+            return items ?? AllItems;
+        // tag
+        if (TryContextTagLookupCache(resolvedContextTags, out IEnumerable<Item>? tagItems))
+        {
+            if (items != null)
+                items = items.Intersect(tagItems).ToList();
+            else
+                items = tagItems.ToList();
+        }
+
+        return items;
     }
 }

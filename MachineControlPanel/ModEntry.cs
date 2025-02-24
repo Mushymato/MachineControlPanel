@@ -64,6 +64,7 @@ public class ModEntry : Mod
         Config = Helper.ReadConfig<ModConfig>();
         Config.Register(Helper, ModManifest);
         MenuHandler.Register(Helper);
+        MachineRuleCache.Register(Helper);
     }
 
     /// <summary>
@@ -252,6 +253,7 @@ public class ModEntry : Mod
 
     private void ConsoleExportItemQueryCache(string command, string[] args)
     {
+        MachineRuleCache.Export(Helper);
         ItemQueryCache.Export(Helper);
     }
 

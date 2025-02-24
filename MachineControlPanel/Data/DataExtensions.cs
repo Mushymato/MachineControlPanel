@@ -11,11 +11,12 @@ internal static class DataExtensions
     /// <param name="key"></param>
     /// <param name="createValue"></param>
     /// <returns></returns>
-    public static TValue GetOrCreateValue<TValue>(
-        this Dictionary<string, TValue> dict,
-        string key,
-        Func<string, TValue> createValue
+    public static TValue GetOrCreateValue<TKey, TValue>(
+        this Dictionary<TKey, TValue> dict,
+        TKey key,
+        Func<TKey, TValue> createValue
     )
+        where TKey : notnull
     {
         if (dict.TryGetValue(key, out TValue? result))
             return result;

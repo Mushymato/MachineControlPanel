@@ -25,7 +25,7 @@ public sealed class ModSaveData
     public Dictionary<string, ModSaveDataEntry> Disabled { get; set; } = [];
 
     /// <summary>Per location disabled rules</summary>
-    public Dictionary<Tuple<string, string>, ModSaveDataEntry> DisabledPerLocation { get; set; } = [];
+    public Dictionary<ValueTuple<string, string>, ModSaveDataEntry> DisabledPerLocation { get; set; } = [];
 
     /// <summary>
     /// Validate the rules under a particular ModSaveDataEntry
@@ -176,7 +176,7 @@ public sealed class ModSaveData
                 ? SetMSDEntry(Disabled, bigCraftableId, disabledRules, disabledInputs, disabledQuality)
                 : SetMSDEntry(
                     DisabledPerLocation,
-                    new Tuple<string, string>(bigCraftableId, locationName),
+                    new ValueTuple<string, string>(bigCraftableId, locationName),
                     disabledRules,
                     disabledInputs,
                     disabledQuality

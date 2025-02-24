@@ -1,3 +1,4 @@
+using System.Text.Json;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Machines;
@@ -18,6 +19,18 @@ internal static class Quirks
         }
     }
 
+    /// <summary>Get a MD5 hash by the value for unique key purposes</summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    public static string HashMD5(string input)
+    {
+        // Use input string to calculate MD5 hash
+        using System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create();
+        byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
+        byte[] hashBytes = md5.ComputeHash(inputBytes);
+        return Convert.ToHexString(hashBytes); // .NET 5 +
+    }
+
     /// <summary>
     /// abuse of functional programming
     /// </summary>
@@ -30,7 +43,7 @@ internal static class Quirks
         string debugText,
         List<T>? modelList,
         Func<T, string> getId,
-        Action<T, int> setIdSeq,
+        Action<T, string> setIdSeq,
         Action<T>? process = null
     )
     {
@@ -52,24 +65,21 @@ internal static class Quirks
             }
         }
 
-        int i;
         foreach ((string key, List<T> models) in modelById)
         {
             if (models.Count > 1)
             {
                 // edit second duplicate and on
-                i = 1;
                 foreach (T model in models.Skip(1))
-                    setIdSeq(model, i++);
+                    setIdSeq(model, HashMD5(JsonSerializer.Serialize(model)));
             }
         }
         // unsure when model could have null id, log for future detection
         if (nullIdModels.Any())
             ModEntry.LogOnce($"{debugText} has null Ids");
-        i = 0;
         foreach (T model in nullIdModels)
         {
-            setIdSeq(model, i++);
+            setIdSeq(model, HashMD5(JsonSerializer.Serialize(model)));
         }
     }
 
