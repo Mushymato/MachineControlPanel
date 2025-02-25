@@ -36,6 +36,7 @@ public class ModEntry : Mod
         mon = Monitor;
         man = ModManifest;
         Config = Helper.ReadConfig<ModConfig>();
+        Patches.Patch();
 
         // shared events
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;

@@ -1,17 +1,14 @@
 <lane orientation="vertical" horizontal-content-alignment="middle">
   <lane orientation="horizontal" vertical-content-alignment="middle">
     <image sprite={:MachineData}
+      tooltip={:MachineTooltip}
       layout="48px 96px"
-      margin="12,16,0,0"
+      margin="12,16,12,0"
       fit="Contain"
       horizontal-alignment="middle"
       vertical-alignment="middle"
       />
-    <banner text={:MachineName}
-      margin="16,24,0,0"
-      background-border-thickness="48,16,48,14"
-      background={@Mods/StardewUI/Sprites/BannerBackground}
-      layout="content content"/>
+    <textinput text={<>SearchText} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="300px 60px" margin="0,26,0,0" text-color="#43111B" focusable="true"/>
     <panel margin="0,26,0,0">
       <include name="mushymato.MachineControlPanel/views/includes/global-toggle" *context={:GlobalToggle}/>
     </panel>
@@ -25,8 +22,32 @@
       <tab-label page="1" text={#rule-list.rules} margin={TabMarginRules} />
       <tab-label page="2" text={#rule-list.inputs} margin={TabMarginInputs}/>
     </lane>
-    <label *case="1" text={#rule-list.rules}/>
-    <label *case="2" text={#rule-list.inputs}/>
+    <scrollable peeking="128">
+      <!-- Rules -->
+      <panel *case="1">
+        <grid primary-orientation="horizontal">
+          <lane orientation="horizontal" *repeat={RuleEntries}>
+            <rule-icon *context={:Input} />
+            <image sprite={@Mods/StardewUI/Sprites/CaretRight} />
+            <rule-icon *repeat={:Outputs} />
+          </lane>
+        </grid>
+      </panel>
+      <!-- Inputs -->
+      <panel *case="2" >
+        <grid item-layout="length: 76+" horizontal-item-alignment="middle">
+          <panel *repeat={:InputItems}>
+            <image sprite={:ItemData} tooltip={:Tooltip} tint={Tint}
+              layout="64px 64px" 
+              margin="6"
+              focusable="true"
+              left-click=|ToggleState()|
+              +hover:scale="1.1"
+              +transition:scale="100ms EaseInSine"/>
+          </panel>
+        </grid>
+      </panel>
+    </scrollable>
   </frame>
 </lane>
 
@@ -40,4 +61,11 @@
     >
     <label text={&text}/>
   </frame>
+</template>
+
+<template name="rule-icon">
+  <panel>
+    <image sprite={:Sprite} tooltip={:Tooltip} layout="64px 64px" margin="6" focusable="true"/>
+    <digits *if={ShowCount} number={:Count} />
+  </panel>
 </template>

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using MachineControlPanel.Data;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Machines;
@@ -76,7 +77,7 @@ public sealed class ModSaveData
     public bool ClearInvalidData()
     {
         bool hasChange = false;
-        var machinesData = DataLoader.Machines(Game1.content);
+        var machinesData = MachineRuleCache.Machines;
         // Global rules
         foreach ((string qId, ModSaveDataEntry msdEntry) in Disabled)
         {

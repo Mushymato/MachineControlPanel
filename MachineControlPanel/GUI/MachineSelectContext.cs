@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using MachineControlPanel.Data;
 using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
@@ -30,7 +31,7 @@ public sealed partial record MachineSelectCell(
 public sealed partial class MachineSelectContext
 {
     /// <summary>All machine data, loaded everytime menu is opened</summary>
-    private readonly Dictionary<string, MachineData> allMachines = DataLoader.Machines(Game1.content);
+    private readonly Dictionary<string, MachineData> allMachines = MachineRuleCache.Machines;
 
     public readonly GlobalToggleContext GlobalToggle = new();
 
@@ -41,11 +42,16 @@ public sealed partial class MachineSelectContext
     {
         get
         {
+#if DEBUG
+            Stopwatch stopwatch = Stopwatch.StartNew();
+#endif
             int hidden = 0;
             string searchText = SearchText;
             foreach ((string key, MachineData value) in allMachines)
             {
                 if (ItemRegistry.Create(key) is not Item machine)
+                    continue;
+                if ((MachineRuleCache.CreateRuleDefList(key)?.Count ?? 0) == 0)
                     continue;
                 if (
                     !string.IsNullOrEmpty(searchText)
@@ -61,6 +67,9 @@ public sealed partial class MachineSelectContext
                 yield return new MachineSelectCell(key, value, machine, GlobalToggle);
             }
             HiddenByProgressionCount = hidden;
+#if DEBUG
+            ModEntry.Log($"Build MachineCells in in {stopwatch.Elapsed}");
+#endif
         }
     }
 

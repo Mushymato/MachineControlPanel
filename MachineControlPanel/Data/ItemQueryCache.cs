@@ -5,6 +5,7 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Delegates;
 using StardewValley.Extensions;
+using StardewValley.GameData;
 using StardewValley.GameData.Machines;
 using StardewValley.Internal;
 using StardewValley.ItemTypeDefinitions;
@@ -24,6 +25,7 @@ internal static class ItemQueryCache
     private static readonly Dictionary<string, IReadOnlyList<Item>?> conditionItemCache = [];
     private static readonly Dictionary<ValueTuple<string, string>, IReadOnlyList<Item>?> outputMethodCache = [];
     private static readonly Dictionary<string, HashSet<string>> contextTagLookupCache = [];
+    private static readonly Dictionary<string, IReadOnlyList<Item>> itemQueryCache = [];
 
     private static IReadOnlyList<Item>? allItems = null;
     private static IReadOnlyList<Item> AllItems =>
@@ -213,7 +215,7 @@ internal static class ItemQueryCache
         return null;
     }
 
-    internal static IReadOnlyList<Item>? ResolveItems(
+    internal static IReadOnlyList<Item>? ResolveCondTagItems(
         IReadOnlyList<string>? contextTags,
         string? condition,
         out IReadOnlyList<string>? resolvedContextTags,
@@ -274,5 +276,54 @@ internal static class ItemQueryCache
         }
 
         return items;
+    }
+
+    internal static IReadOnlyList<Item> ResolveItemQuery(ISpawnItemData mio)
+    {
+        string mioHash = Quirks.HashMD5(mio);
+        if (!itemQueryCache.TryGetValue(mioHash, out IReadOnlyList<Item>? itemQRes))
+        {
+            if (mio.RandomItemId != null && mio.RandomItemId.Count > 0)
+            {
+                itemQRes = mio
+                    .RandomItemId.Select(
+                        (qId) =>
+                        {
+                            if (ItemRegistry.Create(qId, allowNull: true) is Item item)
+                                return (Item)
+                                    ItemQueryResolver.ApplyItemFields(
+                                        item,
+                                        mio,
+                                        Context,
+                                        inputItem: Quirks.DefaultThing
+                                    );
+                            return null;
+                        }
+                    )
+                    .Where(item => item is not null)
+                    .ToList()!;
+            }
+            else
+            {
+                itemQRes = ItemQueryResolver
+                    .TryResolve(
+                        mio,
+                        Context,
+                        formatItemId: id =>
+                            id != null
+                                ? id.Replace("DROP_IN_ID", Quirks.DefaultThingId)
+                                    .Replace("DROP_IN_PRESERVE", Quirks.DefaultThingId)
+                                    .Replace("DROP_IN_QUALITY", SObject.lowQuality.ToString())
+                                    .Replace("NEARBY_FLOWER_ID", SObject.WildHoneyPreservedId)
+                                : id,
+                        filter: ItemQuerySearchMode.AllOfTypeItem,
+                        inputItem: Quirks.DefaultThing
+                    )
+                    .Select(res => (Item)res.Item)
+                    .ToList();
+            }
+            itemQueryCache[mioHash] = itemQRes;
+        }
+        return itemQRes;
     }
 }

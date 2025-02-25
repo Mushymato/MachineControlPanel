@@ -22,11 +22,11 @@ internal static class Quirks
     /// <summary>Get a MD5 hash by the value for unique key purposes</summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    public static string HashMD5(string input)
+    internal static string HashMD5(object? input)
     {
         // Use input string to calculate MD5 hash
         using System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create();
-        byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
+        byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(JsonSerializer.Serialize(input));
         byte[] hashBytes = md5.ComputeHash(inputBytes);
         return Convert.ToHexString(hashBytes); // .NET 5 +
     }
@@ -71,7 +71,7 @@ internal static class Quirks
             {
                 // edit second duplicate and on
                 foreach (T model in models.Skip(1))
-                    setIdSeq(model, HashMD5(JsonSerializer.Serialize(model)));
+                    setIdSeq(model, HashMD5(model));
             }
         }
         // unsure when model could have null id, log for future detection
@@ -79,7 +79,7 @@ internal static class Quirks
             ModEntry.LogOnce($"{debugText} has null Ids");
         foreach (T model in nullIdModels)
         {
-            setIdSeq(model, HashMD5(JsonSerializer.Serialize(model)));
+            setIdSeq(model, HashMD5(model));
         }
     }
 

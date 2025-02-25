@@ -1,56 +1,66 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using MachineControlPanel.Integration.IExtraMachineConfigApi;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Machines;
+using StardewValley.Internal;
 
 namespace MachineControlPanel.Data;
 
-internal sealed record IconDef(
+/// <summary>
+/// A definition for a singular icon displayed on a rule.
+/// </summary>
+/// <param name="Items"></param>
+/// <param name="Count"></param>
+/// <param name="ContextTags"></param>
+/// <param name="Condition"></param>
+/// <param name="Notes"></param>
+/// <param name="IsFuel"></param>
+public sealed record IconDef(
     IReadOnlyList<Item>? Items = null,
     int Count = 0,
     IReadOnlyList<string>? ContextTags = null,
     string? Condition = null,
-    string? Notes = null,
+    IReadOnlyList<string>? Notes = null,
     bool IsFuel = false
 )
 {
-    internal IconDef CopyWithChanges(
-        IReadOnlyList<Item>? items = null,
-        int? count = null,
-        IReadOnlyList<string>? contextTags = null,
-        string? condition = null,
-        string? notes = null,
-        bool? isFuel = null
-    )
-    {
-        return new IconDef(
-            Items ?? Items,
-            count ?? Count,
-            contextTags ?? ContextTags,
-            condition ?? Condition,
-            notes ?? Notes,
-            isFuel ?? IsFuel
-        );
-    }
+    // internal IconDef CopyWithChanges(
+    //     IReadOnlyList<Item>? items = null,
+    //     int? count = null,
+    //     IReadOnlyList<string>? contextTags = null,
+    //     string? condition = null,
+    //     string? notes = null,
+    //     bool? isFuel = null
+    // )
+    // {
+    //     return new IconDef(
+    //         Items ?? Items,
+    //         count ?? Count,
+    //         contextTags ?? ContextTags,
+    //         condition ?? Condition,
+    //         notes ?? Notes,
+    //         isFuel ?? IsFuel
+    //     );
+    // }
 
-    internal static IconDef? FromMachineOutputTriggerRule(
-        string qId,
-        MachineOutputRule rule,
-        MachineOutputTriggerRule motr
-    )
+    /// <summary>Form icon for the input</summary>
+    /// <param name="qId"></param>
+    /// <param name="rule"></param>
+    /// <param name="motr"></param>
+    /// <returns></returns>
+    internal static IconDef? FormInputIconDef(string qId, MachineOutputRule rule, MachineOutputTriggerRule motr)
     {
         if (!motr.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine))
-            return new IconDef(Condition: motr.Condition, Notes: motr.Trigger.ToString());
+            return new IconDef(Condition: motr.Condition, Notes: [motr.Trigger.ToString()]);
 
         IReadOnlyList<Item>? items;
         IReadOnlyList<string>? contextTags = motr.RequiredTags;
         string? condition = motr.Condition;
         items =
             motr.RequiredItemId != null
-                ? [ItemRegistry.Create(motr.RequiredItemId)]
-                : ItemQueryCache.ResolveItems(motr.RequiredTags, motr.Condition, out contextTags, out condition);
+                ? (ItemRegistry.Create(motr.RequiredItemId, allowNull: true) is Item item ? [item] : null)
+                : ItemQueryCache.ResolveCondTagItems(motr.RequiredTags, motr.Condition, out contextTags, out condition);
         // output method
         HashSet<string> methodNames = [];
         List<Item> allowedItems = [];
@@ -68,7 +78,31 @@ internal sealed record IconDef(
         }
         if (methodNames.Any())
             items = items?.Where(allowedItems.Contains).ToList();
-        return new IconDef(items, motr.RequiredCount, contextTags, condition, Notes: string.Join('|', methodNames));
+        List<string> notes = methodNames.ToList();
+        notes.Sort();
+        return new IconDef(items, motr.RequiredCount, contextTags, condition, Notes: notes);
+    }
+
+    internal static IconDef? FormOutputIconDef(MachineItemOutput mio)
+    {
+        if (mio.OutputMethod != null)
+            return new IconDef(Notes: [I18n.RuleList_SpecialOutput(mio.OutputMethod.Split(':').Last().Trim())]);
+        if (mio.ItemId == "DROP_IN")
+        {
+            Item defaultItem = (Item)
+                ItemQueryResolver.ApplyItemFields(Quirks.DefaultThing.getOne(), mio, ItemQueryCache.Context);
+            return new(
+                [defaultItem],
+                defaultItem.Stack,
+                Condition: mio.Condition,
+                Notes: [I18n.RuleList_SameAsInput()]
+            );
+        }
+        else if (ItemQueryCache.ResolveItemQuery(mio) is IReadOnlyList<Item> items && items.Count > 0)
+        {
+            return new(items, items[0].Stack, Condition: mio.Condition);
+        }
+        return null;
     }
 
     public override string ToString()
@@ -79,9 +113,9 @@ internal sealed record IconDef(
     }
 }
 
-internal sealed record RuleDef(
-    IReadOnlyList<IconDef>? Inputs,
-    IReadOnlyList<IconDef>? Outputs,
+public sealed record RuleDef(
+    IconDef Input,
+    IReadOnlyList<IconDef> Outputs,
     IReadOnlyList<IconDef>? SharedFuel = null,
     IReadOnlyList<IconDef>? EMC_Fuel = null,
     IReadOnlyList<IconDef>? EMC_ExtraOutputs = null
@@ -89,18 +123,20 @@ internal sealed record RuleDef(
 {
     public override string ToString()
     {
-        if (Inputs == null)
+        if (Input == null)
             return "";
-        return string.Join('#', Inputs.Select(item => item.ToString()));
+        return string.Join('#', Input.ToString());
     }
 }
+
+public sealed record RuleIdentDefPair(RuleIdent Ident, RuleDef Def);
 
 internal static class MachineRuleCache
 {
     private static IExtraMachineConfigApi? emc;
-    private static readonly Dictionary<string, IReadOnlyList<ValueTuple<RuleIdent, RuleDef>>?> machineRuleCache = [];
+    private static readonly Dictionary<string, IReadOnlyList<RuleIdentDefPair>?> machineRuleCache = [];
     private static Dictionary<string, MachineData>? machines = null;
-    private static Dictionary<string, MachineData> Machines => machines ??= DataLoader.Machines(Game1.content);
+    internal static Dictionary<string, MachineData> Machines => machines ??= DataLoader.Machines(Game1.content);
 
     internal static void Register(IModHelper helper)
     {
@@ -135,14 +171,14 @@ internal static class MachineRuleCache
             "export/machine_rule_cache.json",
             machineRuleCache.ToDictionary(
                 (kv) => kv.Key,
-                (kv) => kv.Value?.Select(rule => new ValueTuple<RuleIdent, string>(rule.Item1, rule.Item2.ToString()))
+                (kv) => kv.Value?.Select(rule => new ValueTuple<RuleIdent, string>(rule.Ident, rule.Def.ToString()))
             )
         );
 
         ModEntry.Log($"Wrote export/machine_rule_cache.json in {stopwatch.Elapsed}");
     }
 
-    internal static IReadOnlyList<ValueTuple<RuleIdent, RuleDef>>? CreateRuleDefList(string qId)
+    internal static IReadOnlyList<RuleIdentDefPair>? CreateRuleDefList(string qId)
     {
         if (
             !Machines.TryGetValue(qId, out MachineData? data)
@@ -151,14 +187,22 @@ internal static class MachineRuleCache
         )
             return null;
 
-        List<ValueTuple<RuleIdent, RuleDef>> ruleDefList = [];
+        List<RuleIdentDefPair> ruleDefList = [];
         foreach (MachineOutputRule rule in outputRules)
         {
+            List<IconDef> outputs = [];
+            foreach (MachineItemOutput mio in rule.OutputItem)
+            {
+                if (IconDef.FormOutputIconDef(mio) is IconDef iconDef)
+                {
+                    outputs.Add(iconDef);
+                }
+            }
             foreach (MachineOutputTriggerRule motr in rule.Triggers)
             {
-                if (IconDef.FromMachineOutputTriggerRule(qId, rule, motr) is IconDef iconDef)
+                if (IconDef.FormInputIconDef(qId, rule, motr) is IconDef iconDef)
                 {
-                    ruleDefList.Add(new(new(rule.Id, motr.Id), new([iconDef], null)));
+                    ruleDefList.Add(new(new(rule.Id, motr.Id), new(iconDef, outputs)));
                 }
             }
         }
@@ -166,6 +210,6 @@ internal static class MachineRuleCache
         return ruleDefList;
     }
 
-    internal static IReadOnlyList<ValueTuple<RuleIdent, RuleDef>>? TryGetRuleDefList(string qId) =>
+    internal static IReadOnlyList<RuleIdentDefPair>? TryGetRuleDefList(string qId) =>
         machineRuleCache.GetOrCreateValue(qId, CreateRuleDefList);
 }

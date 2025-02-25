@@ -33,19 +33,19 @@ internal static class MenuHandler
         );
     }
 
-    internal static void ShowControlPanel(
+    internal static bool ShowControlPanel(
         Item machine,
         GlobalToggleContext? globalToggleContext = null,
         bool asChildMenu = false
     )
     {
-        var controlPanel = viewEngine.CreateMenuFromAsset(
-            VIEW_ASSET_CONTROL_PANEL,
-            new ControlPanelContext(machine, globalToggleContext)
-        );
+        if (ControlPanelContext.TryCreate(machine, globalToggleContext) is not ControlPanelContext context)
+            return false;
+        var controlPanel = viewEngine.CreateMenuFromAsset(VIEW_ASSET_CONTROL_PANEL, context);
         if (asChildMenu && Game1.activeClickableMenu != null)
             Game1.activeClickableMenu.SetChildMenu(controlPanel);
         else
             Game1.activeClickableMenu = controlPanel;
+        return true;
     }
 }

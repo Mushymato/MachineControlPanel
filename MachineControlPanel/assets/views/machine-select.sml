@@ -23,7 +23,7 @@
           fit="Contain"
           horizontal-alignment="middle"
           vertical-alignment="end"
-          +hover:scale="1.14"
+          +hover:scale="1.1"
           +transition:scale="100ms EaseInSine"/>
       </frame>
       <frame
