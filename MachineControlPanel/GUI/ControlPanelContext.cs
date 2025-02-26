@@ -1,3 +1,4 @@
+using System.Text;
 using MachineControlPanel.Data;
 using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
@@ -40,16 +41,38 @@ public sealed record RuleIcon(IconDef IconDef)
             : new(Game1.mouseCursors, new Rectangle(175, 425, 12, 12));
     public readonly Item? ReprItem = IconDef.Items?.FirstOrDefault();
     public SDUISprite Sprite => ReprItem == null ? QuestionIcon : SDUISprite.FromItem(ReprItem);
-    public SDUITooltipData? Tooltip =>
-        ReprItem != null
-            ? new(
-                IconDef.Notes != null
-                    ? string.Join('\n', [ReprItem.getDescription(), "\n", .. IconDef.Notes])
-                    : ReprItem.getDescription(),
-                ReprItem.DisplayName,
-                ReprItem
-            )
-            : (IconDef.Notes != null ? new(string.Join('\n', IconDef.Notes)) : null);
+
+    // public SDUITooltipData? Tooltip =>
+    //     ReprItem != null
+    //         ? new(
+    //             IconDef.Notes != null
+    //                 ? string.Join('\n', [ReprItem.getDescription(), "\n", .. IconDef.Notes])
+    //                 : ReprItem.getDescription(),
+    //             ReprItem.DisplayName,
+    //             ReprItem
+    //         )
+    //         : (IconDef.Notes != null ? new(string.Join('\n', IconDef.Notes)) : null);
+    public SDUITooltipData? Tooltip
+    {
+        get
+        {
+            StringBuilder sb = new();
+            if (IconDef.ContextTags != null)
+                sb.AppendJoin('\n', IconDef.ContextTags);
+            if (IconDef.Condition != null)
+                sb.AppendLine(IconDef.Condition);
+            if (IconDef.Notes != null)
+            {
+                if (sb.Length > 0)
+                    sb.Append('\n');
+                sb.AppendJoin('\n', IconDef.Notes);
+            }
+            if (ReprItem != null)
+                return new(sb.Length > 0 ? sb.ToString() : ReprItem.getDescription(), ReprItem.DisplayName, ReprItem);
+            else
+                return sb.Length > 0 ? new(sb.ToString()) : null;
+        }
+    }
 
     public int Count => IconDef.Count;
     public bool ShowCount => Count > 1;

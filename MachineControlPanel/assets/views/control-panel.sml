@@ -17,38 +17,38 @@
     background={@Mods/StardewUI/Sprites/MenuBackground}
     border={@Mods/StardewUI/Sprites/MenuBorder}
     border-thickness="36, 36, 36, 36"
-    *switch={PageIndex} >
+    *switch={PageIndex} horizontal-content-alignment="middle">
     <lane *float="above" orientation="horizontal" vertical-content-alignment="end" margin="36,0,0,-24">
       <tab-label page="1" text={#rule-list.rules} margin={TabMarginRules} />
       <tab-label page="2" text={#rule-list.inputs} margin={TabMarginInputs}/>
     </lane>
-    <scrollable peeking="128">
+    <scrollable *case="1" peeking="128">
       <!-- Rules -->
-      <panel *case="1">
-        <grid primary-orientation="horizontal">
-          <lane orientation="horizontal" *repeat={RuleEntries}>
+      <lane orientation="vertical">
+        <frame background={@Mods/StardewUI/Sprites/MenuSlotTransparent} *repeat={RuleEntries}>
+          <lane orientation="horizontal">
             <rule-icon *context={:Input} />
-            <image sprite={@Mods/StardewUI/Sprites/CaretRight} />
+            <image sprite={@Mods/StardewUI/Sprites/CaretRight} margin="12,16"/>
             <rule-icon *repeat={:Outputs} />
           </lane>
-        </grid>
-      </panel>
-      <!-- Inputs -->
-      <panel *case="2" >
-        <grid item-layout="length: 76+" horizontal-item-alignment="middle">
-          <panel *repeat={:InputItems}>
-            <image sprite={:ItemData} tooltip={:Tooltip} tint={Tint}
-              layout="64px 64px" 
-              margin="6"
-              focusable="true"
-              left-click=|ToggleState()|
-              +hover:scale="1.1"
-              +transition:scale="100ms EaseInSine"/>
-          </panel>
-        </grid>
-      </panel>
+        </frame>
+      </lane>
     </scrollable>
-  </frame>
+      <!-- Inputs -->
+    <scrollable *case="2" peeking="128">
+      <grid item-layout="length: 76+" horizontal-item-alignment="middle">
+        <panel *repeat={:InputItems}>
+          <image sprite={:ItemData} tooltip={:Tooltip} tint={Tint}
+            layout="64px 64px" 
+            margin="6"
+            focusable="true"
+            left-click=|ToggleState()|
+            +hover:scale="1.1"
+            +transition:scale="100ms EaseInSine"/>
+        </panel>
+      </grid>
+    </scrollable>
+</frame>
 </lane>
 
 <template name="tab-label">
@@ -65,7 +65,7 @@
 
 <template name="rule-icon">
   <panel>
-    <image sprite={:Sprite} tooltip={:Tooltip} layout="64px 64px" margin="6" focusable="true"/>
-    <digits *if={ShowCount} number={:Count} />
+    <image sprite={:Sprite} tooltip={:Tooltip} layout="64px 64px" margin="4" focusable="true"/>
+    <digits *if={:ShowCount} number={:Count} />
   </panel>
 </template>

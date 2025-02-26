@@ -57,30 +57,43 @@ public sealed record IconDef(
         IReadOnlyList<Item>? items;
         IReadOnlyList<string>? contextTags = motr.RequiredTags;
         string? condition = motr.Condition;
-        items =
-            motr.RequiredItemId != null
-                ? (ItemRegistry.Create(motr.RequiredItemId, allowNull: true) is Item item ? [item] : null)
-                : ItemQueryCache.ResolveCondTagItems(motr.RequiredTags, motr.Condition, out contextTags, out condition);
-        // output method
-        HashSet<string> methodNames = [];
-        List<Item> allowedItems = [];
-        foreach (MachineItemOutput itemOut in rule.OutputItem)
+        List<string>? notes = null;
+        if (motr.RequiredItemId != null)
         {
-            if (
-                itemOut.OutputMethod != null
-                && !methodNames.Contains(itemOut.OutputMethod)
-                && ItemQueryCache.TryGetOutputMethodItemList(qId, itemOut) is IReadOnlyList<Item> outputMethodItems
-            )
-            {
-                methodNames.Add(itemOut.OutputMethod);
-                allowedItems.AddRange(outputMethodItems);
-            }
+            items = ItemRegistry.Create(motr.RequiredItemId, allowNull: true) is Item item ? [item] : null;
         }
-        if (methodNames.Any())
-            items = items?.Where(allowedItems.Contains).ToList();
-        List<string> notes = methodNames.ToList();
-        notes.Sort();
-        return new IconDef(items, motr.RequiredCount, contextTags, condition, Notes: notes);
+        else
+        {
+            items = ItemQueryCache.ResolveCondTagItems(
+                motr.RequiredTags,
+                motr.Condition,
+                out contextTags,
+                out condition
+            );
+            // output method
+            HashSet<string> methodNames = [];
+            List<Item> allowedItems = [];
+            foreach (MachineItemOutput itemOut in rule.OutputItem)
+            {
+                if (
+                    itemOut.OutputMethod != null
+                    && !methodNames.Contains(itemOut.OutputMethod)
+                    && ItemQueryCache.TryGetOutputMethodItemList(qId, itemOut) is IReadOnlyList<Item> outputMethodItems
+                )
+                {
+                    methodNames.Add(itemOut.OutputMethod);
+                    allowedItems.AddRange(outputMethodItems);
+                }
+            }
+            if (methodNames.Any())
+                items = items?.Where(allowedItems.Contains).ToList();
+            notes = methodNames.ToList();
+            notes.Sort();
+        }
+
+        if (items != null || contextTags != null || condition != null || notes != null)
+            return new IconDef(items, motr.RequiredCount, contextTags, condition, Notes: notes);
+        return null;
     }
 
     internal static IconDef? FormOutputIconDef(MachineItemOutput mio)

@@ -251,7 +251,7 @@ internal static class ItemQueryCache
             else
                 resolvedContextTags = [.. gsqTags, .. contextTags];
             nonItemConditions.Sort();
-            nonItemCondition = string.Join(',', nonItemConditions);
+            nonItemCondition = string.Join('\n', nonItemConditions);
             conditionsToResolve.Sort();
             string condToResolve = string.Join(',', conditionsToResolve);
             items = conditionItemCache.GetOrCreateValue(condToResolve, CreateConditionItemList)?.ToList();
