@@ -24,15 +24,17 @@
     </lane>
     <scrollable *case="1" peeking="128">
       <!-- Rules -->
-      <lane orientation="vertical">
-        <frame background={@Mods/StardewUI/Sprites/MenuSlotTransparent} *repeat={RuleEntries}>
-          <lane orientation="horizontal">
+      <grid item-layout="length: 72" horizontal-item-alignment="middle">
+        <frame background={@Mods/StardewUI/Sprites/MenuSlotTransparent} *repeat={RuleEntries}
+          pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(this)|
+          pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|>
+          <lane orientation="vertical">
             <rule-icon *context={:Input} />
-            <image sprite={@Mods/StardewUI/Sprites/CaretRight} margin="12,16"/>
+            <image sprite={SpinningCaret} layout="36px 36px" margin="18"/>
             <rule-icon *repeat={:Outputs} />
           </lane>
         </frame>
-      </lane>
+      </grid>
     </scrollable>
       <!-- Inputs -->
     <scrollable *case="2" peeking="128">

@@ -3,8 +3,10 @@ using MachineControlPanel.Data;
 using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using PropertyChanged.SourceGenerator;
 using StardewValley;
+using StardewValley.GameData.HomeRenovations;
 using StardewValley.ItemTypeDefinitions;
 
 namespace MachineControlPanel.GUI;
@@ -42,16 +44,6 @@ public sealed record RuleIcon(IconDef IconDef)
     public readonly Item? ReprItem = IconDef.Items?.FirstOrDefault();
     public SDUISprite Sprite => ReprItem == null ? QuestionIcon : SDUISprite.FromItem(ReprItem);
 
-    // public SDUITooltipData? Tooltip =>
-    //     ReprItem != null
-    //         ? new(
-    //             IconDef.Notes != null
-    //                 ? string.Join('\n', [ReprItem.getDescription(), "\n", .. IconDef.Notes])
-    //                 : ReprItem.getDescription(),
-    //             ReprItem.DisplayName,
-    //             ReprItem
-    //         )
-    //         : (IconDef.Notes != null ? new(string.Join('\n', IconDef.Notes)) : null);
     public SDUITooltipData? Tooltip
     {
         get
@@ -78,10 +70,36 @@ public sealed record RuleIcon(IconDef IconDef)
     public bool ShowCount => Count > 1;
 }
 
-public sealed record RuleEntry(RuleIdent Ident, RuleDef Def)
+public sealed partial record RuleEntry(RuleIdent Ident, RuleDef Def)
 {
+    public const int SPINNING_CARET_FRAMES = 6;
     public RuleIcon Input = new(Def.Input);
     public IEnumerable<RuleIcon> Outputs = Def.Outputs.Select<IconDef, RuleIcon>(iconD => new(iconD));
+
+    [Notify]
+    private int spinningCaretFrame = 0;
+
+    public Tuple<Texture2D, Rectangle> SpinningCaret =>
+        new(Game1.mouseCursors, new(232 + 9 * SpinningCaretFrame, 346, 9, 9));
+
+    private TimeSpan animTimer = TimeSpan.Zero;
+    private readonly TimeSpan animInterval = TimeSpan.FromMilliseconds(90);
+
+    internal void Update(TimeSpan elapsed)
+    {
+        animTimer += elapsed;
+        if (animTimer >= animInterval)
+        {
+            SpinningCaretFrame = (spinningCaretFrame + 1) % SPINNING_CARET_FRAMES;
+            animTimer = TimeSpan.Zero;
+        }
+    }
+
+    internal void ResetCaret()
+    {
+        SpinningCaretFrame = 0;
+        animTimer = TimeSpan.Zero;
+    }
 }
 
 public sealed partial record ControlPanelContext(
@@ -135,4 +153,17 @@ public sealed partial record ControlPanelContext(
     }
 
     public IEnumerable<RuleEntry> RuleEntries => RuleDefs.Select((kv) => new RuleEntry(kv.Ident, kv.Def));
+
+    public RuleEntry? HoverRuleEntry = null;
+
+    public void HandleHoverRuleEntry(RuleEntry? newHover = null)
+    {
+        HoverRuleEntry?.ResetCaret();
+        HoverRuleEntry = newHover;
+    }
+
+    public void Update(TimeSpan elapsed)
+    {
+        HoverRuleEntry?.Update(elapsed);
+    }
 }
