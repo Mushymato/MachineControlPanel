@@ -16,7 +16,7 @@ namespace MachineControlPanel.Data;
 internal static class ItemQueryCache
 {
     private const string ALL_ITEMS = "ALL_ITEMS";
-    private static readonly Regex ItemContextTagGSQ = new("\\!?ITEM_CONTEXT_TAG (.+)");
+    private static readonly Regex ItemContextTagGSQ = new(@"(!?)ITEM_CONTEXT_TAG (?:Target|Input) (.+)");
     private static readonly Regex ItemGSQ =
         new(
             "\\!?(ITEM_CATEGORY|ITEM_HAS_EXPLICIT_OBJECT_CATEGORY|ITEM_ID|ITEM_ID_PREFIX|ITEM_NUMERIC_ID|ITEM_OBJECT_TYPE|ITEM_TYPE|ITEM_EDIBILITY) .+"
@@ -82,7 +82,8 @@ internal static class ItemQueryCache
     /// <returns></returns>
     internal static bool TryContextTagLookupCache(
         IEnumerable<string> tags,
-        [NotNullWhen(true)] out IEnumerable<Item>? items
+        [NotNullWhen(true)] out IEnumerable<Item>? items,
+        HashSet<string>? include = null
     )
     {
         List<HashSet<string>> results = [];
@@ -103,16 +104,16 @@ internal static class ItemQueryCache
         }
         if (results.Any())
         {
-            items = results
-                .Aggregate(
-                    (acc, next) =>
-                    {
-                        acc.IntersectWith(next);
-                        return acc;
-                    }
-                )
-                .Except(exclude)
-                .Select((itemId) => ItemRegistry.Create(itemId));
+            IEnumerable<string> aggregate = results.Aggregate(
+                (acc, next) =>
+                {
+                    acc.IntersectWith(next);
+                    return acc;
+                }
+            );
+            if (include != null)
+                aggregate = aggregate.Where(include.Contains);
+            items = aggregate.Except(exclude).Select(itemId => ItemRegistry.Create(itemId));
             return true;
         }
         // do not bother handling the only !tag case, fall through to regular item query
@@ -199,18 +200,18 @@ internal static class ItemQueryCache
     internal static IReadOnlyList<Item>? CreateConditionItemList(string condition)
     {
         if (
-            ItemQueryResolver.TryResolve(ALL_ITEMS, Context, ItemQuerySearchMode.All, condition, avoidRepeat: true)
+            ItemQueryResolver.TryResolve(
+                ALL_ITEMS,
+                Context,
+                ItemQuerySearchMode.AllOfTypeItem,
+                condition,
+                avoidRepeat: true
+            )
                 is ItemQueryResult[] results
             && results.Any()
         )
         {
-            List<Item> resultItems = [];
-            foreach (var res in results)
-            {
-                if (res.Item is Item itm)
-                    resultItems.Add(itm);
-            }
-            return resultItems.ToList();
+            return results.Select(res => (Item)res.Item).ToList();
         }
         return null;
     }
@@ -239,9 +240,13 @@ internal static class ItemQueryCache
                     continue;
                 if (ItemContextTagGSQ.Match(cond) is Match res && res.Success)
                 {
-                    gsqTags.AddRange(res.Captures[0].ValueSpan.ToString().Split(' '));
+                    var tags = res.Groups[2].ValueSpan.ToString().Split(' ');
+                    if (res.Groups[1].ValueSpan.Length > 0)
+                        gsqTags.AddRange(tags.Select(tag => $"!{tag}"));
+                    else
+                        gsqTags.AddRange(tags);
                 }
-                if (ItemGSQ.Match(cond).Success)
+                else if (ItemGSQ.Match(cond).Success)
                     conditionsToResolve.Add(cond);
                 else
                     nonItemConditions.Add(cond);
@@ -250,10 +255,14 @@ internal static class ItemQueryCache
                 resolvedContextTags = gsqTags;
             else
                 resolvedContextTags = [.. gsqTags, .. contextTags];
-            nonItemConditions.Sort();
-            nonItemCondition = string.Join('\n', nonItemConditions);
+            if (nonItemConditions.Any())
+            {
+                nonItemConditions.Sort();
+                nonItemCondition = string.Join('\n', nonItemConditions);
+            }
             conditionsToResolve.Sort();
             string condToResolve = string.Join(',', conditionsToResolve);
+            Console.WriteLine(condToResolve);
             items = conditionItemCache.GetOrCreateValue(condToResolve, CreateConditionItemList)?.ToList();
         }
         else if (contextTags != null)
@@ -267,12 +276,19 @@ internal static class ItemQueryCache
         if (resolvedContextTags == null || !resolvedContextTags.Any())
             return items ?? AllItems;
         // tag
-        if (TryContextTagLookupCache(resolvedContextTags, out IEnumerable<Item>? tagItems))
+        if (
+            TryContextTagLookupCache(
+                resolvedContextTags,
+                out IEnumerable<Item>? tagItems,
+                items != null ? items.Select(item => item.QualifiedItemId).ToHashSet() : null
+            )
+        )
         {
-            if (items != null)
-                items = items.Intersect(tagItems).ToList();
-            else
-                items = tagItems.ToList();
+            foreach (var item in tagItems)
+            {
+                Console.WriteLine($"{item.QualifiedItemId}: {item.DisplayName}");
+            }
+            items = tagItems.ToList();
         }
 
         return items;

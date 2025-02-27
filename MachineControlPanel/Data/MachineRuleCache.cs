@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using MachineControlPanel.Integration.IExtraMachineConfigApi;
 using StardewModdingAPI;
 using StardewValley;
@@ -25,6 +26,8 @@ public sealed record IconDef(
     bool IsFuel = false
 )
 {
+    StringBuilder sb = new();
+
     // internal IconDef CopyWithChanges(
     //     IReadOnlyList<Item>? items = null,
     //     int? count = null,
@@ -86,9 +89,11 @@ public sealed record IconDef(
                 }
             }
             if (methodNames.Any())
+            {
                 items = items?.Where(allowedItems.Contains).ToList();
-            notes = methodNames.ToList();
-            notes.Sort();
+                notes = methodNames.ToList();
+                notes.Sort();
+            }
         }
 
         if (items != null || contextTags != null || condition != null || notes != null)
@@ -118,10 +123,35 @@ public sealed record IconDef(
         return null;
     }
 
+    public string? Desc
+    {
+        get
+        {
+            sb.Clear();
+            if (ContextTags != null)
+                sb.AppendJoin('\n', ContextTags);
+            if (Condition != null)
+            {
+                if (sb.Length > 0)
+                    sb.Append('\n');
+                sb.AppendLine(Condition);
+            }
+            if (Notes != null)
+            {
+                if (sb.Length > 0)
+                    sb.Append('\n');
+                sb.AppendJoin('\n', Notes);
+            }
+            if (sb.Length > 0)
+                return sb.ToString();
+            return null;
+        }
+    }
+
     public override string ToString()
     {
         if (Items == null)
-            return "";
+            return "?";
         return string.Join('|', Items.Select(item => item.QualifiedItemId));
     }
 }

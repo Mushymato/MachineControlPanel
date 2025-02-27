@@ -1,4 +1,3 @@
-using System.Text;
 using MachineControlPanel.Data;
 using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
@@ -6,7 +5,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PropertyChanged.SourceGenerator;
 using StardewValley;
-using StardewValley.GameData.HomeRenovations;
 using StardewValley.ItemTypeDefinitions;
 
 namespace MachineControlPanel.GUI;
@@ -48,21 +46,11 @@ public sealed record RuleIcon(IconDef IconDef)
     {
         get
         {
-            StringBuilder sb = new();
-            if (IconDef.ContextTags != null)
-                sb.AppendJoin('\n', IconDef.ContextTags);
-            if (IconDef.Condition != null)
-                sb.AppendLine(IconDef.Condition);
-            if (IconDef.Notes != null)
-            {
-                if (sb.Length > 0)
-                    sb.Append('\n');
-                sb.AppendJoin('\n', IconDef.Notes);
-            }
+            string? desc = IconDef.Desc;
             if (ReprItem != null)
-                return new(sb.Length > 0 ? sb.ToString() : ReprItem.getDescription(), ReprItem.DisplayName, ReprItem);
+                return new(desc ?? ReprItem.getDescription(), ReprItem.DisplayName.Trim(), ReprItem);
             else
-                return sb.Length > 0 ? new(sb.ToString()) : null;
+                return desc != null ? new(desc) : null;
         }
     }
 
@@ -82,7 +70,7 @@ public sealed partial record RuleEntry(RuleIdent Ident, RuleDef Def)
     public Tuple<Texture2D, Rectangle> SpinningCaret =>
         new(Game1.mouseCursors, new(232 + 9 * SpinningCaretFrame, 346, 9, 9));
 
-    private TimeSpan animTimer = TimeSpan.Zero;
+    internal TimeSpan animTimer = TimeSpan.Zero;
     private readonly TimeSpan animInterval = TimeSpan.FromMilliseconds(90);
 
     internal void Update(TimeSpan elapsed)

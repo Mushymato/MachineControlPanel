@@ -57,6 +57,7 @@ public class ModEntry : Mod
         );
 #if DEBUG
         helper.ConsoleCommands.Add("mcp-export-cache", "export all the data caches", ConsoleExportItemQueryCache);
+        helper.ConsoleCommands.Add("mcp-resolve-ctag", "resolve context tag", ConsoleResolveContextTag);
 #endif
     }
 
@@ -252,11 +253,24 @@ public class ModEntry : Mod
         saveData = new() { Version = ModManifest.Version };
     }
 
+#if DEBUG
     private void ConsoleExportItemQueryCache(string command, string[] args)
     {
         MachineRuleCache.Export(Helper);
         ItemQueryCache.Export(Helper);
     }
+
+    private void ConsoleResolveContextTag(string arg1, string[] arg2)
+    {
+        if (ItemQueryCache.TryContextTagLookupCache(arg2, out IEnumerable<Item>? items))
+        {
+            foreach (var item in items)
+            {
+                Log($"{item.QualifiedItemId}: {item.DisplayName}");
+            }
+        }
+    }
+#endif
 
     /// <summary>SMAPI static monitor Log wrapper</summary>
     /// <param name="msg"></param>
