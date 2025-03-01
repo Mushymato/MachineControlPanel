@@ -28,7 +28,8 @@
         horizontal-divider={@Mods/StardewUI/Sprites/ThinHorizontalDivider}>
         <lane *repeat={RuleEntries} pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(this)| pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()| orientation="vertical" margin="8">
           <rule-icon *context={:Input} />
-          <image sprite={SpinningCaret} layout="36px 36px" margin="18"/>
+          <rule-icon *repeat={:Fuel} />
+          <image sprite={SpinningCaret} layout="36px 36px" margin="18,6,18,12"/>
           <rule-icon *repeat={:Outputs} />
         </lane>
       </grid>
@@ -63,14 +64,17 @@
 </template>
 
 <template name="rule-icon">
-  <panel horizontal-content-alignment="start" vertical-content-alignment="start">
-    <panel horizontal-content-alignment="start" vertical-content-alignment="end">
-      <panel horizontal-content-alignment="end" vertical-content-alignment="end">
-        <image sprite={:Sprite} tooltip={:Tooltip} tint={:IsMultiTint} layout="64px 64px" margin="4" focusable="true"/>
-        <digits *if={:ShowCount} number={:Count} scale="3"/>
-      </panel>
+  <panel padding="4">
+    <image sprite={:Sprite} tint={:IsMultiTint} tooltip={:Tooltip} focusable="true" layout="64px 64px" margin="2"/>
+    <image *if={:IsMulti} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 27px" />
+    <panel layout="stretch stretch" horizontal-content-alignment="end" vertical-content-alignment="start">
+      <image *if={:IsFuel} sprite={@mushymato.MachineControlPanel/sprites/emojis:bolt} layout="27px 27px"/>
+    </panel>
+    <panel *if={:HasQualityStar} layout="stretch stretch" horizontal-content-alignment="start" vertical-content-alignment="end">
       <image sprite={:QualityStar} layout="24px 24px"/>
     </panel>
-    <image *if={:IsMulti} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 72px" />
+    <panel *if={:ShowCount} layout="stretch stretch"  horizontal-content-alignment="end" vertical-content-alignment="end">
+      <digits number={:Count} scale="3"/>
+    </panel>
   </panel>
 </template>

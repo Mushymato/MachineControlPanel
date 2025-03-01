@@ -28,25 +28,7 @@ public sealed record IconDef(
 {
     readonly StringBuilder sb = new();
 
-    // internal IconDef CopyWithChanges(
-    //     IReadOnlyList<Item>? items = null,
-    //     int? count = null,
-    //     IReadOnlyList<string>? contextTags = null,
-    //     string? condition = null,
-    //     string? notes = null,
-    //     bool? isFuel = null
-    // )
-    // {
-    //     return new IconDef(
-    //         Items ?? Items,
-    //         count ?? Count,
-    //         contextTags ?? ContextTags,
-    //         condition ?? Condition,
-    //         notes ?? Notes,
-    //         isFuel ?? IsFuel
-    //     );
-    // }
-    public int Quality => Math.Max(Items?[0].Quality ?? 0, GetContextTagQuality(ContextTags));
+    public int Quality => Math.Max(Items?.FirstOrDefault()?.Quality ?? 0, GetContextTagQuality(ContextTags));
 
     internal static int GetContextTagQuality(IEnumerable<string>? tags)
     {
@@ -73,7 +55,7 @@ public sealed record IconDef(
     /// <param name="rule"></param>
     /// <param name="motr"></param>
     /// <returns></returns>
-    internal static IconDef? FormInputIconDef(string qId, MachineOutputRule rule, MachineOutputTriggerRule motr)
+    internal static IconDef? FromInput(string qId, MachineOutputRule rule, MachineOutputTriggerRule motr)
     {
         if (!motr.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine))
             return new IconDef(Condition: motr.Condition, Notes: [motr.Trigger.ToString()]);
@@ -122,7 +104,25 @@ public sealed record IconDef(
         return null;
     }
 
-    internal static IconDef? FormOutputIconDef(MachineItemOutput mio)
+    /// <summary>
+    /// Form a fuel icon def (vanilla)
+    /// </summary>
+    /// <param name="itemId"></param>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    internal static IconDef? FromFuel(string itemId, int count)
+    {
+        if (ItemRegistry.Create(itemId, allowNull: false) is Item item)
+            return new IconDef([item], Count: count, IsFuel: true);
+        return null;
+    }
+
+    /// <summary>
+    /// Form output icon by resolving the item query
+    /// </summary>
+    /// <param name="mio"></param>
+    /// <returns></returns>
+    internal static IconDef? FromOutput(MachineItemOutput mio)
     {
         if (mio.OutputMethod != null)
             return new IconDef(Notes: [I18n.RuleList_SpecialOutput(mio.OutputMethod.Split(':').Last().Trim())]);
@@ -251,22 +251,33 @@ internal static class MachineRuleCache
         )
             return null;
 
+        List<IconDef>? sharedFuel = null;
+        if (data.AdditionalConsumedItems != null)
+        {
+            sharedFuel = [];
+            foreach (MachineItemAdditionalConsumedItems fuel in data.AdditionalConsumedItems)
+            {
+                if (IconDef.FromFuel(fuel.ItemId, fuel.RequiredCount) is IconDef iconDef)
+                    sharedFuel.Add(iconDef);
+            }
+        }
+
         List<RuleIdentDefPair> ruleDefList = [];
         foreach (MachineOutputRule rule in outputRules)
         {
             List<IconDef> outputs = [];
             foreach (MachineItemOutput mio in rule.OutputItem)
             {
-                if (IconDef.FormOutputIconDef(mio) is IconDef iconDef)
+                if (IconDef.FromOutput(mio) is IconDef iconDef)
                 {
                     outputs.Add(iconDef);
                 }
             }
             foreach (MachineOutputTriggerRule motr in rule.Triggers)
             {
-                if (IconDef.FormInputIconDef(qId, rule, motr) is IconDef iconDef)
+                if (IconDef.FromInput(qId, rule, motr) is IconDef iconDef)
                 {
-                    ruleDefList.Add(new(new(rule.Id, motr.Id), new(iconDef, outputs)));
+                    ruleDefList.Add(new(new(rule.Id, motr.Id), new(iconDef, outputs, sharedFuel)));
                 }
             }
         }

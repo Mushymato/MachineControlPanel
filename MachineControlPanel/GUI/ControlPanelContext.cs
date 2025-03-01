@@ -60,6 +60,7 @@ public sealed record RuleIcon(IconDef IconDef)
     public bool IsMulti => IconDef.Items?.Count > 1;
     public Color IsMultiTint => IsMulti ? Color.White * 0.5f : Color.White;
 
+    public bool HasQualityStar => QualityStar != null;
     public Tuple<Texture2D, Rectangle>? QualityStar =>
         IconDef.Quality switch
         {
@@ -68,12 +69,15 @@ public sealed record RuleIcon(IconDef IconDef)
             4 => new(Game1.mouseCursors, new Rectangle(346, 392, 8, 8)),
             _ => null,
         };
+
+    public bool IsFuel => IconDef.IsFuel;
 }
 
 public sealed partial record RuleEntry(RuleIdent Ident, RuleDef Def)
 {
     public const int SPINNING_CARET_FRAMES = 6;
     public RuleIcon Input = new(Def.Input);
+    public IEnumerable<RuleIcon> Fuel = Def.SharedFuel?.Select<IconDef, RuleIcon>(iconD => new(iconD)) ?? [];
     public IEnumerable<RuleIcon> Outputs = Def.Outputs.Select<IconDef, RuleIcon>(iconD => new(iconD));
 
     [Notify]
