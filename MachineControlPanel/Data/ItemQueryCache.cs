@@ -262,7 +262,6 @@ internal static class ItemQueryCache
             }
             conditionsToResolve.Sort();
             string condToResolve = string.Join(',', conditionsToResolve);
-            Console.WriteLine(condToResolve);
             items = conditionItemCache.GetOrCreateValue(condToResolve, CreateConditionItemList)?.ToList();
         }
         else if (contextTags != null)
@@ -284,10 +283,6 @@ internal static class ItemQueryCache
             )
         )
         {
-            foreach (var item in tagItems)
-            {
-                Console.WriteLine($"{item.QualifiedItemId}: {item.DisplayName}");
-            }
             items = tagItems.ToList();
         }
 

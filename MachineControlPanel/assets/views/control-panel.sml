@@ -16,29 +16,26 @@
   <frame layout="1220px 70%[550..]"
     background={@Mods/StardewUI/Sprites/MenuBackground}
     border={@Mods/StardewUI/Sprites/MenuBorder}
-    border-thickness="36, 36, 36, 36"
+    border-thickness="32, 36, 24, 36"
     *switch={PageIndex} horizontal-content-alignment="middle">
     <lane *float="above" orientation="horizontal" vertical-content-alignment="end" margin="36,0,0,-24">
       <tab-label page="1" text={#rule-list.rules} margin={TabMarginRules} />
       <tab-label page="2" text={#rule-list.inputs} margin={TabMarginInputs}/>
     </lane>
+    <!-- Rules -->
     <scrollable *case="1" peeking="128">
-      <!-- Rules -->
-      <grid item-layout="length: 72" horizontal-item-alignment="middle">
-        <frame background={@Mods/StardewUI/Sprites/MenuSlotTransparent} *repeat={RuleEntries}
-          pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(this)|
-          pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|>
-          <lane orientation="vertical">
-            <rule-icon *context={:Input} />
-            <image sprite={SpinningCaret} layout="36px 36px" margin="18"/>
-            <rule-icon *repeat={:Outputs} />
-          </lane>
-        </frame>
+      <grid item-layout="length: 88" padding="4,4" horizontal-item-alignment="middle"
+        horizontal-divider={@Mods/StardewUI/Sprites/ThinHorizontalDivider}>
+        <lane *repeat={RuleEntries} pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(this)| pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()| orientation="vertical" margin="8">
+          <rule-icon *context={:Input} />
+          <image sprite={SpinningCaret} layout="36px 36px" margin="18"/>
+          <rule-icon *repeat={:Outputs} />
+        </lane>
       </grid>
     </scrollable>
-      <!-- Inputs -->
+    <!-- Inputs -->
     <scrollable *case="2" peeking="128">
-      <grid item-layout="length: 76+" horizontal-item-alignment="middle">
+      <grid *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
         <panel *repeat={:InputItems}>
           <image sprite={:ItemData} tooltip={:Tooltip} tint={Tint}
             layout="64px 64px" 
@@ -66,8 +63,14 @@
 </template>
 
 <template name="rule-icon">
-  <panel>
-    <image sprite={:Sprite} tooltip={:Tooltip} layout="64px 64px" margin="4" focusable="true"/>
-    <digits *if={:ShowCount} number={:Count} />
+  <panel horizontal-content-alignment="start" vertical-content-alignment="start">
+    <panel horizontal-content-alignment="start" vertical-content-alignment="end">
+      <panel horizontal-content-alignment="end" vertical-content-alignment="end">
+        <image sprite={:Sprite} tooltip={:Tooltip} tint={:IsMultiTint} layout="64px 64px" margin="4" focusable="true"/>
+        <digits *if={:ShowCount} number={:Count} scale="3"/>
+      </panel>
+      <image sprite={:QualityStar} layout="24px 24px"/>
+    </panel>
+    <image *if={:IsMulti} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 72px" />
   </panel>
 </template>

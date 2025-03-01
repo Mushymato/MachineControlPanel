@@ -26,7 +26,7 @@ public sealed record IconDef(
     bool IsFuel = false
 )
 {
-    StringBuilder sb = new();
+    readonly StringBuilder sb = new();
 
     // internal IconDef CopyWithChanges(
     //     IReadOnlyList<Item>? items = null,
@@ -46,6 +46,27 @@ public sealed record IconDef(
     //         isFuel ?? IsFuel
     //     );
     // }
+    public int Quality => Math.Max(Items?[0].Quality ?? 0, GetContextTagQuality(ContextTags));
+
+    internal static int GetContextTagQuality(IEnumerable<string>? tags)
+    {
+        if (tags == null)
+            return 0;
+        foreach (string tag in tags)
+        {
+            int quality = tag.Trim() switch
+            {
+                "quality_none" => 0,
+                "quality_silver" => 1,
+                "quality_gold" => 2,
+                "quality_iridium" => 4,
+                _ => -1,
+            };
+            if (quality > -1)
+                return quality;
+        }
+        return 0;
+    }
 
     /// <summary>Form icon for the input</summary>
     /// <param name="qId"></param>
@@ -96,7 +117,7 @@ public sealed record IconDef(
             }
         }
 
-        if (items != null || contextTags != null || condition != null || notes != null)
+        if (items != null || condition != null || notes != null)
             return new IconDef(items, motr.RequiredCount, contextTags, condition, Notes: notes);
         return null;
     }

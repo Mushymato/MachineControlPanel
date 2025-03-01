@@ -41,21 +41,33 @@ public sealed record RuleIcon(IconDef IconDef)
             : new(Game1.mouseCursors, new Rectangle(175, 425, 12, 12));
     public readonly Item? ReprItem = IconDef.Items?.FirstOrDefault();
     public SDUISprite Sprite => ReprItem == null ? QuestionIcon : SDUISprite.FromItem(ReprItem);
-
     public SDUITooltipData? Tooltip
     {
         get
         {
             string? desc = IconDef.Desc;
+            if (desc != null)
+                return new(desc);
             if (ReprItem != null)
-                return new(desc ?? ReprItem.getDescription(), ReprItem.DisplayName.Trim(), ReprItem);
-            else
-                return desc != null ? new(desc) : null;
+                return new(ReprItem.getDescription(), ReprItem.DisplayName.Trim(), ReprItem);
+            return null;
         }
     }
 
     public int Count => IconDef.Count;
     public bool ShowCount => Count > 1;
+
+    public bool IsMulti => IconDef.Items?.Count > 1;
+    public Color IsMultiTint => IsMulti ? Color.White * 0.5f : Color.White;
+
+    public Tuple<Texture2D, Rectangle>? QualityStar =>
+        IconDef.Quality switch
+        {
+            1 => new(Game1.mouseCursors, new Rectangle(338, 400, 8, 8)),
+            2 => new(Game1.mouseCursors, new Rectangle(346, 400, 8, 8)),
+            4 => new(Game1.mouseCursors, new Rectangle(346, 392, 8, 8)),
+            _ => null,
+        };
 }
 
 public sealed partial record RuleEntry(RuleIdent Ident, RuleDef Def)
