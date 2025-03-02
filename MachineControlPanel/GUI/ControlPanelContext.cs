@@ -26,11 +26,12 @@ public sealed partial record InputIcon(Item InputItem)
         get
         {
             Color result = State ? Color.White * 1f : Color.Black * 0.8f;
-            if (!active)
+            if (!Active)
                 result *= 0.5f;
             return result;
         }
     }
+    internal readonly Dictionary<RuleIdent, bool> OriginRules = [];
 }
 
 public sealed record RuleIcon(IconDef IconDef)
@@ -58,7 +59,7 @@ public sealed record RuleIcon(IconDef IconDef)
     public bool ShowCount => Count > 1;
 
     public bool IsMulti => IconDef.Items?.Count > 1;
-    public Color IsMultiTint => IsMulti ? Color.White * 0.5f : Color.White;
+    public float IsMultiOpacity => IsMulti ? 0.5f : 1f;
 
     public bool HasQualityStar => QualityStar != null;
     public Tuple<Texture2D, Rectangle>? QualityStar =>
@@ -76,9 +77,20 @@ public sealed record RuleIcon(IconDef IconDef)
 public sealed partial record RuleEntry(RuleIdent Ident, RuleDef Def)
 {
     public const int SPINNING_CARET_FRAMES = 6;
-    public RuleIcon Input = new(Def.Input);
+    public IEnumerable<RuleIcon> Input = [new(Def.Input)];
     public IEnumerable<RuleIcon> Fuel = Def.SharedFuel?.Select<IconDef, RuleIcon>(iconD => new(iconD)) ?? [];
     public IEnumerable<RuleIcon> Outputs = Def.Outputs.Select<IconDef, RuleIcon>(iconD => new(iconD));
+
+    [Notify]
+    private bool state = true;
+    public Color StateTint
+    {
+        get
+        {
+            Color result = State ? Color.White * 1f : Color.Black * 0.8f;
+            return result;
+        }
+    }
 
     [Notify]
     private int spinningCaretFrame = 0;
@@ -126,9 +138,33 @@ public sealed partial record ControlPanelContext(
     [Notify]
     public int pageIndex = (int)ModEntry.Config.DefaultPage;
 
+    private void CheckInputIconActiveState(IEnumerable<InputIcon> inputItems)
+    {
+        foreach (InputIcon input in inputItems)
+        {
+            foreach (RuleIdent ident in input.OriginRules.Keys)
+            {
+                ModEntry.Log($"{ident} = {input.OriginRules[ident]}");
+                ModEntry.Log(string.Join('/', ruleEntries.Keys));
+                if (ruleEntries.TryGetValue(ident, out RuleEntry? ruleEntry))
+                {
+                    input.OriginRules[ident] = ruleEntry.State;
+                }
+            }
+            input.Active = input.OriginRules.Values.All(val => val);
+        }
+    }
+
     /// <summary>Event binding, change current page</summary>
     /// <param name="page"></param>
-    public void ChangePage(int page) => PageIndex = page;
+    public void ChangePage(int page)
+    {
+        if (page == 2)
+        {
+            CheckInputIconActiveState(InputItems);
+        }
+        PageIndex = page;
+    }
 
     public ValueTuple<int, int, int, int> TabMarginRules => PageIndex == 1 ? new(0, 0, 0, 0) : new(0, 0, 0, 8);
     public ValueTuple<int, int, int, int> TabMarginInputs => PageIndex == 2 ? new(0, 0, 0, 0) : new(0, 0, 0, 8);
@@ -136,27 +172,12 @@ public sealed partial record ControlPanelContext(
     [Notify]
     private string searchText = "";
 
-    public IEnumerable<InputIcon> InputItems
-    {
-        get
-        {
-            HashSet<string> seenItem = [];
-            foreach (var pair in RuleDefs)
-            {
-                if (pair.Def.Input.Items == null)
-                    continue;
-                foreach (Item item in pair.Def.Input.Items)
-                {
-                    if (seenItem.Contains(item.QualifiedItemId))
-                        continue;
-                    seenItem.Add(item.QualifiedItemId);
-                    yield return new InputIcon(item);
-                }
-            }
-        }
-    }
+    private readonly Dictionary<RuleIdent, RuleEntry> ruleEntries = RuleDefs.ToDictionary(
+        kv => kv.Ident,
+        kv => new RuleEntry(kv.Ident, kv.Def)
+    );
 
-    public IEnumerable<RuleEntry> RuleEntries => RuleDefs.Select((kv) => new RuleEntry(kv.Ident, kv.Def));
+    public IEnumerable<RuleEntry> RuleEntriesFiltered => ruleEntries.Values;
 
     public RuleEntry? HoverRuleEntry = null;
 
@@ -165,6 +186,35 @@ public sealed partial record ControlPanelContext(
         HoverRuleEntry?.ResetCaret();
         HoverRuleEntry = newHover;
     }
+
+    private List<InputIcon> GetInputItems()
+    {
+        Dictionary<string, InputIcon> seenItem = [];
+        List<InputIcon> inputItems = [];
+        foreach ((RuleIdent ident, RuleDef def) in RuleDefs)
+        {
+            if (def.Input.Items == null)
+                continue;
+            foreach (Item item in def.Input.Items)
+            {
+                if (seenItem.TryGetValue(item.QualifiedItemId, out InputIcon? inputIcon))
+                {
+                    inputIcon.OriginRules[ident] = false;
+                    continue;
+                }
+                inputIcon = new(item);
+                inputIcon.OriginRules[ident] = false;
+                seenItem[item.QualifiedItemId] = inputIcon;
+                inputItems.Add(inputIcon);
+            }
+        }
+        CheckInputIconActiveState(inputItems);
+        return inputItems;
+    }
+
+    private List<InputIcon>? inputItems = null;
+    private List<InputIcon> InputItems => inputItems ??= GetInputItems();
+    public IEnumerable<InputIcon> InputItemsFiltered => InputItems;
 
     public void Update(TimeSpan elapsed)
     {

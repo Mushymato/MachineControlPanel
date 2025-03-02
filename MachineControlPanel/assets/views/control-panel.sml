@@ -26,10 +26,19 @@
     <scrollable *case="1" peeking="128">
       <grid item-layout="length: 88" padding="4,4" horizontal-item-alignment="middle"
         horizontal-divider={@Mods/StardewUI/Sprites/ThinHorizontalDivider}>
-        <lane *repeat={RuleEntries} pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(this)| pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()| orientation="vertical" margin="8">
-          <rule-icon *context={:Input} />
+        <lane *repeat={RuleEntriesFiltered}
+          pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(this)|
+          pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|
+          orientation="vertical" margin="8"
+          horizontal-content-alignment="middle">
+          <checkbox is-checked={<>State} margin="0,0,0,12"/>
+          <rule-icon *repeat={:Input} />
           <rule-icon *repeat={:Fuel} />
-          <image sprite={SpinningCaret} layout="36px 36px" margin="18,6,18,12"/>
+          <image sprite={SpinningCaret} tint={StateTint}
+            layout="36px 36px"
+            margin="18,12,18,12"
+            +hover:scale="1.2"
+            +transition:scale="100ms EaseInSine"/>
           <rule-icon *repeat={:Outputs} />
         </lane>
       </grid>
@@ -37,7 +46,7 @@
     <!-- Inputs -->
     <scrollable *case="2" peeking="128">
       <grid *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
-        <panel *repeat={:InputItems}>
+        <panel *repeat={InputItemsFiltered}>
           <image sprite={:ItemData} tooltip={:Tooltip} tint={Tint}
             layout="64px 64px" 
             margin="6"
@@ -64,14 +73,15 @@
 </template>
 
 <template name="rule-icon">
-  <panel padding="4">
-    <image sprite={:Sprite} tint={:IsMultiTint} tooltip={:Tooltip} focusable="true" layout="64px 64px" margin="2"/>
-    <image *if={:IsMulti} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 27px" />
+  <panel padding="4" tooltip={:Tooltip} focusable="true">
+    <image *if={~RuleEntry.State} sprite={:Sprite} opacity={:IsMultiOpacity} layout="64px 64px" margin="2"/>
+    <image *!if={~RuleEntry.State} sprite={:Sprite} tint={~RuleEntry.StateTint} layout="64px 64px" margin="2"/>
+    <image *if={:IsMulti} tint={~RuleEntry.StateTint} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 27px" />
     <panel layout="stretch stretch" horizontal-content-alignment="end" vertical-content-alignment="start">
-      <image *if={:IsFuel} sprite={@mushymato.MachineControlPanel/sprites/emojis:bolt} layout="27px 27px"/>
+      <image *if={:IsFuel} tint={~RuleEntry.StateTint} sprite={@mushymato.MachineControlPanel/sprites/emojis:bolt} layout="27px 27px"/>
     </panel>
     <panel *if={:HasQualityStar} layout="stretch stretch" horizontal-content-alignment="start" vertical-content-alignment="end">
-      <image sprite={:QualityStar} layout="24px 24px"/>
+      <image tint={~RuleEntry.StateTint} sprite={:QualityStar} layout="24px 24px"/>
     </panel>
     <panel *if={:ShowCount} layout="stretch stretch"  horizontal-content-alignment="end" vertical-content-alignment="end">
       <digits number={:Count} scale="3"/>
