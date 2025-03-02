@@ -29,12 +29,13 @@
         <lane *repeat={RuleEntriesFiltered}
           pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(this)|
           pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|
+          opacity={StateOpacity}
           orientation="vertical" margin="8"
           horizontal-content-alignment="middle">
           <checkbox is-checked={<>State} margin="0,0,0,12"/>
           <rule-icon *repeat={:Input} />
           <rule-icon *repeat={:Fuel} />
-          <image sprite={SpinningCaret} tint={StateTint}
+          <image sprite={SpinningCaret}
             layout="36px 36px"
             margin="18,12,18,12"
             +hover:scale="1.2"
@@ -74,14 +75,13 @@
 
 <template name="rule-icon">
   <panel padding="4" tooltip={:Tooltip} focusable="true">
-    <image *if={~RuleEntry.State} sprite={:Sprite} opacity={:IsMultiOpacity} layout="64px 64px" margin="2"/>
-    <image *!if={~RuleEntry.State} sprite={:Sprite} tint={~RuleEntry.StateTint} layout="64px 64px" margin="2"/>
-    <image *if={:IsMulti} tint={~RuleEntry.StateTint} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 27px" />
+    <image sprite={:Sprite} opacity={:IsMultiOpacity} layout="64px 64px" margin="2"/>
+    <image *if={:IsMulti} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 27px" />
     <panel layout="stretch stretch" horizontal-content-alignment="end" vertical-content-alignment="start">
-      <image *if={:IsFuel} tint={~RuleEntry.StateTint} sprite={@mushymato.MachineControlPanel/sprites/emojis:bolt} layout="27px 27px"/>
+      <image *if={:IsFuel} sprite={@mushymato.MachineControlPanel/sprites/emojis:bolt} layout="27px 27px"/>
     </panel>
     <panel *if={:HasQualityStar} layout="stretch stretch" horizontal-content-alignment="start" vertical-content-alignment="end">
-      <image tint={~RuleEntry.StateTint} sprite={:QualityStar} layout="24px 24px"/>
+      <image sprite={:QualityStar} layout="24px 24px"/>
     </panel>
     <panel *if={:ShowCount} layout="stretch stretch"  horizontal-content-alignment="end" vertical-content-alignment="end">
       <digits number={:Count} scale="3"/>

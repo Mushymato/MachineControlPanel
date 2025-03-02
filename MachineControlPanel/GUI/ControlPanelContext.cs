@@ -59,7 +59,7 @@ public sealed record RuleIcon(IconDef IconDef)
     public bool ShowCount => Count > 1;
 
     public bool IsMulti => IconDef.Items?.Count > 1;
-    public float IsMultiOpacity => IsMulti ? 0.5f : 1f;
+    public float IsMultiOpacity => IsMulti ? 0.75f : 1f;
 
     public bool HasQualityStar => QualityStar != null;
     public Tuple<Texture2D, Rectangle>? QualityStar =>
@@ -74,29 +74,28 @@ public sealed record RuleIcon(IconDef IconDef)
     public bool IsFuel => IconDef.IsFuel;
 }
 
-public sealed partial record RuleEntry(RuleIdent Ident, RuleDef Def)
+public sealed partial record RuleEntry(RuleDef Def)
 {
-    public const int SPINNING_CARET_FRAMES = 6;
+    private const int SPINNING_CARET_FRAMES = 6;
+    private static readonly List<Tuple<Texture2D, Rectangle>> SpinningCaretFrames = Enumerable
+        .Range(0, SPINNING_CARET_FRAMES)
+        .Select<int, Tuple<Texture2D, Rectangle>>(frame => new(Game1.mouseCursors, new(232 + 9 * frame, 346, 9, 9)))
+        .ToList();
+
     public IEnumerable<RuleIcon> Input = [new(Def.Input)];
     public IEnumerable<RuleIcon> Fuel = Def.SharedFuel?.Select<IconDef, RuleIcon>(iconD => new(iconD)) ?? [];
     public IEnumerable<RuleIcon> Outputs = Def.Outputs.Select<IconDef, RuleIcon>(iconD => new(iconD));
 
     [Notify]
     private bool state = true;
-    public Color StateTint
-    {
-        get
-        {
-            Color result = State ? Color.White * 1f : Color.Black * 0.8f;
-            return result;
-        }
-    }
+    public float StateOpacity => State ? 1f : 0.75f;
+    public Color StateTint => State ? Color.White * 1f : Color.Black * 0.8f;
 
     [Notify]
-    private int spinningCaretFrame = 0;
+    private int currCaretFrame = 0;
 
     public Tuple<Texture2D, Rectangle> SpinningCaret =>
-        new(Game1.mouseCursors, new(232 + 9 * SpinningCaretFrame, 346, 9, 9));
+        State ? SpinningCaretFrames[CurrCaretFrame] : SpinningCaretFrames[0];
 
     internal TimeSpan animTimer = TimeSpan.Zero;
     private readonly TimeSpan animInterval = TimeSpan.FromMilliseconds(90);
@@ -106,14 +105,14 @@ public sealed partial record RuleEntry(RuleIdent Ident, RuleDef Def)
         animTimer += elapsed;
         if (animTimer >= animInterval)
         {
-            SpinningCaretFrame = (spinningCaretFrame + 1) % SPINNING_CARET_FRAMES;
+            CurrCaretFrame = (currCaretFrame + 1) % SPINNING_CARET_FRAMES;
             animTimer = TimeSpan.Zero;
         }
     }
 
     internal void ResetCaret()
     {
-        SpinningCaretFrame = 0;
+        CurrCaretFrame = 0;
         animTimer = TimeSpan.Zero;
     }
 }
@@ -144,8 +143,6 @@ public sealed partial record ControlPanelContext(
         {
             foreach (RuleIdent ident in input.OriginRules.Keys)
             {
-                ModEntry.Log($"{ident} = {input.OriginRules[ident]}");
-                ModEntry.Log(string.Join('/', ruleEntries.Keys));
                 if (ruleEntries.TryGetValue(ident, out RuleEntry? ruleEntry))
                 {
                     input.OriginRules[ident] = ruleEntry.State;
@@ -174,7 +171,7 @@ public sealed partial record ControlPanelContext(
 
     private readonly Dictionary<RuleIdent, RuleEntry> ruleEntries = RuleDefs.ToDictionary(
         kv => kv.Ident,
-        kv => new RuleEntry(kv.Ident, kv.Def)
+        kv => new RuleEntry(kv.Def) { State = ModEntry.SaveData.RuleState(Machine.QualifiedItemId, kv.Ident) }
     );
 
     public IEnumerable<RuleEntry> RuleEntriesFiltered => ruleEntries.Values;
@@ -204,6 +201,7 @@ public sealed partial record ControlPanelContext(
                 }
                 inputIcon = new(item);
                 inputIcon.OriginRules[ident] = false;
+                inputIcon.State = ModEntry.SaveData.InputState(Machine.QualifiedItemId, item.QualifiedItemId);
                 seenItem[item.QualifiedItemId] = inputIcon;
                 inputItems.Add(inputIcon);
             }
@@ -219,5 +217,16 @@ public sealed partial record ControlPanelContext(
     public void Update(TimeSpan elapsed)
     {
         HoverRuleEntry?.Update(elapsed);
+    }
+
+    internal void SaveChanges()
+    {
+        ModEntry.SaveMachineRules(
+            Machine.QualifiedItemId,
+            null,
+            ruleEntries.Where(kv => !kv.Value.State).Select(kv => kv.Key),
+            InputItems.Where(v => !v.State).Select(v => v.InputItem.QualifiedItemId),
+            []
+        );
     }
 }

@@ -23,6 +23,12 @@ internal static class MenuHandler
 #if DEBUG
         viewEngine.EnableHotReloadingWithSourceSync();
 #endif
+        viewEngine.PreloadAssets();
+        viewEngine.PreloadModels(
+            typeof(MachineSelectContext),
+            typeof(ControlPanelContext),
+            typeof(GlobalToggleContext)
+        );
     }
 
     internal static void ShowMachineSelect()
@@ -41,11 +47,12 @@ internal static class MenuHandler
     {
         if (ControlPanelContext.TryCreate(machine, globalToggleContext) is not ControlPanelContext context)
             return false;
-        var controlPanel = viewEngine.CreateMenuFromAsset(VIEW_ASSET_CONTROL_PANEL, context);
+        var menuCtrl = viewEngine.CreateMenuControllerFromAsset(VIEW_ASSET_CONTROL_PANEL, context);
+        menuCtrl.Closing += context.SaveChanges;
         if (asChildMenu && Game1.activeClickableMenu != null)
-            Game1.activeClickableMenu.SetChildMenu(controlPanel);
+            Game1.activeClickableMenu.SetChildMenu(menuCtrl.Menu);
         else
-            Game1.activeClickableMenu = controlPanel;
+            Game1.activeClickableMenu = menuCtrl.Menu;
         return true;
     }
 }

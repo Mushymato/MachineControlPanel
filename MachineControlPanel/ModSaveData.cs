@@ -185,4 +185,18 @@ public sealed class ModSaveData
 
         return new ModSaveDataEntryMessage(bigCraftableId, msdEntry);
     }
+
+    internal bool RuleState(string qId, RuleIdent ident, string? location = null)
+    {
+        if (Disabled.TryGetValue(qId, out ModSaveDataEntry? msd))
+            return !msd.Rules.Contains(ident);
+        return true;
+    }
+
+    internal bool InputState(string qId, string inputId, string? location = null)
+    {
+        if (Disabled.TryGetValue(qId, out ModSaveDataEntry? msd))
+            return !msd.Inputs.Contains(inputId);
+        return true;
+    }
 }

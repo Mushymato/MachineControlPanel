@@ -28,13 +28,15 @@ public class ModEntry : Mod
     /// Key for a partial message, e.g. only 1 machine's rules/inputs were changed.
     /// </summary>
     private const string SAVEDATA_ENTRY = "save-machine-rules-entry";
-    private static ModSaveData saveData = null!;
+    internal static ModSaveData SaveData { get; private set; } = null!;
+    private static IModHelper help = null!;
 
     public override void Entry(IModHelper helper)
     {
         I18n.Init(helper.Translation);
         mon = Monitor;
         man = ModManifest;
+        help = helper;
         Config = Helper.ReadConfig<ModConfig>();
         Patches.Patch();
 
@@ -84,26 +86,26 @@ public class ModEntry : Mod
                 case SAVEDATA:
                     try
                     {
-                        saveData = e.ReadAs<ModSaveData>();
+                        SaveData = e.ReadAs<ModSaveData>();
                     }
                     catch (InvalidOperationException)
                     {
                         Log($"Failed to read save data sent by host.", LogLevel.Warn);
-                        saveData = new();
+                        SaveData = new();
                     }
                     break;
                 // 1 entry in saveData
                 case SAVEDATA_ENTRY:
-                    if (saveData == null)
+                    if (SaveData == null)
                     {
                         Log("Received unexpected partial save data.", LogLevel.Error);
                         break;
                     }
                     ModSaveDataEntryMessage msdEntryMsg = e.ReadAs<ModSaveDataEntryMessage>();
                     if (msdEntryMsg.Entry == null)
-                        saveData.Disabled.Remove(msdEntryMsg.QId);
+                        SaveData.Disabled.Remove(msdEntryMsg.QId);
                     else
-                        saveData.Disabled[msdEntryMsg.QId] = msdEntryMsg.Entry;
+                        SaveData.Disabled[msdEntryMsg.QId] = msdEntryMsg.Entry;
                     break;
             }
         }
@@ -173,18 +175,18 @@ public class ModEntry : Mod
             return;
         try
         {
-            saveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA)!;
-            if (saveData == null)
-                saveData = new();
+            SaveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA)!;
+            if (SaveData == null)
+                SaveData = new();
             else
-                saveData.ClearInvalidData();
-            saveData.Version = ModManifest.Version;
-            Helper.Data.WriteSaveData(SAVEDATA, saveData);
+                SaveData.ClearInvalidData();
+            SaveData.Version = ModManifest.Version;
+            Helper.Data.WriteSaveData(SAVEDATA, SaveData);
         }
         catch (InvalidOperationException)
         {
             Log($"Failed to read existing save data, previous settings lost.", LogLevel.Warn);
-            saveData = new() { Version = ModManifest.Version };
+            SaveData = new() { Version = ModManifest.Version };
         }
     }
 
@@ -199,7 +201,7 @@ public class ModEntry : Mod
             return;
 
         Helper.Multiplayer.SendMessage(
-            saveData,
+            SaveData,
             SAVEDATA,
             modIDs: [ModManifest.UniqueID],
             playerIDs: [e.Peer.PlayerID]
@@ -214,7 +216,7 @@ public class ModEntry : Mod
     /// <param name="disabledRules"></param>
     /// <param name="disabledInputs"></param>
     /// <param name="disabledQuality"></param>
-    internal void SaveMachineRules(
+    internal static void SaveMachineRules(
         string bigCraftableId,
         string? locationName,
         IEnumerable<RuleIdent> disabledRules,
@@ -224,17 +226,18 @@ public class ModEntry : Mod
     {
         if (!Game1.IsMasterGame)
             return;
-        if (saveData?.Version == null)
+        if (SaveData?.Version == null)
         {
             Log("Attempted to save machine rules without save loaded", LogLevel.Error);
             return;
         }
-        saveData.Version = man.Version;
-        Helper.Multiplayer.SendMessage(
-            saveData.SetMachineRules(bigCraftableId, locationName, disabledRules, disabledInputs, disabledQuality),
+        SaveData.Version = man.Version;
+        help.Multiplayer.SendMessage(
+            SaveData.SetMachineRules(bigCraftableId, locationName, disabledRules, disabledInputs, disabledQuality),
             SAVEDATA_ENTRY,
-            modIDs: [ModManifest.UniqueID]
+            modIDs: [ModId]
         );
+        help.Data.WriteSaveData(SAVEDATA, SaveData);
     }
 
     /// <summary>
@@ -250,7 +253,7 @@ public class ModEntry : Mod
             return;
         }
         Helper.Data.WriteSaveData<ModSaveData>(SAVEDATA, null);
-        saveData = new() { Version = ModManifest.Version };
+        SaveData = new() { Version = ModManifest.Version };
     }
 
 #if DEBUG
