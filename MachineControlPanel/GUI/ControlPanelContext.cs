@@ -148,7 +148,7 @@ public sealed partial record ControlPanelContext(
                     input.OriginRules[ident] = ruleEntry.State;
                 }
             }
-            input.Active = input.OriginRules.Values.All(val => val);
+            input.Active = input.OriginRules.Values.Any(val => val);
         }
     }
 
@@ -226,7 +226,7 @@ public sealed partial record ControlPanelContext(
             null,
             ruleEntries.Where(kv => !kv.Value.State).Select(kv => kv.Key),
             InputItems.Where(v => !v.State).Select(v => v.InputItem.QualifiedItemId),
-            []
+            [false, false, false, false]
         );
     }
 }

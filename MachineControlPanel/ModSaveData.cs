@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using MachineControlPanel.Data;
 using StardewModdingAPI;
 using StardewValley;
@@ -198,5 +199,13 @@ public sealed class ModSaveData
         if (Disabled.TryGetValue(qId, out ModSaveDataEntry? msd))
             return !msd.Inputs.Contains(inputId);
         return true;
+    }
+
+    internal bool TryGetSavedEntry(SObject machine, [NotNullWhen(true)] out ModSaveDataEntry? msdEntry)
+    {
+        // machine.Location
+        // global
+        Disabled.TryGetValue(machine.QualifiedItemId, out msdEntry);
+        return msdEntry != null;
     }
 }

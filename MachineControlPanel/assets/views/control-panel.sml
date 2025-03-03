@@ -38,7 +38,7 @@
           <image sprite={SpinningCaret}
             layout="36px 36px"
             margin="18,12,18,12"
-            +hover:scale="1.2"
+            +hover:scale="1.1"
             +transition:scale="100ms EaseInSine"/>
           <rule-icon *repeat={:Outputs} />
         </lane>

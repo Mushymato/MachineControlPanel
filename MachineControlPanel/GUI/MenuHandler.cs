@@ -23,12 +23,12 @@ internal static class MenuHandler
 #if DEBUG
         viewEngine.EnableHotReloadingWithSourceSync();
 #endif
-        viewEngine.PreloadAssets();
-        viewEngine.PreloadModels(
-            typeof(MachineSelectContext),
-            typeof(ControlPanelContext),
-            typeof(GlobalToggleContext)
-        );
+        // viewEngine.PreloadAssets();
+        // viewEngine.PreloadModels(
+        //     typeof(MachineSelectContext),
+        //     typeof(ControlPanelContext),
+        //     typeof(GlobalToggleContext)
+        // );
     }
 
     internal static void ShowMachineSelect()

@@ -42,9 +42,7 @@ public sealed partial class MachineSelectContext
     {
         get
         {
-#if DEBUG
             Stopwatch stopwatch = Stopwatch.StartNew();
-#endif
             int hidden = 0;
             string searchText = SearchText;
             foreach ((string key, MachineData value) in allMachines)
@@ -67,9 +65,7 @@ public sealed partial class MachineSelectContext
                 yield return new MachineSelectCell(key, value, machine, GlobalToggle);
             }
             HiddenByProgressionCount = hidden;
-#if DEBUG
             ModEntry.Log($"Build MachineCells in in {stopwatch.Elapsed}");
-#endif
         }
     }
 
