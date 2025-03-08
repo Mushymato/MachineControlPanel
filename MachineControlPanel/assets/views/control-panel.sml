@@ -46,17 +46,29 @@
     </scrollable>
     <!-- Inputs -->
     <scrollable *case="2" peeking="128">
-      <grid *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
-        <panel *repeat={InputItemsFiltered}>
-          <image sprite={:ItemData} tooltip={:Tooltip} tint={Tint}
-            layout="64px 64px" 
-            margin="6"
+      <lane orientation="vertical">
+        <lane orientation="horizontal" margin="16,8">
+          <image *repeat={QualityStars} sprite={:Sprite} tint={Tint}
+            layout="24px 24px"
+            margin="4"
             focusable="true"
             left-click=|ToggleState()|
             +hover:scale="1.1"
             +transition:scale="100ms EaseInSine"/>
-        </panel>
-      </grid>
+        </lane>
+        <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="stretch content" margin="0,0,8,0" fit="Stretch"/>
+        <grid *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
+          <panel *repeat={InputItemsFiltered}>
+            <image sprite={:ItemData} tooltip={:Tooltip} tint={Tint}
+              layout="64px 64px" 
+              margin="6"
+              focusable="true"
+              left-click=|ToggleState()|
+              +hover:scale="1.1"
+              +transition:scale="100ms EaseInSine"/>
+          </panel>
+        </grid>
+      </lane>
     </scrollable>
 </frame>
 </lane>

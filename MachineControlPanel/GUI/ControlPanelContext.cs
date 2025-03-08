@@ -25,13 +25,44 @@ public sealed partial record InputIcon(Item InputItem)
     {
         get
         {
-            Color result = State ? Color.White * 1f : Color.Black * 0.8f;
+            Color result = State ? Color.White : ControlPanelContext.DisabledColor;
             if (!Active)
                 result *= 0.5f;
             return result;
         }
     }
     internal readonly Dictionary<RuleIdent, bool> OriginRules = [];
+}
+
+public sealed partial record QualityStar(int Quality)
+{
+    public Tuple<Texture2D, Rectangle>? Sprite =>
+        Quality switch
+        {
+            0 or 1 => new(Game1.mouseCursors, new Rectangle(338, 400, 8, 8)),
+            2 => new(Game1.mouseCursors, new Rectangle(346, 400, 8, 8)),
+            4 => new(Game1.mouseCursors, new Rectangle(346, 392, 8, 8)),
+            _ => null,
+        };
+
+    [Notify]
+    private bool state = true;
+
+    public void ToggleState() => State = !State;
+
+    public Color? Tint
+    {
+        get
+        {
+            if (!State)
+                return ControlPanelContext.DisabledColor;
+            return Quality switch
+            {
+                0 => Color.Black * 0.5f,
+                _ => Color.White,
+            };
+        }
+    }
 }
 
 public sealed record RuleIcon(IconDef IconDef)
@@ -89,7 +120,7 @@ public sealed partial record RuleEntry(RuleDef Def)
     [Notify]
     private bool state = true;
     public float StateOpacity => State ? 1f : 0.75f;
-    public Color StateTint => State ? Color.White * 1f : Color.Black * 0.8f;
+    public Color StateTint => State ? Color.White : ControlPanelContext.DisabledColor;
 
     [Notify]
     private int currCaretFrame = 0;
@@ -123,6 +154,8 @@ public sealed partial record ControlPanelContext(
     IReadOnlyList<RuleIdentDefPair> RuleDefs
 )
 {
+    internal static Color DisabledColor = Color.Black * 0.8f;
+
     internal static ControlPanelContext? TryCreate(Item machine, GlobalToggleContext? globalToggle)
     {
         if (MachineRuleCache.TryGetRuleDefList(machine.QualifiedItemId) is IReadOnlyList<RuleIdentDefPair> ruleDefs)
@@ -213,20 +246,17 @@ public sealed partial record ControlPanelContext(
     private List<InputIcon>? inputItems = null;
     private List<InputIcon> InputItems => inputItems ??= GetInputItems();
     public IEnumerable<InputIcon> InputItemsFiltered => InputItems;
+    public QualityStar[] QualityStars =>
+        [new QualityStar(0), new QualityStar(1), new QualityStar(2), new QualityStar(4)];
 
-    public void Update(TimeSpan elapsed)
-    {
-        HoverRuleEntry?.Update(elapsed);
-    }
+    public void Update(TimeSpan elapsed) => HoverRuleEntry?.Update(elapsed);
 
-    internal void SaveChanges()
-    {
+    internal void SaveChanges() =>
         ModEntry.SaveMachineRules(
             Machine.QualifiedItemId,
-            null,
+            GlobalToggle.LocationKey,
             ruleEntries.Where(kv => !kv.Value.State).Select(kv => kv.Key),
             InputItems.Where(v => !v.State).Select(v => v.InputItem.QualifiedItemId),
-            [false, false, false, false]
+            [!QualityStars[0].State, !QualityStars[1].State, !QualityStars[2].State, !QualityStars[3].State]
         );
-    }
 }
