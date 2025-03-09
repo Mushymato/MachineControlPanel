@@ -1,9 +1,11 @@
 global using SObject = StardewValley.Object;
 using MachineControlPanel.Data;
 using MachineControlPanel.GUI;
+using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Menus;
 
 namespace MachineControlPanel;
 
@@ -60,7 +62,30 @@ public class ModEntry : Mod
 #if DEBUG
         helper.ConsoleCommands.Add("mcp-export-cache", "export all the data caches", ConsoleExportItemQueryCache);
         helper.ConsoleCommands.Add("mcp-resolve-ctag", "resolve context tag", ConsoleResolveContextTag);
+        helper.ConsoleCommands.Add("mcp-print-active", "resolve context tag", ConsolePrintActive);
 #endif
+    }
+
+    private static void printMenu(string name, IClickableMenu menu)
+    {
+        if (menu == null)
+        {
+            Console.WriteLine($"{name} is NULL");
+        }
+        else
+        {
+            Console.WriteLine($"{name} is {menu}");
+        }
+    }
+
+    private void ConsolePrintActive(string arg1, string[] arg2)
+    {
+        printMenu("Game1.activeClickableMenu", Game1.activeClickableMenu);
+        printMenu("Game1.overlayMenu", Game1.overlayMenu);
+        foreach (var menu in Game1.onScreenMenus)
+        {
+            printMenu("Game1.onScreenMenus", menu);
+        }
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -118,9 +143,19 @@ public class ModEntry : Mod
     /// <param name="e"></param>
     private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
     {
-        if (!Context.IsWorldReady)
+        if (!Context.IsWorldReady || Game1.activeClickableMenu != null)
             return;
-        if (Config.ControlPanelKey.JustPressed()) { }
+        if (Config.ControlPanelKey.JustPressed())
+        {
+            // ICursorPosition.GrabTile is unreliable with gamepad controls. Instead recreate game logic.
+            Vector2 cursorTile = Game1.currentCursorTile;
+            Point tile = Utility.tileWithinRadiusOfPlayer((int)cursorTile.X, (int)cursorTile.Y, 1, Game1.player)
+                ? cursorTile.ToPoint()
+                : Game1.player.GetGrabTile().ToPoint();
+            SObject? machine = Game1.player.currentLocation.getObjectAtTile(tile.X, tile.Y, ignorePassables: true);
+            if (machine != null && DataLoader.Machines(Game1.content).ContainsKey(machine.QualifiedItemId))
+                MenuHandler.ShowControlPanel(machine);
+        }
         if (Config.MachineSelectKey.JustPressed())
             MenuHandler.ShowMachineSelect();
     }

@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PropertyChanged.SourceGenerator;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
+using StardewValley.Menus;
 
 namespace MachineControlPanel.GUI;
 

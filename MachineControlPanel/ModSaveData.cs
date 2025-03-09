@@ -204,6 +204,15 @@ public sealed class ModSaveData
     internal bool TryGetSavedEntry(SObject machine, [NotNullWhen(true)] out ModSaveDataEntry? msdEntry)
     {
         // machine.Location
+        if (
+            machine.Location != null
+            && DisabledPerLocation.TryGetValue(
+                new(machine.QualifiedItemId, machine.Location.NameOrUniqueName),
+                out msdEntry
+            )
+            && msdEntry != null
+        )
+            return true;
         // global
         Disabled.TryGetValue(machine.QualifiedItemId, out msdEntry);
         return msdEntry != null;

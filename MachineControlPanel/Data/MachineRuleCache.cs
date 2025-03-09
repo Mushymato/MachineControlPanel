@@ -265,6 +265,8 @@ internal static class MachineRuleCache
         List<RuleIdentDefPair> ruleDefList = [];
         foreach (MachineOutputRule rule in outputRules)
         {
+            if (rule.OutputItem == null || rule.Triggers == null)
+                continue;
             List<IconDef> outputs = [];
             foreach (MachineItemOutput mio in rule.OutputItem)
             {

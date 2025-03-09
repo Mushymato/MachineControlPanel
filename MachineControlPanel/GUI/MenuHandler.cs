@@ -1,7 +1,10 @@
 using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
 using StardewModdingAPI;
+using StardewModdingAPI.Events;
+using StardewModdingAPI.Utilities;
 using StardewValley;
+using StardewValley.Menus;
 
 namespace MachineControlPanel.GUI;
 
@@ -12,6 +15,9 @@ internal static class MenuHandler
     internal static string VIEW_ASSET_MACHINE_SELECT = null!;
     internal static string VIEW_ASSET_CONTROL_PANEL = null!;
 
+    internal static WeakReference<IClickableMenu?> MachineSelectView = new(null);
+    internal static WeakReference<IMenuController?> ControlPanelCtrl = new(null);
+
     internal static void Register(IModHelper helper)
     {
         viewEngine = helper.ModRegistry.GetApi<IViewEngine>("focustense.StardewUI")!;
@@ -20,23 +26,38 @@ internal static class MenuHandler
         VIEW_ASSET_MACHINE_SELECT = $"{VIEW_ASSET_PREFIX}/machine-select";
         VIEW_ASSET_CONTROL_PANEL = $"{VIEW_ASSET_PREFIX}/control-panel";
         viewEngine.RegisterViews(VIEW_ASSET_PREFIX, "assets/views");
+        helper.Events.Display.MenuChanged += OnMenuChanged;
 #if DEBUG
         viewEngine.EnableHotReloadingWithSourceSync();
 #endif
-        // viewEngine.PreloadAssets();
-        // viewEngine.PreloadModels(
-        //     typeof(MachineSelectContext),
-        //     typeof(ControlPanelContext),
-        //     typeof(GlobalToggleContext)
-        // );
+    }
+
+    private static void OnMenuChanged(object? sender, MenuChangedEventArgs e)
+    {
+        // this nonsense makes the menus dispose properly
+        if (
+            MachineSelectView.TryGetTarget(out IClickableMenu? menu)
+            && menu is IDisposable disposable1
+            && e.OldMenu == menu
+        )
+        {
+            disposable1.Dispose();
+        }
+        if (
+            ControlPanelCtrl.TryGetTarget(out IMenuController? ctrl)
+            && ctrl.Menu is IDisposable disposable2
+            && e.OldMenu == ctrl.Menu
+        )
+        {
+            disposable2.Dispose();
+        }
     }
 
     internal static void ShowMachineSelect()
     {
-        Game1.activeClickableMenu = viewEngine.CreateMenuFromAsset(
-            VIEW_ASSET_MACHINE_SELECT,
-            new MachineSelectContext()
-        );
+        var view = viewEngine.CreateMenuFromAsset(VIEW_ASSET_MACHINE_SELECT, new MachineSelectContext());
+        MachineSelectView.SetTarget(view);
+        Game1.activeClickableMenu = view;
     }
 
     internal static bool ShowControlPanel(
@@ -49,6 +70,7 @@ internal static class MenuHandler
             return false;
         var menuCtrl = viewEngine.CreateMenuControllerFromAsset(VIEW_ASSET_CONTROL_PANEL, context);
         menuCtrl.Closing += context.SaveChanges;
+        ControlPanelCtrl.SetTarget(menuCtrl);
         if (asChildMenu && Game1.activeClickableMenu != null)
             Game1.activeClickableMenu.SetChildMenu(menuCtrl.Menu);
         else

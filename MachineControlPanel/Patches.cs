@@ -35,7 +35,7 @@ internal static class Patches
             prefix: new HarmonyMethod(typeof(Patches), nameof(SObject_PlaceInMachine_Prefix)),
             transpiler: new HarmonyMethod(typeof(Patches), nameof(SObject_PlaceInMachine_Transpiler))
         );
-        ModEntry.Log($"Applied MachineDataUtility.PlaceInMachine Transpiler", LogLevel.Trace);
+        ModEntry.Log($"Applied SObject.PlaceInMachine Transpiler", LogLevel.Trace);
 
         // non-vital patches
         harmony.Patch(
@@ -93,6 +93,33 @@ internal static class Patches
         return false;
     }
 
+    /// <summary>
+    /// Check should skip, for <see cref="MachineOutputTrigger.DayUpdate"/>
+    /// </summary>
+    /// <param name="trigger"></param>
+    /// <param name="trigger2"></param>
+    /// <param name="machine"></param>
+    /// <param name="rule"></param>
+    /// <param name="inputItem"></param>
+    /// <param name="idx"></param>
+    /// <returns></returns>
+    private static bool ShouldSkipMachineInput_DayUpdate(
+        MachineOutputTrigger trigger,
+        MachineOutputTriggerRule trigger2,
+        SObject machine,
+        MachineOutputRule rule,
+        Item inputItem
+    )
+    {
+        if (
+            trigger.HasFlag(MachineOutputTrigger.DayUpdate)
+            || trigger.HasFlag(MachineOutputTrigger.MachinePutDown)
+            || trigger.HasFlag(MachineOutputTrigger.OutputCollected)
+        )
+            return ShouldSkipMachineInput(trigger2, machine, rule, inputItem);
+        return false;
+    }
+
     /// <summary>Unset skipped reason</summary>
     private static void SObject_PlaceInMachine_Prefix()
     {
@@ -139,7 +166,7 @@ internal static class Patches
                         new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Item), nameof(Item.Stack))),
                     ]
                 )
-                .ThrowIfNotMatch("Failed to find 'if (trigger2.RequiredCount > inputItem.Stack)'");
+                .ThrowIfNotMatch("Did not find 'if (trigger2.RequiredCount > inputItem.Stack)'");
 
             Label lbl = (Label)matcher.Operand; // label to end of loop
             matcher.Advance(1);
@@ -161,37 +188,37 @@ internal static class Patches
                     ]
                 );
 
-            // // Check for MachineOutputTrigger.DayUpdate
-            // matcher
-            //     .MatchStartForward(
-            //         [
-            //             new(OpCodes.Ldarg_S, (byte)6),
-            //             new(ldloc.opcode, ldloc.operand),
-            //             new(OpCodes.Stind_Ref),
-            //             new(OpCodes.Ldarg_S, (byte)7),
-            //             new(OpCodes.Ldc_I4_0),
-            //             new(OpCodes.Stind_I1),
-            //         ]
-            //     )
-            //     .ThrowIfNotMatch("Failed 'triggerRule = trigger2; matchesExceptCount = false;");
+            // Check for MachineOutputTrigger.DayUpdate
+            matcher
+                .MatchStartForward(
+                    [
+                        new(OpCodes.Ldarg_S, (byte)6),
+                        new(ldloc.opcode, ldloc.operand),
+                        new(OpCodes.Stind_Ref),
+                        new(OpCodes.Ldarg_S, (byte)7),
+                        new(OpCodes.Ldc_I4_0),
+                        new(OpCodes.Stind_I1),
+                    ]
+                )
+                .ThrowIfNotMatch("Failed 'triggerRule = trigger2; matchesExceptCount = false;");
 
-            // matcher
-            //     .SetAndAdvance(OpCodes.Ldarg_2, null) // MachineOutputTrigger trigger
-            //     .Insert(
-            //         [
-            //             ldloc.Clone(), // MachineOutputTriggerRule trigger2
-            //             new(OpCodes.Ldarg_0), // Object machine
-            //             new(OpCodes.Ldarg_1), // MachineOutputRule rule
-            //             new(OpCodes.Ldarg_3), // Item inputItem
-            //             // new(OpCodes.Ldloc, idx), // foreach idx
-            //             new(
-            //                 OpCodes.Call,
-            //                 AccessTools.DeclaredMethod(typeof(Patches), nameof(ShouldSkipMachineInput_DayUpdate))
-            //             ),
-            //             new(OpCodes.Brtrue, lbl),
-            //             new(OpCodes.Ldarg_S, (byte)6),
-            //         ]
-            //     );
+            matcher
+                .SetAndAdvance(OpCodes.Ldarg_2, null) // MachineOutputTrigger trigger
+                .Insert(
+                    [
+                        ldloc.Clone(), // MachineOutputTriggerRule trigger2
+                        new(OpCodes.Ldarg_0), // Object machine
+                        new(OpCodes.Ldarg_1), // MachineOutputRule rule
+                        new(OpCodes.Ldarg_3), // Item inputItem
+                        // new(OpCodes.Ldloc, idx), // foreach idx
+                        new(
+                            OpCodes.Call,
+                            AccessTools.DeclaredMethod(typeof(Patches), nameof(ShouldSkipMachineInput_DayUpdate))
+                        ),
+                        new(OpCodes.Brtrue, lbl),
+                        new(OpCodes.Ldarg_S, (byte)6),
+                    ]
+                );
 
             return matcher.Instructions();
         }
@@ -257,7 +284,7 @@ internal static class Patches
                         new(OpCodes.Ldarg_3),
                     ]
                 )
-                .ThrowIfNotMatch("Failed 'triggerRule = trigger2; matchesExceptCount = false;");
+                .ThrowIfNotMatch("Did not find 'who.ignoreItemConsumptionThisFrame = true; } } return false;");
             matcher.Advance(1);
             // if not reached by jump, go to ret
             matcher.InsertAndAdvance([new(OpCodes.Br, matcher.Labels.Last())]);
