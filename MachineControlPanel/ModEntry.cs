@@ -153,8 +153,12 @@ public class ModEntry : Mod
                 ? cursorTile.ToPoint()
                 : Game1.player.GetGrabTile().ToPoint();
             SObject? machine = Game1.player.currentLocation.getObjectAtTile(tile.X, tile.Y, ignorePassables: true);
-            if (machine != null && DataLoader.Machines(Game1.content).ContainsKey(machine.QualifiedItemId))
-                MenuHandler.ShowControlPanel(machine);
+            if (
+                machine != null
+                && DataLoader.Machines(Game1.content).ContainsKey(machine.QualifiedItemId)
+                && MenuHandler.ShowControlPanel(machine)
+            )
+                return;
         }
         if (Config.MachineSelectKey.JustPressed())
             MenuHandler.ShowMachineSelect();

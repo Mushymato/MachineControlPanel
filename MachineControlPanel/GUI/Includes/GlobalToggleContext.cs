@@ -16,6 +16,6 @@ public sealed partial class GlobalToggleContext()
             ModEntry.Log(Game1.currentLocation.NameOrUniqueName);
     }
 
-    public readonly string LocationDisplayName = Game1.currentLocation.DisplayName;
+    public string LocationDisplayName => Game1.currentLocation.DisplayName;
     internal string? LocationKey => isGlobal ? null : Game1.currentLocation.NameOrUniqueName;
 }

@@ -11,12 +11,7 @@ using StardewValley.ItemTypeDefinitions;
 
 namespace MachineControlPanel.GUI;
 
-public sealed partial record MachineSelectCell(
-    string QId,
-    MachineData Data,
-    Item Machine,
-    GlobalToggleContext GlobalToggle
-)
+public sealed partial record MachineSelectCell(string QId, MachineData Data, Item Machine)
 {
     public readonly ParsedItemData MachineData = ItemRegistry.GetData(QId);
     public readonly SDUITooltipData Tooltip = new(Machine.getDescription(), Machine.DisplayName, Machine);
@@ -24,7 +19,7 @@ public sealed partial record MachineSelectCell(
     [Notify]
     private Color backgroundTint = Color.White * 0.5f;
 
-    public void ShowControlPanel() => MenuHandler.ShowControlPanel(Machine, GlobalToggle, asChildMenu: true);
+    public void ShowControlPanel() => MenuHandler.ShowControlPanel(Machine, asChildMenu: true);
 }
 
 /// <summary>Context for machine select</summary>
@@ -33,7 +28,7 @@ public sealed partial class MachineSelectContext
     /// <summary>All machine data, loaded everytime menu is opened</summary>
     private readonly Dictionary<string, MachineData> allMachines = MachineRuleCache.Machines;
 
-    public readonly GlobalToggleContext GlobalToggle = new();
+    public GlobalToggleContext GlobalToggle => MenuHandler.GlobalToggle;
 
     [Notify]
     private string searchText = "";
@@ -62,7 +57,7 @@ public sealed partial class MachineSelectContext
                     hidden++;
                     continue;
                 }
-                yield return new MachineSelectCell(key, value, machine, GlobalToggle);
+                yield return new MachineSelectCell(key, value, machine);
             }
             HiddenByProgressionCount = hidden;
             ModEntry.Log($"Build MachineCells in in {stopwatch.Elapsed}");

@@ -149,18 +149,15 @@ public sealed partial record RuleEntry(RuleDef Def)
     }
 }
 
-public sealed partial record ControlPanelContext(
-    Item Machine,
-    GlobalToggleContext GlobalToggle,
-    IReadOnlyList<RuleIdentDefPair> RuleDefs
-)
+public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<RuleIdentDefPair> RuleDefs)
 {
     internal static Color DisabledColor = Color.Black * 0.8f;
+    public GlobalToggleContext GlobalToggle => MenuHandler.GlobalToggle;
 
-    internal static ControlPanelContext? TryCreate(Item machine, GlobalToggleContext? globalToggle)
+    internal static ControlPanelContext? TryCreate(Item machine)
     {
         if (MachineRuleCache.TryGetRuleDefList(machine.QualifiedItemId) is IReadOnlyList<RuleIdentDefPair> ruleDefs)
-            return new ControlPanelContext(machine, globalToggle ?? new GlobalToggleContext(), ruleDefs);
+            return new ControlPanelContext(machine, ruleDefs);
         return null;
     }
 
