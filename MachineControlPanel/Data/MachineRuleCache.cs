@@ -17,7 +17,7 @@ namespace MachineControlPanel.Data;
 /// <param name="Condition"></param>
 /// <param name="Notes"></param>
 /// <param name="IsFuel"></param>
-public sealed record IconDef(
+public record IconDef(
     IReadOnlyList<Item>? Items = null,
     int Count = 0,
     IReadOnlyList<string>? ContextTags = null,
@@ -117,30 +117,16 @@ public sealed record IconDef(
         return null;
     }
 
-    /// <summary>
-    /// Form output icon by resolving the item query
-    /// </summary>
-    /// <param name="mio"></param>
-    /// <returns></returns>
-    internal static IconDef? FromOutput(MachineItemOutput mio)
+    internal static IconDef? FromEMCTagsFuel(IReadOnlyList<string> tags, int count)
     {
-        if (mio.OutputMethod != null)
-            return new IconDef(Notes: [I18n.RuleList_SpecialOutput(mio.OutputMethod.Split(':').Last().Trim())]);
-        if (mio.ItemId == "DROP_IN")
-        {
-            Item defaultItem = (Item)
-                ItemQueryResolver.ApplyItemFields(Quirks.DefaultThing.getOne(), mio, ItemQueryCache.Context);
-            return new(
-                [defaultItem],
-                defaultItem.Stack,
-                Condition: mio.Condition,
-                Notes: [I18n.RuleList_SameAsInput()]
-            );
-        }
-        else if (ItemQueryCache.ResolveItemQuery(mio) is IReadOnlyList<Item> items && items.Count > 0)
-        {
-            return new(items, items[0].Stack, Condition: mio.Condition);
-        }
+        IReadOnlyList<Item>? items = ItemQueryCache.ResolveCondTagItems(
+            tags,
+            null,
+            out IReadOnlyList<string>? contextTags,
+            out string? condition
+        );
+        if (items?.Count > 0)
+            return new IconDef(items, Count: count, ContextTags: contextTags, Condition: condition, IsFuel: true);
         return null;
     }
 
@@ -177,34 +163,110 @@ public sealed record IconDef(
     }
 }
 
-public sealed record RuleDef(
-    IconDef Input,
-    IReadOnlyList<IconDef> Outputs,
-    IReadOnlyList<IconDef>? SharedFuel = null,
-    IReadOnlyList<IconDef>? EMC_Fuel = null,
-    IReadOnlyList<IconDef>? EMC_ExtraOutputs = null
-)
+public sealed record IconOutputDef(
+    IReadOnlyList<Item>? Items = null,
+    int Count = 0,
+    IReadOnlyList<string>? ContextTags = null,
+    string? Condition = null,
+    IReadOnlyList<string>? Notes = null,
+    bool IsFuel = false,
+    IReadOnlyList<IconDef>? EMCFuel = null,
+    IReadOnlyList<IconDef>? EMCByproduct = null
+) : IconDef(Items, Count, ContextTags, Condition, Notes, IsFuel)
 {
-    public override string ToString()
+    internal static IExtraMachineConfigApi? emc;
+
+    /// <summary>
+    /// Form output icon by resolving the item query
+    /// </summary>
+    /// <param name="mio"></param>
+    /// <returns></returns>
+    internal static IconOutputDef? FromOutput(MachineItemOutput mio, MachineData data, bool recursive = false)
     {
-        if (Input == null)
-            return "";
-        return string.Join('#', Input.ToString());
+        if (mio.OutputMethod != null)
+            return new IconOutputDef(Notes: [I18n.RuleList_SpecialOutput(mio.OutputMethod.Split(':').Last().Trim())]);
+        if (mio.ItemId == "DROP_IN")
+        {
+            Item defaultItem = (Item)
+                ItemQueryResolver.ApplyItemFields(Quirks.DefaultThing.getOne(), mio, ItemQueryCache.Context);
+            return new(
+                [defaultItem],
+                defaultItem.Stack,
+                Condition: mio.Condition,
+                Notes: [I18n.RuleList_SameAsInput()]
+            );
+        }
+        else if (ItemQueryCache.ResolveItemQuery(mio) is IReadOnlyList<Item> items && items.Count > 0)
+        {
+            List<IconDef>? emcFuel = null;
+            List<IconDef>? emcExtraOutputs = null;
+            if (emc != null)
+            {
+                // extra fuel
+                emcFuel = [];
+                foreach (var fuel in emc.GetExtraRequirements(mio))
+                {
+                    if (FromEMCTagsFuel([fuel.Item1], fuel.Item2) is IconDef fuelDef)
+                        emcFuel.Add(fuelDef);
+                }
+                foreach (var fuel in emc.GetExtraRequirements(mio))
+                {
+                    if (FromEMCTagsFuel(fuel.Item1.Split(','), fuel.Item2) is IconDef fuelDef)
+                        emcFuel.Add(fuelDef);
+                }
+                if (emcFuel.Count == 0)
+                    emcFuel = null;
+                // extra outputs
+                if (!recursive)
+                {
+                    emcExtraOutputs = [];
+                    foreach (var extraMio in emc.GetExtraOutputs(mio, data))
+                    {
+                        if (FromOutput(extraMio, data, recursive: true) is IconDef extraOutputDef)
+                            emcExtraOutputs.Add(extraOutputDef);
+                    }
+                    if (emcExtraOutputs.Count == 0)
+                        emcExtraOutputs = null;
+                }
+            }
+            return new(
+                items,
+                items[0].Stack,
+                Condition: mio.Condition,
+                EMCFuel: emcFuel,
+                EMCByproduct: emcExtraOutputs
+            );
+        }
+        return null;
     }
 }
+
+/// <summary>
+/// A machine rule.
+/// It is 1 trigger an N outputs even though trigger and output are same level in data, this is because we disable rules per trigger
+/// </summary>
+/// <param name="Input"></param>
+/// <param name="Outputs"></param>
+/// <param name="SharedFuel"></param>
+/// <param name="EMCFuel"></param>
+/// <param name="EMCExtraOutputs"></param>
+public sealed record RuleDef(
+    IconDef Input,
+    IReadOnlyList<IconOutputDef> Outputs,
+    IReadOnlyList<IconDef>? SharedFuel = null
+);
 
 public sealed record RuleIdentDefPair(RuleIdent Ident, RuleDef Def);
 
 internal static class MachineRuleCache
 {
-    private static IExtraMachineConfigApi? emc;
     private static readonly Dictionary<string, IReadOnlyList<RuleIdentDefPair>?> machineRuleCache = [];
     private static Dictionary<string, MachineData>? machines = null;
     internal static Dictionary<string, MachineData> Machines => machines ??= DataLoader.Machines(Game1.content);
 
     internal static void Register(IModHelper helper)
     {
-        emc = helper.ModRegistry.GetApi<IExtraMachineConfigApi>("selph.ExtraMachineConfig");
+        IconOutputDef.emc = helper.ModRegistry.GetApi<IExtraMachineConfigApi>("selph.ExtraMachineConfig");
     }
 
     /// <summary>Clear cache, usually because Data/Objects was invalidated.</summary>
@@ -263,24 +325,26 @@ internal static class MachineRuleCache
         }
 
         List<RuleIdentDefPair> ruleDefList = [];
+
         foreach (MachineOutputRule rule in outputRules)
         {
             if (rule.OutputItem == null || rule.Triggers == null)
                 continue;
-            List<IconDef> outputs = [];
-            foreach (MachineItemOutput mio in rule.OutputItem)
-            {
-                if (IconDef.FromOutput(mio) is IconDef iconDef)
-                {
-                    outputs.Add(iconDef);
-                }
-            }
+
             foreach (MachineOutputTriggerRule motr in rule.Triggers)
             {
-                if (IconDef.FromInput(qId, rule, motr) is IconDef iconDef)
+                if (IconDef.FromInput(qId, rule, motr) is not IconDef inputDef)
+                    continue;
+                List<IconOutputDef> outputDefs = [];
+                foreach (MachineItemOutput mio in rule.OutputItem)
                 {
-                    ruleDefList.Add(new(new(rule.Id, motr.Id), new(iconDef, outputs, sharedFuel)));
+                    if (IconOutputDef.FromOutput(mio, data) is not IconOutputDef outputDef)
+                        continue;
+                    outputDefs.Add(outputDef);
                 }
+                if (outputDefs.Count == 0)
+                    continue;
+                ruleDefList.Add(new(new(rule.Id, motr.Id), new(inputDef, outputDefs, sharedFuel)));
             }
         }
 

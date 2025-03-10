@@ -27,7 +27,7 @@
       <grid item-layout="length: 88" padding="4,4" horizontal-item-alignment="middle"
         horizontal-divider={@Mods/StardewUI/Sprites/ThinHorizontalDivider}>
         <lane *repeat={RuleEntriesFiltered}
-          pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(this)|
+          pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
           pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|
           opacity={StateOpacity}
           orientation="vertical" margin="8"
@@ -35,12 +35,14 @@
           <checkbox is-checked={<>State} margin="0,0,0,12"/>
           <rule-icon *repeat={:Input} />
           <rule-icon *repeat={:Fuel} />
+          <rule-icon *repeat={:EMCFuel} />
           <image sprite={SpinningCaret}
             layout="36px 36px"
             margin="18,12,18,12"
             +hover:scale="1.1"
             +transition:scale="100ms EaseInSine"/>
-          <rule-icon *repeat={:Outputs} />
+          <rule-icon *repeat={:Output} />
+          <rule-icon *repeat={:EMCByproduct} />
         </lane>
       </grid>
     </scrollable>
@@ -86,7 +88,7 @@
 </template>
 
 <template name="rule-icon">
-  <panel padding="4" tooltip={:Tooltip} focusable="true">
+  <panel padding="4" tooltip={:Tooltip} left-click=|ShowSubItemGrid()| focusable="true">
     <image sprite={:Sprite} opacity={:IsMultiOpacity} layout="64px 64px" margin="2"/>
     <image *if={:IsMulti} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 27px" />
     <panel layout="stretch stretch" horizontal-content-alignment="end" vertical-content-alignment="start">

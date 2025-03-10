@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using MachineControlPanel.Data;
 using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
@@ -6,9 +7,14 @@ using Microsoft.Xna.Framework.Graphics;
 using PropertyChanged.SourceGenerator;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
-using StardewValley.Menus;
 
 namespace MachineControlPanel.GUI;
+
+public sealed record SubItemIcon(Item Item)
+{
+    public readonly ParsedItemData ItemData = ItemRegistry.GetData(Item.QualifiedItemId);
+    public readonly SDUITooltipData Tooltip = new(Item.getDescription(), Item.DisplayName, Item);
+}
 
 public sealed partial record InputIcon(Item InputItem)
 {
@@ -66,7 +72,7 @@ public sealed partial record QualityStar(int Quality)
     }
 }
 
-public sealed record RuleIcon(IconDef IconDef)
+public record RuleIcon(IconDef IconDef)
 {
     public static SDUISprite QuestionIcon =>
         ModEntry.Config.AltQuestionMark
@@ -104,9 +110,17 @@ public sealed record RuleIcon(IconDef IconDef)
         };
 
     public bool IsFuel => IconDef.IsFuel;
+
+    public void ShowSubItemGrid()
+    {
+        if (IconDef.Items != null && IconDef.Items.Count > 1)
+        {
+            MenuHandler.ShowSubItemGrid(IconDef.Items.Select(item => new SubItemIcon(item)));
+        }
+    }
 }
 
-public sealed partial record RuleEntry(RuleDef Def)
+public sealed partial record RuleInputEntry(RuleDef Def)
 {
     private const int SPINNING_CARET_FRAMES = 6;
     private static readonly List<Tuple<Texture2D, Rectangle>> SpinningCaretFrames = Enumerable
@@ -114,14 +128,8 @@ public sealed partial record RuleEntry(RuleDef Def)
         .Select<int, Tuple<Texture2D, Rectangle>>(frame => new(Game1.mouseCursors, new(232 + 9 * frame, 346, 9, 9)))
         .ToList();
 
-    public IEnumerable<RuleIcon> Input = [new(Def.Input)];
-    public IEnumerable<RuleIcon> Fuel = Def.SharedFuel?.Select<IconDef, RuleIcon>(iconD => new(iconD)) ?? [];
-    public IEnumerable<RuleIcon> Outputs = Def.Outputs.Select<IconDef, RuleIcon>(iconD => new(iconD));
-
     [Notify]
     private bool state = true;
-    public float StateOpacity => State ? 1f : 0.75f;
-    public Color StateTint => State ? Color.White : ControlPanelContext.DisabledColor;
 
     [Notify]
     private int currCaretFrame = 0;
@@ -146,6 +154,41 @@ public sealed partial record RuleEntry(RuleDef Def)
     {
         CurrCaretFrame = 0;
         animTimer = TimeSpan.Zero;
+    }
+}
+
+public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : INotifyPropertyChanged
+{
+    public bool State
+    {
+        get => RIE.State;
+        set => RIE.State = value;
+    }
+    public float StateOpacity => RIE.State ? 1f : 0.75f;
+    public Color StateTint => RIE.State ? Color.White : ControlPanelContext.DisabledColor;
+    public Tuple<Texture2D, Rectangle> SpinningCaret => RIE.SpinningCaret;
+    public IEnumerable<RuleIcon> Input => [new(RIE.Def.Input)];
+    public IEnumerable<RuleIcon> Fuel => RIE.Def.SharedFuel?.Select<IconDef, RuleIcon>(iconD => new(iconD)) ?? [];
+    public IEnumerable<RuleIcon> Output => [new(IOD)];
+    public IEnumerable<RuleIcon> EMCFuel => IOD.EMCFuel?.Select<IconDef, RuleIcon>(iconD => new(iconD)) ?? [];
+    public IEnumerable<RuleIcon> EMCByproduct => IOD.EMCByproduct?.Select<IconDef, RuleIcon>(iconD => new(iconD)) ?? [];
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void SetupNotify() => RIE.PropertyChanged += RIEPropertyChanged;
+
+    private void RIEPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(RuleInputEntry.State))
+        {
+            PropertyChanged?.Invoke(this, new(nameof(State)));
+            PropertyChanged?.Invoke(this, new(nameof(StateOpacity)));
+            PropertyChanged?.Invoke(this, new(nameof(StateTint)));
+        }
+        else if (e.PropertyName == nameof(RuleInputEntry.CurrCaretFrame))
+        {
+            PropertyChanged?.Invoke(this, new(nameof(SpinningCaret)));
+        }
     }
 }
 
@@ -174,7 +217,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         {
             foreach (RuleIdent ident in input.OriginRules.Keys)
             {
-                if (ruleEntries.TryGetValue(ident, out RuleEntry? ruleEntry))
+                if (ruleEntries.TryGetValue(ident, out RuleInputEntry? ruleEntry))
                 {
                     input.OriginRules[ident] = ruleEntry.State;
                 }
@@ -200,16 +243,30 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     [Notify]
     private string searchText = "";
 
-    private readonly Dictionary<RuleIdent, RuleEntry> ruleEntries = RuleDefs.ToDictionary(
+    private readonly Dictionary<RuleIdent, RuleInputEntry> ruleEntries = RuleDefs.ToDictionary(
         kv => kv.Ident,
-        kv => new RuleEntry(kv.Def) { State = ModEntry.SaveData.RuleState(Machine.QualifiedItemId, kv.Ident) }
+        kv => new RuleInputEntry(kv.Def) { State = ModEntry.SaveData.RuleState(Machine.QualifiedItemId, kv.Ident) }
     );
 
-    public IEnumerable<RuleEntry> RuleEntriesFiltered => ruleEntries.Values;
+    public IEnumerable<RuleOutputEntry> RuleEntriesFiltered
+    {
+        get
+        {
+            foreach (var rie in ruleEntries.Values)
+            {
+                foreach (var output in rie.Def.Outputs)
+                {
+                    RuleOutputEntry ROE = new(rie, output);
+                    ROE.SetupNotify();
+                    yield return ROE;
+                }
+            }
+        }
+    }
 
-    public RuleEntry? HoverRuleEntry = null;
+    public RuleInputEntry? HoverRuleEntry = null;
 
-    public void HandleHoverRuleEntry(RuleEntry? newHover = null)
+    public void HandleHoverRuleEntry(RuleInputEntry? newHover = null)
     {
         HoverRuleEntry?.ResetCaret();
         HoverRuleEntry = newHover;
