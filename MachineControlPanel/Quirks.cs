@@ -10,12 +10,12 @@ internal static class Quirks
 {
     internal static string DefaultThingId = "(O)0";
     internal static Item? defaultThing = null;
-    internal static Item DefaultThing
+    internal static SObject DefaultThing
     {
         get
         {
-            defaultThing ??= ItemRegistry.Create(DefaultThingId);
-            return defaultThing;
+            defaultThing ??= ItemRegistry.Create<SObject>(DefaultThingId);
+            return (SObject)defaultThing;
         }
     }
 

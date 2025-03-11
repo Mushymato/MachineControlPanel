@@ -289,7 +289,30 @@ internal static class ItemQueryCache
         return items;
     }
 
-    internal static IReadOnlyList<Item> ResolveItemQuery(ISpawnItemData mio)
+    internal static Item ApplyMachineField(MachineItemOutput mio, ISalable salable)
+    {
+        if (salable is not SObject sobject)
+            return (Item)salable;
+        if (mio.ObjectInternalName != null)
+        {
+            sobject.Name = string.Format(mio.ObjectInternalName, Quirks.DefaultThing.Name ?? "");
+        }
+        if (!string.IsNullOrWhiteSpace(mio.PreserveType))
+        {
+            sobject.preserve.Value = (SObject.PreserveType)Enum.Parse(typeof(SObject.PreserveType), mio.PreserveType);
+        }
+        if (!string.IsNullOrWhiteSpace(mio.PreserveId))
+        {
+            sobject.preservedParentSheetIndex.Value = mio.PreserveId switch
+            {
+                "DROP_IN" or "DROP_IN_PRESERVE" => Quirks.DefaultThing?.ItemId,
+                _ => mio.PreserveId,
+            };
+        }
+        return sobject;
+    }
+
+    internal static IReadOnlyList<Item> ResolveMachineItemOutput(MachineItemOutput mio)
     {
         string mioHash = Quirks.HashMD5(mio);
         if (!itemQueryCache.TryGetValue(mioHash, out IReadOnlyList<Item>? itemQRes))
@@ -301,13 +324,15 @@ internal static class ItemQueryCache
                         (qId) =>
                         {
                             if (ItemRegistry.Create(qId, allowNull: true) is Item item)
-                                return (Item)
+                                return ApplyMachineField(
+                                    mio,
                                     ItemQueryResolver.ApplyItemFields(
                                         item,
                                         mio,
                                         Context,
                                         inputItem: Quirks.DefaultThing
-                                    );
+                                    )
+                                );
                             return null;
                         }
                     )
@@ -330,7 +355,7 @@ internal static class ItemQueryCache
                         filter: ItemQuerySearchMode.AllOfTypeItem,
                         inputItem: Quirks.DefaultThing
                     )
-                    .Select(res => (Item)res.Item)
+                    .Select(res => ApplyMachineField(mio, res.Item))
                     .ToList();
             }
             itemQueryCache[mioHash] = itemQRes;

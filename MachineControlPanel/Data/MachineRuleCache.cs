@@ -3,6 +3,7 @@ using System.Text;
 using MachineControlPanel.Integration.IExtraMachineConfigApi;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Extensions;
 using StardewValley.GameData.Machines;
 using StardewValley.Internal;
 
@@ -155,6 +156,15 @@ public record IconDef(
         }
     }
 
+    internal virtual bool Match(string searchText)
+    {
+        if (Desc.ContainsIgnoreCase(searchText))
+            return true;
+        if (Items?.Any(item => item.DisplayName.ContainsIgnoreCase(searchText)) ?? false)
+            return true;
+        return false;
+    }
+
     public override string ToString()
     {
         if (Items == null)
@@ -176,6 +186,8 @@ public sealed record IconOutputDef(
 {
     internal static IExtraMachineConfigApi? emc;
 
+    internal List<IconOutputDef>? SameGroupOutputs = null;
+
     /// <summary>
     /// Form output icon by resolving the item query
     /// </summary>
@@ -196,7 +208,7 @@ public sealed record IconOutputDef(
                 Notes: [I18n.RuleList_SameAsInput()]
             );
         }
-        else if (ItemQueryCache.ResolveItemQuery(mio) is IReadOnlyList<Item> items && items.Count > 0)
+        else if (ItemQueryCache.ResolveMachineItemOutput(mio) is IReadOnlyList<Item> items && items.Count > 0)
         {
             List<IconDef>? emcFuel = null;
             List<IconDef>? emcExtraOutputs = null;
@@ -209,7 +221,7 @@ public sealed record IconOutputDef(
                     if (FromEMCTagsFuel([fuel.Item1], fuel.Item2) is IconDef fuelDef)
                         emcFuel.Add(fuelDef);
                 }
-                foreach (var fuel in emc.GetExtraRequirements(mio))
+                foreach (var fuel in emc.GetExtraTagsRequirements(mio))
                 {
                     if (FromEMCTagsFuel(fuel.Item1.Split(','), fuel.Item2) is IconDef fuelDef)
                         emcFuel.Add(fuelDef);
@@ -238,6 +250,15 @@ public sealed record IconOutputDef(
             );
         }
         return null;
+    }
+
+    internal override bool Match(string searchText)
+    {
+        if (base.Match(searchText))
+            return true;
+        if (SameGroupOutputs != null && SameGroupOutputs.Any(sgo => sgo.Match(searchText)))
+            return true;
+        return false;
     }
 }
 
@@ -336,10 +357,25 @@ internal static class MachineRuleCache
                 if (IconDef.FromInput(qId, rule, motr) is not IconDef inputDef)
                     continue;
                 List<IconOutputDef> outputDefs = [];
+                IconOutputDef? plainOutputDef = null;
                 foreach (MachineItemOutput mio in rule.OutputItem)
                 {
                     if (IconOutputDef.FromOutput(mio, data) is not IconOutputDef outputDef)
                         continue;
+                    if (outputDef.EMCByproduct == null && outputDef.EMCFuel == null)
+                    {
+                        if (plainOutputDef == null)
+                        {
+                            plainOutputDef = outputDef;
+                            outputDefs.Add(outputDef);
+                        }
+                        else
+                        {
+                            plainOutputDef.SameGroupOutputs ??= [];
+                            plainOutputDef.SameGroupOutputs.Add(outputDef);
+                        }
+                        continue;
+                    }
                     outputDefs.Add(outputDef);
                 }
                 if (outputDefs.Count == 0)

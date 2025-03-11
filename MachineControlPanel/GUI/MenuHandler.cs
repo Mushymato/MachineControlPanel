@@ -33,7 +33,6 @@ internal static class MenuHandler
 
     internal static void ShowMachineSelect()
     {
-        ModEntry.Log($"ShowMachineSelect Game1.displayHUD: {Game1.displayHUD}");
         Game1.activeClickableMenu = viewEngine.CreateMenuFromAsset(
             VIEW_ASSET_MACHINE_SELECT,
             new MachineSelectContext()
@@ -42,7 +41,6 @@ internal static class MenuHandler
 
     internal static bool ShowControlPanel(Item machine, bool asChildMenu = false)
     {
-        ModEntry.Log($"ShowControlPanel Game1.displayHUD: {Game1.displayHUD}");
         if (ControlPanelContext.TryCreate(machine) is not ControlPanelContext context)
             return false;
         var menuCtrl = viewEngine.CreateMenuControllerFromAsset(VIEW_ASSET_CONTROL_PANEL, context);

@@ -74,6 +74,7 @@ public sealed partial record QualityStar(int Quality)
 
 public record RuleIcon(IconDef IconDef)
 {
+    public bool IsSpacer => false;
     public static SDUISprite QuestionIcon =>
         ModEntry.Config.AltQuestionMark
             ? new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16))
@@ -85,10 +86,18 @@ public record RuleIcon(IconDef IconDef)
         get
         {
             string? desc = IconDef.Desc;
-            if (desc != null)
-                return new(desc);
-            if (ReprItem != null)
-                return new(ReprItem.getDescription(), ReprItem.DisplayName.Trim(), ReprItem);
+            if (IconDef.Items?.Count > 1)
+            {
+                if (desc != null)
+                    return new(desc);
+                return null;
+            }
+            else if (ReprItem != null)
+            {
+                if (desc != null)
+                    return new(desc, ReprItem.DisplayName.Trim(), ReprItem);
+                return new(ReprItem.getDescription(), ReprItem.DisplayName, ReprItem);
+            }
             return null;
         }
     }
@@ -97,7 +106,7 @@ public record RuleIcon(IconDef IconDef)
     public bool ShowCount => Count > 1;
 
     public bool IsMulti => IconDef.Items?.Count > 1;
-    public float IsMultiOpacity => IsMulti ? 0.75f : 1f;
+    public float IsMultiOpacity => IsMulti ? 0.6f : 1f;
 
     public bool HasQualityStar => QualityStar != null;
     public Tuple<Texture2D, Rectangle>? QualityStar =>
@@ -159,19 +168,48 @@ public sealed partial record RuleInputEntry(RuleDef Def)
 
 public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : INotifyPropertyChanged
 {
+    private const int ICON_SIZE = 76;
+
     public bool State
     {
         get => RIE.State;
         set => RIE.State = value;
     }
-    public float StateOpacity => RIE.State ? 1f : 0.75f;
+    public float StateOpacity => RIE.State ? 1f : 0.6f;
     public Color StateTint => RIE.State ? Color.White : ControlPanelContext.DisabledColor;
     public Tuple<Texture2D, Rectangle> SpinningCaret => RIE.SpinningCaret;
-    public IEnumerable<RuleIcon> Input => [new(RIE.Def.Input)];
-    public IEnumerable<RuleIcon> Fuel => RIE.Def.SharedFuel?.Select<IconDef, RuleIcon>(iconD => new(iconD)) ?? [];
-    public IEnumerable<RuleIcon> Output => [new(IOD)];
-    public IEnumerable<RuleIcon> EMCFuel => IOD.EMCFuel?.Select<IconDef, RuleIcon>(iconD => new(iconD)) ?? [];
-    public IEnumerable<RuleIcon> EMCByproduct => IOD.EMCByproduct?.Select<IconDef, RuleIcon>(iconD => new(iconD)) ?? [];
+
+    public IEnumerable<RuleIcon> Inputs
+    {
+        get
+        {
+            yield return new(RIE.Def.Input);
+            if (RIE.Def.SharedFuel != null)
+                foreach (var iconD in RIE.Def.SharedFuel)
+                    yield return new(iconD);
+            if (IOD.EMCFuel != null)
+                foreach (var iconD in IOD.EMCFuel)
+                    yield return new(iconD);
+        }
+    }
+
+    public IEnumerable<RuleIcon> Outputs
+    {
+        get
+        {
+            yield return new(IOD);
+            if (IOD.SameGroupOutputs != null)
+                foreach (var sgoIOD in IOD.SameGroupOutputs)
+                    yield return new(sgoIOD);
+        }
+    }
+
+    public int InputLength => 1 + (RIE.Def.SharedFuel?.Count ?? 0) + (IOD.EMCFuel?.Count ?? 0);
+    public int OutputLength => 1 + (IOD.SameGroupOutputs?.Count ?? 0);
+
+    // public int spacerLength = 0;
+    public int SpacerLength = 0;
+    public string InputSpacerLayout => SpacerLength > 0 ? $"{ICON_SIZE}px {ICON_SIZE * SpacerLength}px" : "0px 0px";
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -194,6 +232,7 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
 
 public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<RuleIdentDefPair> RuleDefs)
 {
+    internal const int RULE_ITEM_ROW_CNT = 14;
     internal static Color DisabledColor = Color.Black * 0.8f;
     public GlobalToggleContext GlobalToggle => MenuHandler.GlobalToggle;
 
@@ -252,15 +291,41 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     {
         get
         {
+            int rowCnt = RULE_ITEM_ROW_CNT;
+            int maxInputLength = 0;
+            List<RuleOutputEntry> ruleEntriesFiltered = [];
             foreach (var rie in ruleEntries.Values)
             {
                 foreach (var output in rie.Def.Outputs)
                 {
+                    if (
+                        !string.IsNullOrEmpty(SearchText)
+                        && !rie.Def.Input.Match(SearchText)
+                        && !output.Match(SearchText)
+                    )
+                        continue;
                     RuleOutputEntry ROE = new(rie, output);
                     ROE.SetupNotify();
-                    yield return ROE;
+                    ruleEntriesFiltered.Add(ROE);
+                    maxInputLength = Math.Max(maxInputLength, ROE.InputLength);
+                    rowCnt--;
+                    if (rowCnt == 0)
+                    {
+                        for (int idx = RULE_ITEM_ROW_CNT; idx > 0; idx--)
+                        {
+                            ruleEntriesFiltered[^idx].SpacerLength =
+                                maxInputLength - ruleEntriesFiltered[^idx].InputLength;
+                        }
+                        rowCnt = RULE_ITEM_ROW_CNT;
+                        maxInputLength = 0;
+                    }
                 }
             }
+            for (int idx = RULE_ITEM_ROW_CNT - rowCnt; idx > 0; idx--)
+            {
+                ruleEntriesFiltered[^idx].SpacerLength = maxInputLength - ruleEntriesFiltered[^idx].InputLength;
+            }
+            return ruleEntriesFiltered;
         }
     }
 

@@ -38,6 +38,7 @@
     // most languages should use * but in english it looks angry
     "rule-list.edited": "=",
     "rule-list.footer-note": "Only the host player can change machine settings.",
+    "rule-list.search": "Search...",
     "machine-select.scope.everywhere": "Everywhere",
     "machine-select.scope.current-location": "Current Location",
     "machine-select.search": "Search",

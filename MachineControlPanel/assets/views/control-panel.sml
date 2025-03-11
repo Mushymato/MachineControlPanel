@@ -8,12 +8,12 @@
       horizontal-alignment="middle"
       vertical-alignment="middle"
       />
-    <textinput text={<>SearchText} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="300px 60px" margin="0,26,0,0" text-color="#43111B" focusable="true"/>
+    <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="300px 60px" margin="0,26,0,0" text-color="#43111B" focusable="true"/>
     <panel margin="0,26,0,0">
       <include name="mushymato.MachineControlPanel/views/includes/global-toggle" *context={:GlobalToggle}/>
     </panel>
   </lane>
-  <frame layout="1220px 70%[550..]"
+  <frame layout="1244px 90%[550..]"
     background={@Mods/StardewUI/Sprites/MenuBackground}
     border={@Mods/StardewUI/Sprites/MenuBorder}
     border-thickness="32, 36, 24, 36"
@@ -33,16 +33,15 @@
           orientation="vertical" margin="8"
           horizontal-content-alignment="middle">
           <checkbox is-checked={<>State} margin="0,0,0,12"/>
-          <rule-icon *repeat={:Input} />
-          <rule-icon *repeat={:Fuel} />
-          <rule-icon *repeat={:EMCFuel} />
+          <rule-icon *repeat={:Inputs} />
+          <spacer layout={:InputSpacerLayout}/>
           <image sprite={SpinningCaret}
             layout="36px 36px"
             margin="18,12,18,12"
             +hover:scale="1.1"
             +transition:scale="100ms EaseInSine"/>
-          <rule-icon *repeat={:Output} />
-          <rule-icon *repeat={:EMCByproduct} />
+          <rule-icon *repeat={:Outputs} />
+          <!-- <spacer layout={:OutputSpacerLayout}/> -->
         </lane>
       </grid>
     </scrollable>

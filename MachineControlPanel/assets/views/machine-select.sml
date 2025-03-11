@@ -3,7 +3,7 @@
     <panel>
       <image sprite={@mushymato.MachineControlPanel/sprites/cursors:magifyingGlass} layout="40px 40px" margin="8" tooltip={#machine-select.search}/>
     </panel>
-    <textinput text={<>SearchText} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="300px 60px" margin="0,14" text-color="#43111B" focusable="true"/>
+    <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="300px 60px" margin="0,14" text-color="#43111B" focusable="true"/>
     <include name="mushymato.MachineControlPanel/views/includes/global-toggle" *context={:GlobalToggle}/>
   </lane>
   <scrollable layout="75%[1152..] 90%[608..]" peeking="128" scrollbar-margin="0,0,0,0">
