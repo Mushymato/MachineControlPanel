@@ -52,12 +52,12 @@ internal static class MenuHandler
         return true;
     }
 
-    internal static void ShowSubItemGrid(IEnumerable<SubItemIcon> itemDatas)
+    internal static void ShowSubItemGrid(IList<SubItemIcon> itemDatas)
     {
         if (Game1.activeClickableMenu == null)
             return;
         Game1
             .activeClickableMenu.GetChildMenu()
-            .SetChildMenu(viewEngine.CreateMenuFromAsset(VIEW_ASSET_SUBITEM_GRID, itemDatas));
+            .SetChildMenu(viewEngine.CreateMenuFromAsset(VIEW_ASSET_SUBITEM_GRID, new SubitemGridContext(itemDatas)));
     }
 }

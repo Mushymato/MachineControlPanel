@@ -100,7 +100,8 @@ public record IconDef(
             }
         }
 
-        if (items != null || condition != null || notes != null)
+        // context tag intentionally excluded here, since many mods put context tag for other mod's compat only
+        if (items?.Count > 0 || !string.IsNullOrEmpty(condition) || notes?.Count > 0)
             return new IconDef(items, motr.RequiredCount, contextTags, condition, Notes: notes);
         return null;
     }

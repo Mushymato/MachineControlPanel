@@ -29,7 +29,9 @@
         <lane *repeat={RuleEntriesFiltered}
           pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
           pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|
-          opacity={StateOpacity}
+          +state:enabled={State}
+          +state:enabled:opacity="1"
+          opacity="0.6"
           orientation="vertical" margin="8"
           horizontal-content-alignment="middle">
           <checkbox is-checked={<>State} margin="0,0,0,12"/>
@@ -41,7 +43,6 @@
             +hover:scale="1.1"
             +transition:scale="100ms EaseInSine"/>
           <rule-icon *repeat={:Outputs} />
-          <!-- <spacer layout={:OutputSpacerLayout}/> -->
         </lane>
       </grid>
     </scrollable>
@@ -88,7 +89,7 @@
 
 <template name="rule-icon">
   <panel padding="4" tooltip={:Tooltip} left-click=|ShowSubItemGrid()| focusable="true">
-    <image sprite={:Sprite} opacity={:IsMultiOpacity} layout="64px 64px" margin="2"/>
+    <image sprite={:Sprite} layout="64px 64px" margin="2" +state:enabled={:IsMulti} +state:enabled:opacity="0.6"/>
     <image *if={:IsMulti} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 27px" />
     <panel layout="stretch stretch" horizontal-content-alignment="end" vertical-content-alignment="start">
       <image *if={:IsFuel} sprite={@mushymato.MachineControlPanel/sprites/emojis:bolt} layout="27px 27px"/>

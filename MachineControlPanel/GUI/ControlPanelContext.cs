@@ -5,6 +5,7 @@ using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PropertyChanged.SourceGenerator;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 
@@ -86,7 +87,7 @@ public record RuleIcon(IconDef IconDef)
         get
         {
             string? desc = IconDef.Desc;
-            if (IconDef.Items?.Count > 1)
+            if (IconDef.Items?.Count != 1)
             {
                 if (desc != null)
                     return new(desc);
@@ -106,7 +107,7 @@ public record RuleIcon(IconDef IconDef)
     public bool ShowCount => Count > 1;
 
     public bool IsMulti => IconDef.Items?.Count > 1;
-    public float IsMultiOpacity => IsMulti ? 0.6f : 1f;
+    public float Opacity => IsMulti ? 0.6f : 1f;
 
     public bool HasQualityStar => QualityStar != null;
     public Tuple<Texture2D, Rectangle>? QualityStar =>
@@ -124,7 +125,7 @@ public record RuleIcon(IconDef IconDef)
     {
         if (IconDef.Items != null && IconDef.Items.Count > 1)
         {
-            MenuHandler.ShowSubItemGrid(IconDef.Items.Select(item => new SubItemIcon(item)));
+            MenuHandler.ShowSubItemGrid(IconDef.Items.Select(item => new SubItemIcon(item)).ToList());
         }
     }
 }
@@ -149,7 +150,7 @@ public sealed partial record RuleInputEntry(RuleDef Def)
     internal TimeSpan animTimer = TimeSpan.Zero;
     private readonly TimeSpan animInterval = TimeSpan.FromMilliseconds(90);
 
-    internal void Update(TimeSpan elapsed)
+    internal void UpdateCaret(TimeSpan elapsed)
     {
         animTimer += elapsed;
         if (animTimer >= animInterval)
@@ -175,8 +176,6 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
         get => RIE.State;
         set => RIE.State = value;
     }
-    public float StateOpacity => RIE.State ? 1f : 0.6f;
-    public Color StateTint => RIE.State ? Color.White : ControlPanelContext.DisabledColor;
     public Tuple<Texture2D, Rectangle> SpinningCaret => RIE.SpinningCaret;
 
     public IEnumerable<RuleIcon> Inputs
@@ -220,8 +219,6 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
         if (e.PropertyName == nameof(RuleInputEntry.State))
         {
             PropertyChanged?.Invoke(this, new(nameof(State)));
-            PropertyChanged?.Invoke(this, new(nameof(StateOpacity)));
-            PropertyChanged?.Invoke(this, new(nameof(StateTint)));
         }
         else if (e.PropertyName == nameof(RuleInputEntry.CurrCaretFrame))
         {
@@ -369,7 +366,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     public QualityStar[] QualityStars =>
         [new QualityStar(0), new QualityStar(1), new QualityStar(2), new QualityStar(4)];
 
-    public void Update(TimeSpan elapsed) => HoverRuleEntry?.Update(elapsed);
+    public void Update(TimeSpan elapsed) => HoverRuleEntry?.UpdateCaret(elapsed);
 
     internal void SaveChanges() =>
         ModEntry.SaveMachineRules(
