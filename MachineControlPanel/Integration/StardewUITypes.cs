@@ -50,14 +50,6 @@ public record SDUISprite(
 
     public SDUISprite(Texture2D Texture, Rectangle SourceRect)
         : this(Texture, SourceRect, SDUIEdges.NONE, new()) { }
-
-    public static SDUISprite FromItem(Item item, int offset = 0)
-    {
-        ParsedItemData data =
-            ItemRegistry.GetData(item.QualifiedItemId)
-            ?? throw new ArgumentException($"Error item '{item.QualifiedItemId}'");
-        return new(data.GetTexture(), data.GetSourceRect(offset));
-    }
 };
 
 public record SDUITooltipData(string Text, string? Title = null, Item? Item = null);

@@ -60,12 +60,11 @@
         </lane>
         <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="stretch content" margin="0,0,8,0" fit="Stretch"/>
         <grid *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
-          <panel *repeat={InputItemsFiltered}>
-            <image sprite={:ItemData} tooltip={:Tooltip} tint={Tint}
+          <panel *repeat={InputItemsFiltered} tooltip={:Tooltip} left-click=|ToggleState()| focusable="true">
+            <image *repeat={:SpriteLayers} sprite={:Sprite} tint={:Tint} padding={:Padding}
               layout="64px 64px" 
               margin="6"
               focusable="true"
-              left-click=|ToggleState()|
               +hover:scale="1.1"
               +transition:scale="100ms EaseInSine"/>
           </panel>
@@ -88,8 +87,8 @@
 </template>
 
 <template name="rule-icon">
-  <panel padding="4" tooltip={:Tooltip} left-click=|ShowSubItemGrid()| focusable="true">
-    <image sprite={:Sprite} layout="64px 64px" margin="2" +state:enabled={:IsMulti} +state:enabled:opacity="0.6"/>
+  <panel tooltip={:Tooltip} left-click=|ShowSubItemGrid()| focusable="true" padding="4" >
+    <image *repeat={:SpriteLayers} sprite={:Sprite} tint={:Tint} padding={:Padding} layout={:Layout} margin="2" +state:enabled={:^IsMulti} +state:enabled:opacity="0.6"/>
     <image *if={:IsMulti} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 27px" />
     <panel layout="stretch stretch" horizontal-content-alignment="end" vertical-content-alignment="start">
       <image *if={:IsFuel} sprite={@mushymato.MachineControlPanel/sprites/emojis:bolt} layout="27px 27px"/>

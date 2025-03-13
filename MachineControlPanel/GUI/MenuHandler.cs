@@ -52,8 +52,10 @@ internal static class MenuHandler
         return true;
     }
 
-    internal static void ShowSubItemGrid(IList<SubItemIcon> itemDatas)
+    internal static void ShowSubItemGrid(IList<SubItemIcon>? itemDatas)
     {
+        if (itemDatas == null)
+            return;
         if (Game1.activeClickableMenu == null)
             return;
         Game1

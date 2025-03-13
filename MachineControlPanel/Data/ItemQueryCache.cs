@@ -312,32 +312,24 @@ internal static class ItemQueryCache
         return sobject;
     }
 
-    internal static IReadOnlyList<Item> ResolveMachineItemOutput(MachineItemOutput mio)
+    internal static IReadOnlyList<Item> ResolveMachineItemOutput(MachineItemOutput mio, string? randomItemId = null)
     {
+        string originalItemId = mio.ItemId;
+        List<string> originalRandomItemId = mio.RandomItemId;
+        if (randomItemId != null)
+        {
+            mio.ItemId = randomItemId;
+            mio.RandomItemId = null;
+        }
         string mioHash = Quirks.HashMD5(mio);
         if (!itemQueryCache.TryGetValue(mioHash, out IReadOnlyList<Item>? itemQRes))
         {
-            if (mio.RandomItemId != null && mio.RandomItemId.Count > 0)
+            if (randomItemId == null && mio.RandomItemId != null && mio.RandomItemId.Count > 0)
             {
                 itemQRes = mio
-                    .RandomItemId.Select(
-                        (qId) =>
-                        {
-                            if (ItemRegistry.Create(qId, allowNull: true) is Item item)
-                                return ApplyMachineField(
-                                    mio,
-                                    ItemQueryResolver.ApplyItemFields(
-                                        item,
-                                        mio,
-                                        Context,
-                                        inputItem: Quirks.DefaultThing
-                                    )
-                                );
-                            return null;
-                        }
-                    )
+                    .RandomItemId.SelectMany(qId => ResolveMachineItemOutput(mio, qId))
                     .Where(item => item is not null)
-                    .ToList()!;
+                    .ToList();
             }
             else
             {
@@ -356,10 +348,13 @@ internal static class ItemQueryCache
                         inputItem: Quirks.DefaultThing
                     )
                     .Select(res => ApplyMachineField(mio, res.Item))
+                    .OrderBy(item => item.QualifiedItemId)
                     .ToList();
             }
             itemQueryCache[mioHash] = itemQRes;
         }
+        mio.ItemId = originalItemId;
+        mio.RandomItemId = originalRandomItemId;
         return itemQRes;
     }
 }

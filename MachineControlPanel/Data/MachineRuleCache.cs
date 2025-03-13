@@ -166,12 +166,14 @@ public record IconDef(
         return false;
     }
 
+#if DEBUG
     public override string ToString()
     {
         if (Items == null)
             return "?";
         return string.Join('|', Items.Select(item => item.QualifiedItemId));
     }
+#endif
 }
 
 public sealed record IconOutputDef(
@@ -261,6 +263,28 @@ public sealed record IconOutputDef(
             return true;
         return false;
     }
+
+#if DEBUG
+    public override string ToString()
+    {
+        StringBuilder sb = new();
+        if (Items != null)
+        {
+            sb.AppendJoin('|', Items.Select(item => item.QualifiedItemId));
+        }
+        if (EMCFuel != null)
+        {
+            sb.Append('\n');
+            sb.AppendJoin(',', EMCFuel.Select(outp => outp.ToString()));
+        }
+        if (EMCByproduct != null)
+        {
+            sb.Append('\n');
+            sb.AppendJoin(',', EMCByproduct.Select(outp => outp.ToString()));
+        }
+        return sb.ToString();
+    }
+#endif
 }
 
 /// <summary>
@@ -276,7 +300,24 @@ public sealed record RuleDef(
     IconDef Input,
     IReadOnlyList<IconOutputDef> Outputs,
     IReadOnlyList<IconDef>? SharedFuel = null
-);
+)
+{
+#if DEBUG
+    public override string ToString()
+    {
+        StringBuilder sb = new();
+        sb.Append(Input.ToString());
+        sb.Append('\n');
+        sb.AppendJoin(',', Outputs.Select(outp => outp.ToString()));
+        if (SharedFuel != null)
+        {
+            sb.Append('\n');
+            sb.AppendJoin(',', Outputs.Select(outp => outp.ToString()));
+        }
+        return sb.ToString();
+    }
+#endif
+};
 
 public sealed record RuleIdentDefPair(RuleIdent Ident, RuleDef Def);
 
@@ -298,6 +339,7 @@ internal static class MachineRuleCache
         machines = null;
     }
 
+#if DEBUG
     internal static void Export(IModHelper helper)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -325,6 +367,7 @@ internal static class MachineRuleCache
 
         ModEntry.Log($"Wrote export/machine_rule_cache.json in {stopwatch.Elapsed}");
     }
+#endif
 
     internal static IReadOnlyList<RuleIdentDefPair>? CreateRuleDefList(string qId)
     {

@@ -5,21 +5,52 @@ using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PropertyChanged.SourceGenerator;
-using StardewModdingAPI;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
+using StardewValley.Objects;
 
 namespace MachineControlPanel.GUI;
 
+public record SpriteLayer(SDUISprite Sprite, Color Tint, string Layout, SDUIEdges Padding)
+{
+    public static SpriteLayer QuestionIcon =>
+        ModEntry.Config.AltQuestionMark
+            ? FromSprite(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)))
+            : new(new(Game1.mouseCursors, new Rectangle(175, 425, 12, 12)), Color.White, "48px 48px", new(8));
+
+    public static SpriteLayer FromSprite(SDUISprite sprite) => new(sprite, Color.White, "64px 64px", SDUIEdges.NONE);
+
+    public static IEnumerable<SpriteLayer> FromItem(Item? reprItem)
+    {
+        if (reprItem == null)
+        {
+            yield return QuestionIcon;
+            yield break;
+        }
+        ParsedItemData data = ItemRegistry.GetData(reprItem.QualifiedItemId);
+        if (reprItem is Clothing clothes && clothes.clothesType.Value == Clothing.ClothesType.SHIRT)
+        {
+            Texture2D texture = data.GetTexture();
+            Rectangle sourceRect = data.GetSourceRect();
+            yield return new(new(texture, sourceRect), Color.White, "32px 32px", new(16));
+            Rectangle layerRect =
+                new(sourceRect.X + texture.Width / 2, sourceRect.Y, sourceRect.Width, sourceRect.Height);
+            yield return new(new(texture, layerRect), Color.White, "32px 32px", new(16));
+            yield break;
+        }
+        yield return FromSprite(new(data.GetTexture(), data.GetSourceRect()));
+    }
+}
+
 public sealed record SubItemIcon(Item Item)
 {
-    public readonly ParsedItemData ItemData = ItemRegistry.GetData(Item.QualifiedItemId);
+    public IEnumerable<SpriteLayer> SpriteLayers => SpriteLayer.FromItem(Item);
     public readonly SDUITooltipData Tooltip = new(Item.getDescription(), Item.DisplayName, Item);
 }
 
 public sealed partial record InputIcon(Item InputItem)
 {
-    public readonly ParsedItemData ItemData = ItemRegistry.GetData(InputItem.QualifiedItemId);
+    public IEnumerable<SpriteLayer> SpriteLayers => SpriteLayer.FromItem(InputItem);
     public readonly SDUITooltipData Tooltip = new(InputItem.getDescription(), InputItem.DisplayName, InputItem);
 
     [Notify]
@@ -75,13 +106,30 @@ public sealed partial record QualityStar(int Quality)
 
 public record RuleIcon(IconDef IconDef)
 {
-    public bool IsSpacer => false;
-    public static SDUISprite QuestionIcon =>
-        ModEntry.Config.AltQuestionMark
-            ? new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16))
-            : new(Game1.mouseCursors, new Rectangle(175, 425, 12, 12));
-    public readonly Item? ReprItem = IconDef.Items?.FirstOrDefault();
-    public SDUISprite Sprite => ReprItem == null ? QuestionIcon : SDUISprite.FromItem(ReprItem);
+    private const string EMC_HOLDER = "selph.ExtraMachineConfig.Holder";
+    public readonly Item? ReprItem = GetReprItem(IconDef);
+
+    private static Item? GetReprItem(IconDef IconDef)
+    {
+        if (IconDef.Items?.FirstOrDefault() is not Item reprItem)
+            return null;
+        if (
+            reprItem.ItemId == EMC_HOLDER
+            && IconDef is IconOutputDef iod
+            && iod.EMCByproduct != null
+            && iod.EMCByproduct.Count > 0
+        )
+        {
+            foreach (IconDef iconD in iod.EMCByproduct)
+            {
+                if (iconD.Items?.FirstOrDefault() is Item byproductItem)
+                    return byproductItem;
+            }
+        }
+        return reprItem;
+    }
+
+    public IEnumerable<SpriteLayer> SpriteLayers => SpriteLayer.FromItem(ReprItem);
     public SDUITooltipData? Tooltip
     {
         get
@@ -106,7 +154,7 @@ public record RuleIcon(IconDef IconDef)
     public int Count => IconDef.Count;
     public bool ShowCount => Count > 1;
 
-    public bool IsMulti => IconDef.Items?.Count > 1;
+    public bool IsMulti => SubItems?.Count() > 1;
     public float Opacity => IsMulti ? 0.6f : 1f;
 
     public bool HasQualityStar => QualityStar != null;
@@ -120,14 +168,21 @@ public record RuleIcon(IconDef IconDef)
         };
 
     public bool IsFuel => IconDef.IsFuel;
-
-    public void ShowSubItemGrid()
+    private IList<SubItemIcon>? SubItems
     {
-        if (IconDef.Items != null && IconDef.Items.Count > 1)
+        get
         {
-            MenuHandler.ShowSubItemGrid(IconDef.Items.Select(item => new SubItemIcon(item)).ToList());
+            if (IconDef.Items != null && IconDef.Items.Count > 1)
+                return IconDef.Items.Select(item => new SubItemIcon(item)).ToList();
+            else if (IconDef is IconOutputDef iod && iod.EMCByproduct != null && iod.EMCByproduct.Count > 0)
+                return iod
+                    .EMCByproduct.SelectMany(iconD => (iconD.Items ?? []).Select(item => new SubItemIcon(item)))
+                    .ToList();
+            return null;
         }
     }
+
+    public void ShowSubItemGrid() => MenuHandler.ShowSubItemGrid(SubItems);
 }
 
 public sealed partial record RuleInputEntry(RuleDef Def)

@@ -62,30 +62,7 @@ public class ModEntry : Mod
 #if DEBUG
         helper.ConsoleCommands.Add("mcp-export-cache", "export all the data caches", ConsoleExportItemQueryCache);
         helper.ConsoleCommands.Add("mcp-resolve-ctag", "resolve context tag", ConsoleResolveContextTag);
-        helper.ConsoleCommands.Add("mcp-print-active", "resolve context tag", ConsolePrintActive);
 #endif
-    }
-
-    private static void printMenu(string name, IClickableMenu menu)
-    {
-        if (menu == null)
-        {
-            Console.WriteLine($"{name} is NULL");
-        }
-        else
-        {
-            Console.WriteLine($"{name} is {menu}");
-        }
-    }
-
-    private void ConsolePrintActive(string arg1, string[] arg2)
-    {
-        printMenu("Game1.activeClickableMenu", Game1.activeClickableMenu);
-        printMenu("Game1.overlayMenu", Game1.overlayMenu);
-        foreach (var menu in Game1.onScreenMenus)
-        {
-            printMenu("Game1.onScreenMenus", menu);
-        }
     }
 
     private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
