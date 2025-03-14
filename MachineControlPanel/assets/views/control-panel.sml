@@ -20,7 +20,7 @@
     *switch={PageIndex} horizontal-content-alignment="middle">
     <lane *float="above" orientation="horizontal" vertical-content-alignment="end" margin="36,0,0,-24">
       <tab-label page="1" text={#rule-list.rules} margin={TabMarginRules} />
-      <tab-label page="2" text={#rule-list.inputs} margin={TabMarginInputs}/>
+      <tab-label *if={HasInputs} page="2" text={#rule-list.inputs} margin={TabMarginInputs}/>
     </lane>
     <!-- Rules -->
     <scrollable *case="1" peeking="128">
@@ -92,6 +92,7 @@
     <image *if={:IsMulti} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 27px" />
     <panel layout="stretch stretch" horizontal-content-alignment="end" vertical-content-alignment="start">
       <image *if={:IsFuel} sprite={@mushymato.MachineControlPanel/sprites/emojis:bolt} layout="27px 27px"/>
+      <image *repeat={:EMCByProductOneItem} sprite={:Sprite} tint={:Tint} padding={:Padding} layout={:Layout}/>
     </panel>
     <panel *if={:HasQualityStar} layout="stretch stretch" horizontal-content-alignment="start" vertical-content-alignment="end">
       <image sprite={:QualityStar} layout="24px 24px"/>

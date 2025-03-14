@@ -18,27 +18,43 @@ public record SpriteLayer(SDUISprite Sprite, Color Tint, string Layout, SDUIEdge
             ? FromSprite(new(Game1.mouseCursors, new Rectangle(240, 192, 16, 16)))
             : new(new(Game1.mouseCursors, new Rectangle(175, 425, 12, 12)), Color.White, "48px 48px", new(8));
 
-    public static SpriteLayer FromSprite(SDUISprite sprite) => new(sprite, Color.White, "64px 64px", SDUIEdges.NONE);
+    public static SpriteLayer FromSprite(SDUISprite sprite, int width = 64) =>
+        new(sprite, Color.White, $"{width}px {width}px", SDUIEdges.NONE);
 
-    public static IEnumerable<SpriteLayer> FromItem(Item? reprItem)
+    public static IEnumerable<SpriteLayer> FromItem(Item? reprItem, float scale = 4)
     {
         if (reprItem == null)
         {
             yield return QuestionIcon;
             yield break;
         }
+        int equiv64 = (int)(16 * scale);
+        int equiv32 = (int)(8 * scale);
         ParsedItemData data = ItemRegistry.GetData(reprItem.QualifiedItemId);
+        // shirts are 8x8
         if (reprItem is Clothing clothes && clothes.clothesType.Value == Clothing.ClothesType.SHIRT)
         {
             Texture2D texture = data.GetTexture();
             Rectangle sourceRect = data.GetSourceRect();
-            yield return new(new(texture, sourceRect), Color.White, "32px 32px", new(16));
+            yield return new(new(texture, sourceRect), Color.White, $"{equiv32}px {equiv32}px", new((int)(4 * scale)));
             Rectangle layerRect =
                 new(sourceRect.X + texture.Width / 2, sourceRect.Y, sourceRect.Width, sourceRect.Height);
-            yield return new(new(texture, layerRect), Color.White, "32px 32px", new(16));
+            yield return new(new(texture, layerRect), Color.White, $"{equiv32}px {equiv32}px", new((int)(4 * scale)));
             yield break;
         }
-        yield return FromSprite(new(data.GetTexture(), data.GetSourceRect()));
+        yield return FromSprite(new(data.GetTexture(), data.GetSourceRect()), equiv64);
+        // colored items
+        if (reprItem.QualifiedItemId == "(O)812" && reprItem is ColoredObject co)
+            ModEntry.Log($"{reprItem.QualifiedItemId}: {co.GetPreservedItemId()}");
+        if (reprItem is ColoredObject coloredObject && coloredObject.GetPreservedItemId() != null)
+        {
+            yield return new(
+                new(data.GetTexture(), data.GetSourceRect(coloredObject.ColorSameIndexAsParentSheetIndex ? 0 : 1)),
+                coloredObject.color.Value,
+                $"{equiv64}px {equiv64}px",
+                SDUIEdges.NONE
+            );
+        }
     }
 }
 
@@ -113,12 +129,7 @@ public record RuleIcon(IconDef IconDef)
     {
         if (IconDef.Items?.FirstOrDefault() is not Item reprItem)
             return null;
-        if (
-            reprItem.ItemId == EMC_HOLDER
-            && IconDef is IconOutputDef iod
-            && iod.EMCByproduct != null
-            && iod.EMCByproduct.Count > 0
-        )
+        if (reprItem.ItemId == EMC_HOLDER && IconDef is IconOutputDef iod && iod.EMCByproduct?.Count > 0)
         {
             foreach (IconDef iconD in iod.EMCByproduct)
             {
@@ -130,6 +141,24 @@ public record RuleIcon(IconDef IconDef)
     }
 
     public IEnumerable<SpriteLayer> SpriteLayers => SpriteLayer.FromItem(ReprItem);
+
+    public IEnumerable<SpriteLayer> EMCByProductOneItem
+    {
+        get
+        {
+            if (
+                IconDef is IconOutputDef iod
+                && iod.EMCByproduct?.Count == 1
+                && iod.EMCByproduct?.FirstOrDefault()?.Items?.Count == 1
+                && iod.EMCByproduct?.FirstOrDefault()?.Items?.FirstOrDefault() is Item byproductItem
+            )
+            {
+                return SpriteLayer.FromItem(byproductItem, 2);
+            }
+            return [];
+        }
+    }
+
     public SDUITooltipData? Tooltip
     {
         get
@@ -174,7 +203,7 @@ public record RuleIcon(IconDef IconDef)
         {
             if (IconDef.Items != null && IconDef.Items.Count > 1)
                 return IconDef.Items.Select(item => new SubItemIcon(item)).ToList();
-            else if (IconDef is IconOutputDef iod && iod.EMCByproduct != null && iod.EMCByproduct.Count > 0)
+            else if (IconDef is IconOutputDef iod && iod.EMCByproduct != null && iod.EMCByproduct.Count > 1)
                 return iod
                     .EMCByproduct.SelectMany(iconD => (iconD.Items ?? []).Select(item => new SubItemIcon(item)))
                     .ToList();
@@ -182,7 +211,12 @@ public record RuleIcon(IconDef IconDef)
         }
     }
 
-    public void ShowSubItemGrid() => MenuHandler.ShowSubItemGrid(SubItems);
+    public void ShowSubItemGrid()
+    {
+        if (EMCByProductOneItem.Any())
+            return;
+        MenuHandler.ShowSubItemGrid(SubItems);
+    }
 }
 
 public sealed partial record RuleInputEntry(RuleDef Def)
@@ -417,7 +451,9 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
 
     private List<InputIcon>? inputItems = null;
     private List<InputIcon> InputItems => inputItems ??= GetInputItems();
-    public IEnumerable<InputIcon> InputItemsFiltered => InputItems;
+    public bool HasInputs => InputItems.Any();
+    public IEnumerable<InputIcon> InputItemsFiltered =>
+        InputItems.Where((ipt) => string.IsNullOrEmpty(SearchText) || ipt.InputItem.DisplayName.Contains(SearchText));
     public QualityStar[] QualityStars =>
         [new QualityStar(0), new QualityStar(1), new QualityStar(2), new QualityStar(4)];
 

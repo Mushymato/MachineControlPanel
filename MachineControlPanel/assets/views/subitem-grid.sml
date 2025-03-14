@@ -4,9 +4,7 @@
       <panel *repeat={:SubItems} tooltip={:Tooltip} focusable="true">
         <image *repeat={:SpriteLayers} sprite={:Sprite} tint={:Tint} layout={:Layout} padding={:Padding}
           margin="6"
-          focusable="true"
-          +hover:scale="1.1"
-          +transition:scale="100ms EaseInSine"/>
+          focusable="true"/>
       </panel>
     </grid>
   </scrollable>

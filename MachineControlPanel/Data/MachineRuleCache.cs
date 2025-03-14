@@ -1,11 +1,17 @@
 using System.Diagnostics;
 using System.Text;
+using HarmonyLib;
+using MachineControlPanel.Integration;
 using MachineControlPanel.Integration.IExtraMachineConfigApi;
+using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.GameData.Machines;
 using StardewValley.Internal;
+using StardewValley.ItemTypeDefinitions;
+using StardewValley.Menus;
+using StardewValley.Objects;
 
 namespace MachineControlPanel.Data;
 
@@ -51,6 +57,36 @@ public record IconDef(
         return 0;
     }
 
+    internal static SObject? CreateFlavoredItem(Item reqItem, SObject preserveItem)
+    {
+        ModEntry.Log($"{reqItem.QualifiedItemId} : {preserveItem.QualifiedItemId}");
+        SObject.PreserveType? preserveType = reqItem.QualifiedItemId switch
+        {
+            "(O)447" => SObject.PreserveType.AgedRoe,
+            "(O)340" => SObject.PreserveType.Honey,
+            "(O)344" => SObject.PreserveType.Jelly,
+            "(O)350" => SObject.PreserveType.Juice,
+            "(O)342" => SObject.PreserveType.Pickle,
+            "(O)812" => SObject.PreserveType.Roe,
+            "(O)348" => SObject.PreserveType.Wine,
+            "(O)SpecificBait" => SObject.PreserveType.Bait,
+            "(O)DriedFruit" => SObject.PreserveType.DriedFruit,
+            "(O)DriedMushrooms" => SObject.PreserveType.DriedMushroom,
+            "(O)SmokedFish" => SObject.PreserveType.SmokedFish,
+            _ => null,
+        };
+        if (preserveType != null)
+        {
+            ObjectDataDefinition objectTypeDefinition = ItemRegistry.GetObjectTypeDefinition();
+            return objectTypeDefinition.CreateFlavoredItem((SObject.PreserveType)preserveType, preserveItem);
+        }
+        else if (TailoringMenu.GetDyeColor(preserveItem) is Color preserveColor)
+        {
+            return new ColoredObject(reqItem.ItemId, 1, preserveColor);
+        }
+        return null;
+    }
+
     /// <summary>Form icon for the input</summary>
     /// <param name="qId"></param>
     /// <param name="rule"></param>
@@ -61,13 +97,37 @@ public record IconDef(
         if (!motr.Trigger.HasFlag(MachineOutputTrigger.ItemPlacedInMachine))
             return new IconDef(Condition: motr.Condition, Notes: [motr.Trigger.ToString()]);
 
-        IReadOnlyList<Item>? items;
+        IReadOnlyList<Item>? items = null;
         IReadOnlyList<string>? contextTags = motr.RequiredTags;
         string? condition = motr.Condition;
         List<string>? notes = null;
         if (motr.RequiredItemId != null)
         {
-            items = ItemRegistry.Create(motr.RequiredItemId, allowNull: true) is Item item ? [item] : null;
+            if (ItemRegistry.Create(motr.RequiredItemId, allowNull: true) is Item reqItem)
+            {
+                // if (motr.RequiredTags != null)
+                //     reqItem.GetContextTags().AddRange(motr.RequiredTags);
+                if (motr.RequiredTags != null)
+                {
+                    foreach (string tag in motr.RequiredTags)
+                    {
+                        if (tag.StartsWith("preserve_sheet_index_"))
+                        {
+                            if (
+                                ItemQueryCache.TryContextTagLookupCache(
+                                    [$"id_o_{tag[21..]}"],
+                                    out IEnumerable<Item>? resolved
+                                ) && resolved.FirstOrDefault() is SObject preserveItem
+                            )
+                            {
+                                reqItem = CreateFlavoredItem(reqItem, preserveItem) ?? reqItem;
+                            }
+                            break;
+                        }
+                    }
+                }
+                items = [reqItem];
+            }
         }
         else
         {
