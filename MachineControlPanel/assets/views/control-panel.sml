@@ -29,12 +29,11 @@
         <lane *repeat={RuleEntriesFiltered}
           pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
           pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|
-          +state:enabled={State}
-          +state:enabled:opacity="1"
-          opacity="0.6"
+          opacity={Opacity}
           orientation="vertical" margin="8"
           horizontal-content-alignment="middle">
-          <checkbox is-checked={<>State} margin="0,0,0,12"/>
+          <checkbox *if={Active} is-checked={<>State} margin="0,0,0,12"/>
+          <spacer *!if={Active} layout="36px 48px" />
           <rule-icon *repeat={:Inputs} />
           <spacer layout={:InputSpacerLayout}/>
           <image sprite={SpinningCaret}

@@ -44,8 +44,6 @@ public record SpriteLayer(SDUISprite Sprite, Color Tint, string Layout, SDUIEdge
         }
         yield return FromSprite(new(data.GetTexture(), data.GetSourceRect()), equiv64);
         // colored items
-        if (reprItem.QualifiedItemId == "(O)812" && reprItem is ColoredObject co)
-            ModEntry.Log($"{reprItem.QualifiedItemId}: {co.GetPreservedItemId()}");
         if (reprItem is ColoredObject coloredObject && coloredObject.GetPreservedItemId() != null)
         {
             yield return new(
@@ -75,13 +73,17 @@ public sealed partial record InputIcon(Item InputItem)
     public void ToggleState() => State = !State;
 
     [Notify]
-    private bool active = true;
+    private bool activeByRule = true;
+
+    [Notify]
+    private bool activeByGlobal = true;
+
     public Color Tint
     {
         get
         {
             Color result = State ? Color.White : ControlPanelContext.DisabledColor;
-            if (!Active)
+            if (!ActiveByRule || !ActiveByGlobal)
                 result *= 0.5f;
             return result;
         }
@@ -231,6 +233,9 @@ public sealed partial record RuleInputEntry(RuleDef Def)
     private bool state = true;
 
     [Notify]
+    private bool active = true;
+
+    [Notify]
     private int currCaretFrame = 0;
 
     public Tuple<Texture2D, Rectangle> SpinningCaret =>
@@ -265,6 +270,11 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
         get => RIE.State;
         set => RIE.State = value;
     }
+
+    public bool Active => RIE.Active;
+
+    public float Opacity => State && Active ? 1f : 0.6f;
+
     public Tuple<Texture2D, Rectangle> SpinningCaret => RIE.SpinningCaret;
 
     public IEnumerable<RuleIcon> Inputs
@@ -305,13 +315,16 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
 
     private void RIEPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(RuleInputEntry.State))
+        switch (e.PropertyName)
         {
-            PropertyChanged?.Invoke(this, new(nameof(State)));
-        }
-        else if (e.PropertyName == nameof(RuleInputEntry.CurrCaretFrame))
-        {
-            PropertyChanged?.Invoke(this, new(nameof(SpinningCaret)));
+            case nameof(RuleInputEntry.State):
+            case nameof(RuleInputEntry.Active):
+                PropertyChanged?.Invoke(this, new(e.PropertyName));
+                PropertyChanged?.Invoke(this, new(nameof(Opacity)));
+                break;
+            case nameof(RuleInputEntry.CurrCaretFrame):
+                PropertyChanged?.Invoke(this, new(nameof(SpinningCaret)));
+                break;
         }
     }
 }
@@ -325,7 +338,12 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     internal static ControlPanelContext? TryCreate(Item machine)
     {
         if (MachineRuleCache.TryGetRuleDefList(machine.QualifiedItemId) is IReadOnlyList<RuleIdentDefPair> ruleDefs)
-            return new ControlPanelContext(machine, ruleDefs);
+        {
+            ControlPanelContext context = new(machine, ruleDefs);
+            MenuHandler.GlobalToggle.PropertyChanged += context.RecheckSavedStates;
+            context.RecheckSavedStates();
+            return context;
+        }
         return null;
     }
 
@@ -347,7 +365,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
                     input.OriginRules[ident] = ruleEntry.State;
                 }
             }
-            input.Active = input.OriginRules.Values.Any(val => val);
+            input.ActiveByRule = input.OriginRules.Values.Any(val => val);
         }
     }
 
@@ -370,7 +388,14 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
 
     private readonly Dictionary<RuleIdent, RuleInputEntry> ruleEntries = RuleDefs.ToDictionary(
         kv => kv.Ident,
-        kv => new RuleInputEntry(kv.Def) { State = ModEntry.SaveData.RuleState(Machine.QualifiedItemId, kv.Ident) }
+        kv => new RuleInputEntry(kv.Def)
+        {
+            State = ModEntry.SaveData.RuleState(
+                Machine.QualifiedItemId,
+                MenuHandler.GlobalToggle.LocationKey,
+                kv.Ident
+            ),
+        }
     );
 
     public IEnumerable<RuleOutputEntry> RuleEntriesFiltered
@@ -440,7 +465,11 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
                 }
                 inputIcon = new(item);
                 inputIcon.OriginRules[ident] = false;
-                inputIcon.State = ModEntry.SaveData.InputState(Machine.QualifiedItemId, item.QualifiedItemId);
+                inputIcon.State = ModEntry.SaveData.InputState(
+                    Machine.QualifiedItemId,
+                    MenuHandler.GlobalToggle.LocationKey,
+                    item.QualifiedItemId
+                );
                 seenItem[item.QualifiedItemId] = inputIcon;
                 inputItems.Add(inputIcon);
             }
@@ -459,12 +488,72 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
 
     public void Update(TimeSpan elapsed) => HoverRuleEntry?.UpdateCaret(elapsed);
 
-    internal void SaveChanges() =>
+    public void RecheckSavedStates(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != "IsGlobal")
+            return;
+        SaveChanges(MenuHandler.GlobalToggle.NotLocationKey);
+        RecheckSavedStates();
+    }
+
+    public void RecheckSavedStates()
+    {
+        foreach (var kv in ruleEntries)
+        {
+            kv.Value.State = ModEntry.SaveData.RuleState(
+                Machine.QualifiedItemId,
+                MenuHandler.GlobalToggle.LocationKey,
+                kv.Key
+            );
+        }
+        foreach (var inputIcon in InputItems)
+        {
+            inputIcon.State = ModEntry.SaveData.InputState(
+                Machine.QualifiedItemId,
+                MenuHandler.GlobalToggle.LocationKey,
+                inputIcon.InputItem.QualifiedItemId
+            );
+        }
+        if (MenuHandler.GlobalToggle.LocationKey == null)
+        {
+            foreach (var kv in ruleEntries)
+                kv.Value.Active = true;
+            foreach (var inputIcon in InputItems)
+                inputIcon.ActiveByGlobal = true;
+        }
+        else
+        {
+            foreach (var kv in ruleEntries)
+            {
+                kv.Value.Active = ModEntry.SaveData.RuleState(Machine.QualifiedItemId, null, kv.Key);
+            }
+            foreach (var inputIcon in InputItems)
+            {
+                inputIcon.ActiveByGlobal = ModEntry.SaveData.InputState(
+                    Machine.QualifiedItemId,
+                    null,
+                    inputIcon.InputItem.QualifiedItemId
+                );
+            }
+            if (PageIndex == 2)
+            {
+                CheckInputIconActiveState(InputItems);
+            }
+        }
+    }
+
+    internal void SaveChanges(string? locationKey) =>
         ModEntry.SaveMachineRules(
             Machine.QualifiedItemId,
-            GlobalToggle.LocationKey,
+            locationKey,
             ruleEntries.Where(kv => !kv.Value.State).Select(kv => kv.Key),
             InputItems.Where(v => !v.State).Select(v => v.InputItem.QualifiedItemId),
             [!QualityStars[0].State, !QualityStars[1].State, !QualityStars[2].State, !QualityStars[3].State]
         );
+
+    internal void Closing()
+    {
+        SaveChanges(MenuHandler.GlobalToggle.LocationKey);
+        MenuHandler.GlobalToggle.PropertyChanged -= RecheckSavedStates;
+    }
 }

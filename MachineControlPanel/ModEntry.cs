@@ -201,7 +201,7 @@ public class ModEntry : Mod
         }
         catch (InvalidOperationException)
         {
-            Log($"Failed to read existing save data, previous settings lost.", LogLevel.Warn);
+            Log($"Failed to read existing save data, previous settings reset.", LogLevel.Warn);
             SaveData = new() { Version = ModManifest.Version };
         }
     }

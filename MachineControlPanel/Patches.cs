@@ -47,26 +47,13 @@ internal static class Patches
         );
     }
 
-    /// <summary>
-    /// Check whether a rule or input item should be skipped
-    /// </summary>
-    /// <param name="trigger2"></param>
-    /// <param name="machine"></param>
-    /// <param name="rule"></param>
-    /// <param name="inputItem"></param>
-    /// <param name="idx"></param>
-    /// <returns></returns>
-    private static bool ShouldSkipMachineInput(
-        MachineOutputTriggerRule trigger2,
+    private static bool ShouldSkipMachineInputEntry(
         SObject machine,
-        MachineOutputRule rule,
-        Item inputItem
+        Item inputItem,
+        ModSaveDataEntry msdEntry,
+        RuleIdent ident
     )
     {
-        RuleIdent ident = new(rule.Id, trigger2.Id);
-        if (!ModEntry.SaveData.TryGetSavedEntry(machine, out ModSaveDataEntry? msdEntry))
-            return false;
-
         // maybe better to check once in the postfix rather than in the iteration, but eh
         if (inputItem != null)
         {
@@ -90,6 +77,41 @@ internal static class Patches
                 skipped = SkipReason.Rule;
             return true;
         }
+        return false;
+    }
+
+    /// <summary>
+    /// Check whether a rule or input item should be skipped
+    /// </summary>
+    /// <param name="trigger2"></param>
+    /// <param name="machine"></param>
+    /// <param name="rule"></param>
+    /// <param name="inputItem"></param>
+    /// <param name="idx"></param>
+    /// <returns></returns>
+    private static bool ShouldSkipMachineInput(
+        MachineOutputTriggerRule trigger2,
+        SObject machine,
+        MachineOutputRule rule,
+        Item inputItem
+    )
+    {
+        RuleIdent ident = new(rule.Id, trigger2.Id);
+        // check local
+        if (
+            ModEntry.SaveData.TryGetModSaveDataEntry(
+                machine.QualifiedItemId,
+                machine.Location.NameOrUniqueName,
+                out ModSaveDataEntry? msdEntry
+            ) && ShouldSkipMachineInputEntry(machine, inputItem, msdEntry, ident)
+        )
+            return true;
+        // check global
+        if (
+            ModEntry.SaveData.TryGetModSaveDataEntry(machine.QualifiedItemId, null, out msdEntry)
+            && ShouldSkipMachineInputEntry(machine, inputItem, msdEntry, ident)
+        )
+            return true;
         return false;
     }
 

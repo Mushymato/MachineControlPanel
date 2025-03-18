@@ -12,10 +12,9 @@ public sealed partial class GlobalToggleContext()
     public void ToggleGlobalLocal()
     {
         IsGlobal = !IsGlobal;
-        if (!IsGlobal)
-            ModEntry.Log(Game1.currentLocation.NameOrUniqueName);
     }
 
-    public string LocationDisplayName => Game1.currentLocation.DisplayName;
-    internal string? LocationKey => isGlobal ? null : Game1.currentLocation.NameOrUniqueName;
+    public string LocationDisplayName => Game1.currentLocation.NameOrUniqueName;
+    internal string? LocationKey => IsGlobal ? null : Game1.currentLocation.NameOrUniqueName;
+    internal string? NotLocationKey => !IsGlobal ? null : Game1.currentLocation.NameOrUniqueName;
 }

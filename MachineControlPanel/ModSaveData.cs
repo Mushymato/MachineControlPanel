@@ -10,13 +10,15 @@ namespace MachineControlPanel;
 
 public sealed record RuleIdent(string OutputId, string TriggerId);
 
+public sealed record QIdLocation(string QId, string Location);
+
 public sealed record ModSaveDataEntry(
     ImmutableHashSet<RuleIdent> Rules,
     ImmutableHashSet<string> Inputs,
     bool[] Quality
 );
 
-public sealed record ModSaveDataEntryMessage(string QId, ModSaveDataEntry? Entry);
+public sealed record ModSaveDataEntryMessage(string QId, string? Location, ModSaveDataEntry? Entry);
 
 public sealed class ModSaveData
 {
@@ -27,7 +29,7 @@ public sealed class ModSaveData
     public Dictionary<string, ModSaveDataEntry> Disabled { get; set; } = [];
 
     /// <summary>Per location disabled rules</summary>
-    public Dictionary<ValueTuple<string, string>, ModSaveDataEntry> DisabledPerLocation { get; set; } = [];
+    public Dictionary<string, Dictionary<string, ModSaveDataEntry>> DisabledPerLocation { get; set; } = [];
 
     /// <summary>
     /// Validate the rules under a particular ModSaveDataEntry
@@ -95,19 +97,22 @@ public sealed class ModSaveData
             hasChange = ClearInvalidMSDEntry(Disabled, qId, msdEntry, machine) || hasChange;
         }
         // Per location rules
-        foreach (((string qId, string locationName), ModSaveDataEntry msdEntry) in DisabledPerLocation)
+        foreach (var perLocation in DisabledPerLocation.Values)
         {
-            if (
-                ItemRegistry.GetData(qId) is not ParsedItemData itemData
-                || !machinesData.TryGetValue(qId, out MachineData? machine)
-            )
+            foreach ((string qId, ModSaveDataEntry msdEntry) in perLocation)
             {
-                Disabled.Remove(qId);
-                ModEntry.Log($"Remove nonexistent machine {qId} from save data");
-                hasChange = true;
-                continue;
+                if (
+                    ItemRegistry.GetData(qId) is not ParsedItemData itemData
+                    || !machinesData.TryGetValue(qId, out MachineData? machine)
+                )
+                {
+                    Disabled.Remove(qId);
+                    ModEntry.Log($"Remove nonexistent machine {qId} from save data");
+                    hasChange = true;
+                    continue;
+                }
+                hasChange = ClearInvalidMSDEntry(Disabled, qId, msdEntry, machine) || hasChange;
             }
-            hasChange = ClearInvalidMSDEntry(Disabled, qId, msdEntry, machine) || hasChange;
         }
         return hasChange;
     }
@@ -137,14 +142,13 @@ public sealed class ModSaveData
     /// <param name="disabledInputs"></param>
     /// <param name="disabledQuality"></param>
     /// <returns></returns>
-    private static ModSaveDataEntry? SetMSDEntry<TKey>(
-        Dictionary<TKey, ModSaveDataEntry> msdDict,
-        TKey msdKey,
+    private static ModSaveDataEntry? SetMSDEntry(
+        Dictionary<string, ModSaveDataEntry> msdDict,
+        string msdKey,
         IEnumerable<RuleIdent> disabledRules,
         IEnumerable<string> disabledInputs,
         bool[] disabledQuality
     )
-        where TKey : notnull
     {
         ModSaveDataEntry? msdEntry = null;
         if (!disabledRules.Any() && !disabledInputs.Any() && !HasAnySet(disabledQuality))
@@ -166,55 +170,58 @@ public sealed class ModSaveData
     /// <param name="disabledRules"></param>
     /// <param name="disabledInputs"></param>
     internal ModSaveDataEntryMessage? SetMachineRules(
-        string bigCraftableId,
-        string? locationName,
+        string qId,
+        string? location,
         IEnumerable<RuleIdent> disabledRules,
         IEnumerable<string> disabledInputs,
         bool[] disabledQuality
     )
     {
-        ModSaveDataEntry? msdEntry =
-            locationName == null
-                ? SetMSDEntry(Disabled, bigCraftableId, disabledRules, disabledInputs, disabledQuality)
-                : SetMSDEntry(
-                    DisabledPerLocation,
-                    new ValueTuple<string, string>(bigCraftableId, locationName),
-                    disabledRules,
-                    disabledInputs,
-                    disabledQuality
-                );
-
-        return new ModSaveDataEntryMessage(bigCraftableId, msdEntry);
+        ModSaveDataEntry? msdEntry;
+        if (location == null)
+        {
+            msdEntry = SetMSDEntry(Disabled, qId, disabledRules, disabledInputs, disabledQuality);
+        }
+        else
+        {
+            if (!DisabledPerLocation.TryGetValue(location, out var perLocation))
+            {
+                perLocation = [];
+                DisabledPerLocation[location] = perLocation;
+            }
+            msdEntry = SetMSDEntry(perLocation, qId, disabledRules, disabledInputs, disabledQuality);
+        }
+        return new ModSaveDataEntryMessage(qId, location, msdEntry);
     }
 
-    internal bool RuleState(string qId, RuleIdent ident, string? location = null)
+    internal bool TryGetModSaveDataEntry(string qId, string? location, [NotNullWhen(true)] out ModSaveDataEntry? msd)
     {
-        if (Disabled.TryGetValue(qId, out ModSaveDataEntry? msd))
+        msd = null;
+        if (location == null)
+        {
+            return Disabled.TryGetValue(qId, out msd);
+        }
+        else
+        {
+            if (DisabledPerLocation.TryGetValue(location, out var perLocation))
+            {
+                return perLocation.TryGetValue(qId, out msd);
+            }
+        }
+        return false;
+    }
+
+    internal bool RuleState(string qId, string? location, RuleIdent ident)
+    {
+        if (TryGetModSaveDataEntry(qId, location, out ModSaveDataEntry? msd))
             return !msd.Rules.Contains(ident);
         return true;
     }
 
-    internal bool InputState(string qId, string inputId, string? location = null)
+    internal bool InputState(string qId, string? location, string inputId)
     {
-        if (Disabled.TryGetValue(qId, out ModSaveDataEntry? msd))
+        if (TryGetModSaveDataEntry(qId, location, out ModSaveDataEntry? msd))
             return !msd.Inputs.Contains(inputId);
         return true;
-    }
-
-    internal bool TryGetSavedEntry(SObject machine, [NotNullWhen(true)] out ModSaveDataEntry? msdEntry)
-    {
-        // machine.Location
-        if (
-            machine.Location != null
-            && DisabledPerLocation.TryGetValue(
-                new(machine.QualifiedItemId, machine.Location.NameOrUniqueName),
-                out msdEntry
-            )
-            && msdEntry != null
-        )
-            return true;
-        // global
-        Disabled.TryGetValue(machine.QualifiedItemId, out msdEntry);
-        return msdEntry != null;
     }
 }

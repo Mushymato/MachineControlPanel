@@ -46,7 +46,7 @@ internal static class MenuHandler
         if (!context.HasInputs)
             context.PageIndex = (int)DefaultPageOption.Rules;
         var menuCtrl = viewEngine.CreateMenuControllerFromAsset(VIEW_ASSET_CONTROL_PANEL, context);
-        menuCtrl.Closing += context.SaveChanges;
+        menuCtrl.Closing += context.Closing;
         if (asChildMenu && Game1.activeClickableMenu != null)
             Game1.activeClickableMenu.SetChildMenu(menuCtrl.Menu);
         else

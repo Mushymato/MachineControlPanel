@@ -59,7 +59,6 @@ public record IconDef(
 
     internal static SObject? CreateFlavoredItem(Item reqItem, SObject preserveItem)
     {
-        ModEntry.Log($"{reqItem.QualifiedItemId} : {preserveItem.QualifiedItemId}");
         SObject.PreserveType? preserveType = reqItem.QualifiedItemId switch
         {
             "(O)447" => SObject.PreserveType.AgedRoe,
