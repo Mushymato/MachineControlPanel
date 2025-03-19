@@ -170,6 +170,8 @@ public record RuleIcon(IconDef IconDef)
             {
                 if (desc != null)
                     return new(desc);
+                if (IconDef.Items?.Count > 1)
+                    return new(I18n.RuleList_MoreOutputs(Count: IconDef.Items.Count));
                 return null;
             }
             else if (ReprItem != null)

@@ -1,19 +1,9 @@
-<lane orientation="vertical" horizontal-content-alignment="middle">
-  <lane orientation="horizontal" vertical-content-alignment="middle">
-    <image sprite={:MachineData}
-      tooltip={:MachineTooltip}
-      layout="48px 96px"
-      margin="12,16,12,0"
-      fit="Contain"
-      horizontal-alignment="middle"
-      vertical-alignment="middle"
-      />
-    <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="300px 60px" margin="0,26,0,0" text-color="#43111B" focusable="true"/>
-    <panel margin="0,26,0,0">
-      <include name="mushymato.MachineControlPanel/views/includes/global-toggle" *context={:GlobalToggle}/>
-    </panel>
+<lane orientation="vertical" horizontal-content-alignment="end">
+  <lane orientation="horizontal" padding="0,46,26,-16" vertical-content-alignment="end">
+    <include name="mushymato.MachineControlPanel/views/includes/global-toggle" *context={:GlobalToggle}/>
+    <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="300px 60px" text-color="#43111B" focusable="true"/>
   </lane>
-  <frame layout="1244px 90%[550..]"
+  <frame layout="1244px 90%[580..]"
     background={@Mods/StardewUI/Sprites/MenuBackground}
     border={@Mods/StardewUI/Sprites/MenuBorder}
     border-thickness="32, 36, 24, 36"
@@ -21,9 +11,18 @@
     <lane *float="above" orientation="horizontal" vertical-content-alignment="end" margin="36,0,0,-24">
       <tab-label page="1" text={#rule-list.rules} margin={TabMarginRules} />
       <tab-label *if={HasInputs} page="2" text={#rule-list.inputs} margin={TabMarginInputs}/>
+      <image sprite={:MachineData}
+        tooltip={:MachineTooltip}
+        layout="48px 96px"
+        margin="12,-16,12,0"
+        fit="Contain"
+        horizontal-alignment="middle"
+        vertical-alignment="middle"
+      />
+      <label text={:MachineName} tooltip={:MachineTooltip} font="dialogue" color="white" margin="0,24" />
     </lane>
     <!-- Rules -->
-    <scrollable *case="1" peeking="128">
+    <scrollable *case="1" peeking="128" scrollbar-margin="8,0,0,0">
       <grid item-layout="length: 88" padding="4,4" horizontal-item-alignment="middle"
         horizontal-divider={@Mods/StardewUI/Sprites/ThinHorizontalDivider}>
         <lane *repeat={RuleEntriesFiltered}
@@ -32,7 +31,7 @@
           opacity={Opacity}
           orientation="vertical" margin="8"
           horizontal-content-alignment="middle">
-          <checkbox *if={Active} is-checked={<>State} margin="0,0,0,12"/>
+          <checkbox *if={Active} is-checked={<>State} margin="0,8,0,12"/>
           <spacer *!if={Active} layout="36px 48px" />
           <rule-icon *repeat={:Inputs} />
           <spacer layout={:InputSpacerLayout}/>
@@ -46,7 +45,7 @@
       </grid>
     </scrollable>
     <!-- Inputs -->
-    <scrollable *case="2" peeking="128">
+    <scrollable *case="2" peeking="128" scrollbar-margin="8,0,0,0">
       <lane orientation="vertical">
         <lane orientation="horizontal" margin="16,8">
           <image *repeat={QualityStars} sprite={:Sprite} tint={Tint}

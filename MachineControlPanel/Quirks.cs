@@ -22,13 +22,24 @@ internal static class Quirks
     /// <summary>Get a MD5 hash by the value for unique key purposes</summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    internal static string HashMD5(object? input)
+    internal static string HashMD5(object? input, Dictionary<string, int>? buckets = null)
     {
         // Use input string to calculate MD5 hash
         using System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create();
         byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(JsonSerializer.Serialize(input));
         byte[] hashBytes = md5.ComputeHash(inputBytes);
-        return Convert.ToHexString(hashBytes); // .NET 5 +
+        string hashMD5 = Convert.ToHexString(hashBytes);
+        // hash collision
+        if (buckets != null)
+        {
+            if (buckets.TryGetValue(hashMD5, out int i))
+            {
+                buckets[hashMD5] = i++;
+                return $"{hashMD5}-{i}";
+            }
+            buckets[hashMD5] = 0;
+        }
+        return hashMD5;
     }
 
     /// <summary>
@@ -61,25 +72,27 @@ internal static class Quirks
                 if (!modelById.ContainsKey(id))
                     modelById[id] = [];
                 modelById[id].Add(model);
-                process?.Invoke(model);
             }
+            process?.Invoke(model);
         }
 
+        Dictionary<string, int> buckets = [];
         foreach ((string key, List<T> models) in modelById)
         {
             if (models.Count > 1)
             {
                 // edit second duplicate and on
                 foreach (T model in models.Skip(1))
-                    setIdSeq(model, HashMD5(model));
+                    setIdSeq(model, HashMD5(model, buckets));
             }
         }
-        // unsure when model could have null id, log for future detection
+        // model could have null id when edited by CP sometimes, log for future detection
         if (nullIdModels.Any())
             ModEntry.LogOnce($"{debugText} has null Ids");
+        buckets.Clear();
         foreach (T model in nullIdModels)
         {
-            setIdSeq(model, HashMD5(model));
+            setIdSeq(model, HashMD5(model, buckets));
         }
     }
 

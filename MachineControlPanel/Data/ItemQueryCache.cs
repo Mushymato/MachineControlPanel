@@ -321,7 +321,7 @@ internal static class ItemQueryCache
             mio.ItemId = randomItemId;
             mio.RandomItemId = null;
         }
-        string mioHash = Quirks.HashMD5(mio);
+        string mioHash = Quirks.HashMD5(mio, null);
         if (!itemQueryCache.TryGetValue(mioHash, out IReadOnlyList<Item>? itemQRes))
         {
             if (randomItemId == null && mio.RandomItemId != null && mio.RandomItemId.Count > 0)
