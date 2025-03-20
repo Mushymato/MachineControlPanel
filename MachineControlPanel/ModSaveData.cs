@@ -40,14 +40,15 @@ public sealed class ModSaveData
     /// <param name="msdEntry"></param>
     /// <param name="machine"></param>
     /// <returns></returns>
-    private static bool ClearInvalidMSDEntry<TKey>(
-        Dictionary<TKey, ModSaveDataEntry> msdDict,
-        TKey msdKey,
+    private static bool ClearInvalidMSDEntry(
+        Dictionary<string, ModSaveDataEntry> msdDict,
+        string msdKey,
         ModSaveDataEntry msdEntry,
-        MachineData machine
+        MachineData machine,
+        out string? removeKey
     )
-        where TKey : notnull
     {
+        removeKey = null;
         HashSet<RuleIdent> allIdents = [];
         foreach (MachineOutputRule rule in machine.OutputRules)
         {
@@ -64,7 +65,7 @@ public sealed class ModSaveData
         {
             ModEntry.Log($"Clear nonexistent rules for '{msdKey}' from save data");
             if (newRules.IsEmpty && newInputs.IsEmpty)
-                msdDict.Remove(msdKey);
+                removeKey = msdKey;
             else
                 msdDict[msdKey] = new(newRules, newInputs, msdEntry.Quality);
             return true;
@@ -81,6 +82,7 @@ public sealed class ModSaveData
     {
         bool hasChange = false;
         var machinesData = MachineRuleCache.Machines;
+        HashSet<string> removeKeys = [];
         // Global rules
         foreach ((string qId, ModSaveDataEntry msdEntry) in Disabled)
         {
@@ -94,11 +96,17 @@ public sealed class ModSaveData
                 hasChange = true;
                 continue;
             }
-            hasChange = ClearInvalidMSDEntry(Disabled, qId, msdEntry, machine) || hasChange;
+            hasChange = ClearInvalidMSDEntry(Disabled, qId, msdEntry, machine, out string? removeKey) || hasChange;
+            if (removeKey != null)
+                removeKeys.Add(removeKey);
         }
+        foreach (string key in removeKeys)
+            Disabled.Remove(key);
         // Per location rules
-        foreach (var perLocation in DisabledPerLocation.Values)
+        removeKeys.Clear();
+        foreach ((string location, var perLocation) in DisabledPerLocation)
         {
+            HashSet<string> removeSubKeys = [];
             foreach ((string qId, ModSaveDataEntry msdEntry) in perLocation)
             {
                 if (
@@ -106,14 +114,24 @@ public sealed class ModSaveData
                     || !machinesData.TryGetValue(qId, out MachineData? machine)
                 )
                 {
-                    Disabled.Remove(qId);
+                    perLocation.Remove(qId);
                     ModEntry.Log($"Remove nonexistent machine {qId} from save data");
                     hasChange = true;
                     continue;
                 }
-                hasChange = ClearInvalidMSDEntry(Disabled, qId, msdEntry, machine) || hasChange;
+                hasChange =
+                    ClearInvalidMSDEntry(perLocation, qId, msdEntry, machine, out string? removeKey) || hasChange;
+                if (removeKey != null)
+                    removeSubKeys.Add(removeKey);
             }
+            foreach (string key in removeSubKeys)
+                perLocation.Remove(key);
+            if (!perLocation.Any())
+                removeKeys.Add(location);
         }
+        foreach (string key in removeKeys)
+            DisabledPerLocation.Remove(key);
+
         return hasChange;
     }
 

@@ -23,8 +23,7 @@
     </lane>
     <!-- Rules -->
     <scrollable *case="1" peeking="128" scrollbar-margin="8,0,0,0">
-      <grid item-layout="length: 88" padding="4,4" horizontal-item-alignment="middle"
-        horizontal-divider={@Mods/StardewUI/Sprites/ThinHorizontalDivider}>
+      <grid item-layout="length: 88" padding="4,4" horizontal-item-alignment="middle">
         <lane *repeat={RuleEntriesFiltered}
           pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
           pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|
@@ -32,7 +31,7 @@
           orientation="vertical" margin="8"
           horizontal-content-alignment="middle">
           <checkbox *if={Active} is-checked={<>State} margin="0,8,0,12"/>
-          <spacer *!if={Active} layout="36px 48px" />
+          <spacer *!if={Active} layout="36px 56px" />
           <rule-icon *repeat={:Inputs} />
           <spacer layout={:InputSpacerLayout}/>
           <image sprite={SpinningCaret}
