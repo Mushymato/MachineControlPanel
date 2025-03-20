@@ -132,16 +132,7 @@ internal static class ItemQueryCache
     {
         SObject machineObj = ItemRegistry.Create<SObject>(machineAndMethod.Item1, allowNull: true);
         string outputMethod = machineAndMethod.Item2;
-        // magic knowledge that anvil takes trinkets
-        IEnumerable<Item>? itemDatas;
-        if (machineObj.QualifiedItemId == "(BC)Anvil")
-            itemDatas = ItemRegistry
-                .RequireTypeDefinition<TrinketDataDefinition>("(TR)")
-                .GetAllData()
-                .Select((itemData) => ItemRegistry.Create(itemData.QualifiedItemId, allowNull: true));
-        else
-            itemDatas = AllItems;
-        Item firstItem = itemDatas.First();
+        Item firstItem = AllItems[0];
         if (
             !StaticDelegateBuilder.TryCreateDelegate<MachineOutputDelegate>(
                 outputMethod,
@@ -162,7 +153,7 @@ internal static class ItemQueryCache
             ModEntry.LogOnce($"Error running '{outputMethod}' (from {machineObj.QualifiedItemId})");
             return null;
         }
-        return itemDatas
+        return AllItems
             .Where(
                 (item) =>
                 {
