@@ -60,8 +60,17 @@ internal static class MenuHandler
             return;
         if (Game1.activeClickableMenu == null)
             return;
-        Game1
-            .activeClickableMenu.GetChildMenu()
-            .SetChildMenu(viewEngine.CreateMenuFromAsset(VIEW_ASSET_SUBITEM_GRID, new SubitemGridContext(itemDatas)));
+        if (Game1.activeClickableMenu.GetChildMenu() is IClickableMenu childMenu)
+        {
+            childMenu.SetChildMenu(
+                viewEngine.CreateMenuFromAsset(VIEW_ASSET_SUBITEM_GRID, new SubitemGridContext(itemDatas))
+            );
+        }
+        else
+        {
+            Game1.activeClickableMenu.SetChildMenu(
+                viewEngine.CreateMenuFromAsset(VIEW_ASSET_SUBITEM_GRID, new SubitemGridContext(itemDatas))
+            );
+        }
     }
 }

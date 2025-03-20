@@ -145,6 +145,7 @@ public record IconDef(
                     itemOut.OutputMethod != null
                     && !methodNames.Contains(itemOut.OutputMethod)
                     && ItemQueryCache.TryGetOutputMethodItemList(qId, itemOut) is IReadOnlyList<Item> outputMethodItems
+                    && outputMethodItems.Any()
                 )
                 {
                     methodNames.Add(itemOut.OutputMethod);
@@ -153,7 +154,15 @@ public record IconDef(
             }
             if (methodNames.Any())
             {
-                items = items?.Where(allowedItems.Contains).ToList();
+                if (items == null)
+                {
+                    items = allowedItems;
+                }
+                else if (allowedItems.Count != 0)
+                {
+                    HashSet<string> allowed = allowedItems.Select(item => item.QualifiedItemId).ToHashSet();
+                    items = items?.Where((item) => allowed.Contains(item.QualifiedItemId)).ToList();
+                }
                 notes = methodNames.ToList();
                 notes.Sort();
             }
@@ -161,7 +170,9 @@ public record IconDef(
 
         // context tag intentionally excluded here, since many mods put context tag for other mod's compat only
         if (items?.Count > 0 || !string.IsNullOrEmpty(condition) || notes?.Count > 0)
+        {
             return new IconDef(items, motr.RequiredCount, contextTags, condition, Notes: notes);
+        }
         return null;
     }
 
@@ -368,11 +379,6 @@ public sealed record RuleDef(
         sb.Append(Input.ToString());
         sb.Append('\n');
         sb.AppendJoin(',', Outputs.Select(outp => outp.ToString()));
-        if (SharedFuel != null)
-        {
-            sb.Append('\n');
-            sb.AppendJoin(',', Outputs.Select(outp => outp.ToString()));
-        }
         return sb.ToString();
     }
 #endif
