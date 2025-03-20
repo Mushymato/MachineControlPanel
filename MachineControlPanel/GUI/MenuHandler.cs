@@ -1,6 +1,7 @@
 using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
 using StardewModdingAPI;
+using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
@@ -33,10 +34,9 @@ internal static class MenuHandler
 
     internal static void ShowMachineSelect()
     {
-        Game1.activeClickableMenu = viewEngine.CreateMenuFromAsset(
-            VIEW_ASSET_MACHINE_SELECT,
-            new MachineSelectContext()
-        );
+        MachineSelectContext msc = new();
+        ModEntry.SaveDataWritten += msc.UpdateBackgroundTintOnAllMachineCells;
+        Game1.activeClickableMenu = viewEngine.CreateMenuFromAsset(VIEW_ASSET_MACHINE_SELECT, msc);
     }
 
     internal static bool ShowControlPanel(Item machine, bool asChildMenu = false)

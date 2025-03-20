@@ -19,6 +19,21 @@ public sealed partial record MachineSelectCell(string QId, MachineData Data, Ite
     [Notify]
     private Color backgroundTint = Color.White * 0.5f;
 
+    public void UpdateBackgroundTint()
+    {
+        if (
+            ModEntry.SaveData.TryGetModSaveDataEntry(QId, null, out _)
+            || ModEntry.SaveData.TryGetModSaveDataEntry(QId, MenuHandler.GlobalToggle.LocationKey, out _)
+        )
+        {
+            BackgroundTint = Color.White;
+        }
+        else
+        {
+            BackgroundTint = Color.White * 0.5f;
+        }
+    }
+
     public void ShowControlPanel() => MenuHandler.ShowControlPanel(Machine, asChildMenu: true);
 }
 
@@ -26,42 +41,57 @@ public sealed partial record MachineSelectCell(string QId, MachineData Data, Ite
 public sealed partial class MachineSelectContext
 {
     /// <summary>All machine data, loaded everytime menu is opened</summary>
-    private readonly Dictionary<string, MachineData> allMachines = MachineRuleCache.Machines;
-
     public GlobalToggleContext GlobalToggle => MenuHandler.GlobalToggle;
 
     [Notify]
     private string searchText = "";
 
-    public IEnumerable<MachineSelectCell> MachineCells
+    public static IEnumerable<MachineSelectCell> GetMachineCells()
+    {
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        foreach ((string key, MachineData value) in MachineRuleCache.Machines)
+        {
+            if (ItemRegistry.Create(key) is not Item machine)
+                continue;
+            if ((MachineRuleCache.CreateRuleDefList(key)?.Count ?? 0) == 0)
+                continue;
+            yield return new(key, value, machine);
+        }
+        ModEntry.Log($"Build MachineCells in in {stopwatch.Elapsed}");
+    }
+
+    private readonly IEnumerable<MachineSelectCell> machineCells = GetMachineCells();
+
+    public IEnumerable<MachineSelectCell> MachineCellsFiltered
     {
         get
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
             int hidden = 0;
             string searchText = SearchText;
-            foreach ((string key, MachineData value) in allMachines)
+            foreach (MachineSelectCell cell in machineCells)
             {
-                if (ItemRegistry.Create(key) is not Item machine)
-                    continue;
-                if ((MachineRuleCache.CreateRuleDefList(key)?.Count ?? 0) == 0)
-                    continue;
                 if (
                     !string.IsNullOrEmpty(searchText)
-                    && !machine.DisplayName.ContainsIgnoreCase(searchText)
-                    && !machine.QualifiedItemId.ContainsIgnoreCase(searchText)
+                    && !cell.Machine.DisplayName.ContainsIgnoreCase(searchText)
+                    && !cell.Machine.QualifiedItemId.ContainsIgnoreCase(searchText)
                 )
                     continue;
-                if (ModEntry.Config.ProgressionMode && !PlayerProgressionCache.HasItem(key))
+                if (ModEntry.Config.ProgressionMode && !PlayerProgressionCache.HasItem(cell.QId))
                 {
                     hidden++;
                     continue;
                 }
-                yield return new MachineSelectCell(key, value, machine);
+                cell.UpdateBackgroundTint();
+                yield return cell;
             }
             HiddenByProgressionCount = hidden;
-            ModEntry.Log($"Build MachineCells in in {stopwatch.Elapsed}");
         }
+    }
+
+    public void UpdateBackgroundTintOnAllMachineCells(object? sender, EventArgs? e)
+    {
+        // weird INPC nonsense means just calling UpdateBackgroundTint does nothing, this works though
+        OnPropertyChanged(new(nameof(MachineCellsFiltered)));
     }
 
     [Notify]
