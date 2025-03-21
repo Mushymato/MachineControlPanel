@@ -1,7 +1,10 @@
 <lane orientation="vertical" horizontal-content-alignment="end">
   <lane orientation="horizontal" padding="0,46,26,-16" vertical-content-alignment="end">
+    <frame background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="60px 60px">
+      <checkbox is-checked={<>ToggleAll} margin="12"/>
+    </frame>
     <include name="mushymato.MachineControlPanel/views/includes/global-toggle" *context={:GlobalToggle}/>
-    <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="300px 60px" text-color="#43111B" focusable="true"/>
+    <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="240px 60px" text-color="#43111B" focusable="true"/>
   </lane>
   <frame layout="1244px 90%[580..]"
     background={@Mods/StardewUI/Sprites/MenuBackground}
@@ -58,8 +61,7 @@
         <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="stretch content" margin="0,0,8,0" fit="Stretch"/>
         <grid *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
           <panel *repeat={InputItemsFiltered} tooltip={:Tooltip} left-click=|ToggleState()| focusable="true">
-            <image *repeat={:SpriteLayers} sprite={:Sprite} tint={:Tint} padding={:Padding}
-              layout="64px 64px" 
+            <image *repeat={:SpriteLayers} sprite={:Sprite} tint={^Tint} padding={:Padding} layout={:Layout}
               margin="6"
               focusable="true"
               +hover:scale="1.1"

@@ -343,6 +343,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         {
             ControlPanelContext context = new(machine, ruleDefs);
             MenuHandler.GlobalToggle.PropertyChanged += context.RecheckSavedStates;
+            context.PropertyChanged += context.ToggleAllInThisPage;
             context.RecheckSavedStates();
             return context;
         }
@@ -380,6 +381,29 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
             CheckInputIconActiveState(InputItems);
         }
         PageIndex = page;
+    }
+
+    [Notify]
+    private bool toggleAll = true;
+
+    private void ToggleAllInThisPage(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(ToggleAll))
+            return;
+        if (pageIndex == 1)
+        {
+            foreach (var rie in ruleEntries.Values)
+            {
+                rie.State = toggleAll;
+            }
+        }
+        else
+        {
+            foreach (var inputIcon in InputItems)
+            {
+                inputIcon.State = toggleAll;
+            }
+        }
     }
 
     public ValueTuple<int, int, int, int> TabMarginRules => PageIndex == 1 ? new(0, 0, 0, 0) : new(0, 0, 0, 8);
