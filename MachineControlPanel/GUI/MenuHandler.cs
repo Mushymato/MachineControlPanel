@@ -16,7 +16,8 @@ internal static class MenuHandler
     internal static string VIEW_ASSET_CONTROL_PANEL = null!;
     internal static string VIEW_ASSET_SUBITEM_GRID = null!;
     private static readonly PerScreen<Item?> hoveredItem = new();
-    private static readonly PerScreen<WeakReference<MachineSelectContext?>> machineSelectContext = new();
+
+    // private static readonly PerScreen<WeakReference<MachineSelectContext?>> machineSelectContext = new();
     internal static Item? HoveredItem
     {
         get => hoveredItem.Value;
@@ -47,8 +48,7 @@ internal static class MenuHandler
     internal static void ShowMachineSelect()
     {
         MachineSelectContext msc = new();
-        machineSelectContext.Value.SetTarget(msc);
-        ModEntry.SaveDataWritten += msc.UpdateBackgroundTintOnAllMachineCells;
+        ModEntry.SavedMachineRules += msc.UpdateBackgroundTint;
         Game1.activeClickableMenu = viewEngine.CreateMenuFromAsset(VIEW_ASSET_MACHINE_SELECT, msc);
     }
 

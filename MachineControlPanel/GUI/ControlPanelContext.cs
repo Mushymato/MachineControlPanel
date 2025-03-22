@@ -508,9 +508,27 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     private List<InputIcon> InputItems => inputItems ??= GetInputItems();
     public bool HasInputs => InputItems.Any();
     public IEnumerable<InputIcon> InputItemsFiltered =>
-        InputItems.Where((ipt) => string.IsNullOrEmpty(SearchText) || ipt.InputItem.DisplayName.Contains(SearchText));
-    public QualityStar[] QualityStars =>
-        [new QualityStar(0), new QualityStar(1), new QualityStar(2), new QualityStar(4)];
+        InputItems.Where(
+            (ipt) =>
+                string.IsNullOrEmpty(SearchText) || ipt.InputItem.DisplayName.ToLower().Contains(SearchText.ToLower())
+        );
+
+    public QualityStar[] GetQualityStars()
+    {
+        QualityStar[] qstars = [new QualityStar(0), new QualityStar(1), new QualityStar(2), new QualityStar(4)];
+        foreach (var qs in qstars)
+        {
+            qs.State = ModEntry.SaveData.QualityState(
+                Machine.QualifiedItemId,
+                MenuHandler.GlobalToggle.LocationKey,
+                qs.Quality
+            );
+        }
+        return qstars;
+    }
+
+    private QualityStar[]? qualityStars = null;
+    public QualityStar[] QualityStars => qualityStars ??= GetQualityStars();
 
     public void Update(TimeSpan elapsed) => HoverRuleEntry?.UpdateCaret(elapsed);
 
@@ -574,7 +592,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
             locationKey,
             ruleEntries.Where(kv => !kv.Value.State).Select(kv => kv.Key),
             InputItems.Where(v => !v.State).Select(v => v.InputItem.QualifiedItemId),
-            [!QualityStars[0].State, !QualityStars[1].State, !QualityStars[2].State, !QualityStars[3].State]
+            [!QualityStars[0].State, !QualityStars[1].State, !QualityStars[2].State, false, !QualityStars[3].State]
         );
 
     internal void Closing()

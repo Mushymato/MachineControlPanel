@@ -12,7 +12,7 @@
         background-tint={BackgroundTint}
         tooltip={:Tooltip}
         pointer-enter=|^SetHover(this)|
-        pointer-enter=|^SetHover()|
+        pointer-leave=|^SetHover()|
         left-click=|ShowControlPanel()|
         focusable="true"
         padding="16,20,16,12"

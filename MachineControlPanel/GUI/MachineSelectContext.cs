@@ -57,15 +57,18 @@ public sealed partial class MachineSelectContext
                 continue;
             if ((MachineRuleCache.CreateRuleDefList(key)?.Count ?? 0) == 0)
                 continue;
-            ModEntry.Log($"Build {key} in {subStop.Elapsed}");
+            MachineSelectCell cell = new(key, value, machine);
+            cell.UpdateBackgroundTint();
+            yield return cell;
+            if (subStop.ElapsedMilliseconds > 200)
+                ModEntry.Log($"Build MachineSelectCell Slow: '{key}' took {subStop.Elapsed}");
             subStop.Restart();
-            yield return new(key, value, machine);
-            ModEntry.Log($"Build {key} MachineSelectCell in {subStop.Elapsed}");
         }
         ModEntry.Log($"Build MachineSelectCells in {stopwatch.Elapsed}");
     }
 
-    private readonly IEnumerable<MachineSelectCell> machineCells = GetMachineCells();
+    private readonly Dictionary<string, MachineSelectCell> machineCells = GetMachineCells()
+        .ToDictionary(cell => cell.QId, cell => cell);
 
     public IEnumerable<MachineSelectCell> MachineCellsFiltered
     {
@@ -73,7 +76,7 @@ public sealed partial class MachineSelectContext
         {
             int hidden = 0;
             string searchText = SearchText;
-            foreach (MachineSelectCell cell in machineCells)
+            foreach (MachineSelectCell cell in machineCells.Values)
             {
                 if (
                     !string.IsNullOrEmpty(searchText)
@@ -86,20 +89,21 @@ public sealed partial class MachineSelectContext
                     hidden++;
                     continue;
                 }
-                cell.UpdateBackgroundTint();
                 yield return cell;
             }
             HiddenByProgressionCount = hidden;
         }
     }
 
-    public void UpdateBackgroundTintOnAllMachineCells(object? sender, EventArgs? e)
-    {
-        // weird INPC nonsense means just calling UpdateBackgroundTint does nothing, this works though
-        // OnPropertyChanged(new(nameof(MachineCellsFiltered)));
-    }
-
     public void SetHover(MachineSelectCell? cell = null) => MenuHandler.HoveredItem = cell?.Machine;
+
+    internal void UpdateBackgroundTint(object? sender, string e)
+    {
+        if (machineCells.TryGetValue(e, out MachineSelectCell? cell))
+        {
+            cell.UpdateBackgroundTint();
+        }
+    }
 
     [Notify]
     public int hiddenByProgressionCount = 0;

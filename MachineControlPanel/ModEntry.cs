@@ -32,7 +32,7 @@ public class ModEntry : Mod
     private const string SAVEDATA_ENTRY = "save-machine-rules-entry";
     internal static ModSaveData SaveData { get; private set; } = null!;
     internal static IModHelper help = null!;
-    public static event EventHandler<EventArgs?>? SaveDataWritten;
+    public static event EventHandler<string>? SavedMachineRules;
 
     public override void Entry(IModHelper helper)
     {
@@ -199,7 +199,6 @@ public class ModEntry : Mod
                 SaveData.ClearInvalidData();
             SaveData.Version = ModManifest.Version;
             Helper.Data.WriteSaveData(SAVEDATA, SaveData);
-            SaveDataWritten?.Invoke(null, new());
         }
         catch (InvalidOperationException)
         {
@@ -256,7 +255,7 @@ public class ModEntry : Mod
             modIDs: [ModId]
         );
         help.Data.WriteSaveData(SAVEDATA, SaveData);
-        SaveDataWritten?.Invoke(null, new());
+        SavedMachineRules?.Invoke(null, bigCraftableId);
     }
 
     /// <summary>
@@ -272,7 +271,6 @@ public class ModEntry : Mod
             return;
         }
         Helper.Data.WriteSaveData<ModSaveData>(SAVEDATA, null);
-        SaveDataWritten?.Invoke(null, new());
         SaveData = new() { Version = ModManifest.Version };
     }
 

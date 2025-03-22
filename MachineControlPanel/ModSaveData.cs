@@ -242,4 +242,14 @@ public sealed class ModSaveData
             return !msd.Inputs.Contains(inputId);
         return true;
     }
+
+    internal bool QualityState(string qId, string? location, int quality)
+    {
+        if (TryGetModSaveDataEntry(qId, location, out ModSaveDataEntry? msd))
+        {
+            if (msd.Quality.Length > quality)
+                return !msd.Quality[quality];
+        }
+        return true;
+    }
 }
