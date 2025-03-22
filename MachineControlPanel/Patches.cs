@@ -1,8 +1,11 @@
+using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using MachineControlPanel.GUI;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Machines;
+using StardewValley.Menus;
 
 namespace MachineControlPanel;
 
@@ -16,6 +19,8 @@ internal static class Patches
         Input = 2,
         Quality = 3,
     }
+
+    private static MethodInfo LAItemLookupProviderBuildSubject = null!;
 
     /// <summary>Hold skip reason, here is hoping single thread means its safe lol</summary>
     private static SkipReason skipped = SkipReason.None;
@@ -37,6 +42,51 @@ internal static class Patches
         );
         ModEntry.Log($"Applied SObject.PlaceInMachine Transpiler", LogLevel.Trace);
 
+        // lookup anything patch
+        try
+        {
+            var modInfo = ModEntry.help.ModRegistry.Get("Pathoschild.LookupAnything");
+            if (modInfo?.GetType().GetProperty("Mod")?.GetValue(modInfo) is IMod mod)
+            {
+                if (
+                    mod.GetType()
+                        .Assembly.GetType(
+                            "Pathoschild.Stardew.LookupAnything.Framework.Lookups.Items.ItemLookupProvider"
+                        )
+                        is Type LAItemLookupProviderType
+                    && AccessTools.Method(LAItemLookupProviderType, "GetSubject")
+                        is MethodInfo LAItemLookupProviderGetTargets
+                    && (
+                        LAItemLookupProviderBuildSubject = AccessTools.DeclaredMethod(
+                            LAItemLookupProviderType,
+                            "BuildSubject",
+                            [typeof(Item), null, typeof(GameLocation), typeof(bool)]
+                        )
+                    ) != null
+                )
+                {
+                    ModEntry.Log(
+                        $"Patching LookupAnything: {LAItemLookupProviderGetTargets}::{LAItemLookupProviderGetTargets}"
+                    );
+                    harmony.Patch(
+                        original: LAItemLookupProviderGetTargets,
+                        postfix: new HarmonyMethod(typeof(Patches), nameof(ItemLookupProvider_GetSubject_Postfix))
+                    );
+                }
+                else
+                {
+                    foreach (Type type in typeof(Game1).Assembly.GetTypes())
+                    {
+                        ModEntry.Log(type.ToString());
+                    }
+                }
+            }
+        }
+        catch
+        {
+            ModEntry.Log("Failed to patch lookup anything ItemLookupProvider.GetSubject");
+        }
+
         // non-vital patches
         harmony.Patch(
             original: AccessTools.DeclaredMethod(typeof(SObject), nameof(SObject.OutputDeconstructor)),
@@ -45,6 +95,19 @@ internal static class Patches
                 priority: Priority.VeryLow
             )
         );
+    }
+
+    private static void ItemLookupProvider_GetSubject_Postfix(object __instance, ref object __result)
+    {
+        // this.BuildSubject(item, ObjectContext.Inventory, null);
+        // Pathoschild.Stardew.LookupAnything.Framework.Lookups.Items.ItemSubject
+
+        if (__result != null)
+            return;
+        var res = LAItemLookupProviderBuildSubject.Invoke(__instance, [MenuHandler.HoveredItem, 2, null]);
+        ModEntry.Log($"{__result} -> {res}");
+        if (res != null)
+            __result = res;
     }
 
     private static bool ShouldSkipMachineInputEntry(

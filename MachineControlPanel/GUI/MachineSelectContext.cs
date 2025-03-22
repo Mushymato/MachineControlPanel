@@ -49,15 +49,20 @@ public sealed partial class MachineSelectContext
     public static IEnumerable<MachineSelectCell> GetMachineCells()
     {
         Stopwatch stopwatch = Stopwatch.StartNew();
+        Stopwatch subStop = new();
         foreach ((string key, MachineData value) in MachineRuleCache.Machines)
         {
+            subStop.Restart();
             if (ItemRegistry.Create(key) is not Item machine)
                 continue;
             if ((MachineRuleCache.CreateRuleDefList(key)?.Count ?? 0) == 0)
                 continue;
+            ModEntry.Log($"Build {key} in {subStop.Elapsed}");
+            subStop.Restart();
             yield return new(key, value, machine);
+            ModEntry.Log($"Build {key} MachineSelectCell in {subStop.Elapsed}");
         }
-        ModEntry.Log($"Build MachineCells in in {stopwatch.Elapsed}");
+        ModEntry.Log($"Build MachineSelectCells in {stopwatch.Elapsed}");
     }
 
     private readonly IEnumerable<MachineSelectCell> machineCells = GetMachineCells();
@@ -91,8 +96,10 @@ public sealed partial class MachineSelectContext
     public void UpdateBackgroundTintOnAllMachineCells(object? sender, EventArgs? e)
     {
         // weird INPC nonsense means just calling UpdateBackgroundTint does nothing, this works though
-        OnPropertyChanged(new(nameof(MachineCellsFiltered)));
+        // OnPropertyChanged(new(nameof(MachineCellsFiltered)));
     }
+
+    public void SetHover(MachineSelectCell? cell = null) => MenuHandler.HoveredItem = cell?.Machine;
 
     [Notify]
     public int hiddenByProgressionCount = 0;

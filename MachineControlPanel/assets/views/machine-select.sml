@@ -11,6 +11,8 @@
         background={@mushymato.MachineControlPanel/sprites/cursors:shopBg}
         background-tint={BackgroundTint}
         tooltip={:Tooltip}
+        pointer-enter=|^SetHover(this)|
+        pointer-enter=|^SetHover()|
         left-click=|ShowControlPanel()|
         focusable="true"
         padding="16,20,16,12"

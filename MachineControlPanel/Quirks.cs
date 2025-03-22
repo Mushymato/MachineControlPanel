@@ -34,7 +34,7 @@ internal static class Quirks
         {
             if (buckets.TryGetValue(hashMD5, out int i))
             {
-                buckets[hashMD5] = i++;
+                buckets[hashMD5]++;
                 return $"{hashMD5}-{i}";
             }
             buckets[hashMD5] = 0;

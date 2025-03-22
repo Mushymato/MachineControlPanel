@@ -31,7 +31,7 @@ public class ModEntry : Mod
     /// </summary>
     private const string SAVEDATA_ENTRY = "save-machine-rules-entry";
     internal static ModSaveData SaveData { get; private set; } = null!;
-    private static IModHelper help = null!;
+    internal static IModHelper help = null!;
     public static event EventHandler<EventArgs?>? SaveDataWritten;
 
     public override void Entry(IModHelper helper)
