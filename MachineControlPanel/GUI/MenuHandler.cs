@@ -37,23 +37,21 @@ internal static class MenuHandler
 #if DEBUG
         viewEngine.EnableHotReloadingWithSourceSync();
 #endif
-        helper.Events.Display.MenuChanged += OnMenuChanged;
-    }
-
-    private static void OnMenuChanged(object? sender, MenuChangedEventArgs e)
-    {
-        hoveredItem.Value = null;
     }
 
     internal static void ShowMachineSelect()
     {
-        MachineSelectContext msc = new();
-        ModEntry.SavedMachineRules += msc.UpdateBackgroundTint;
-        Game1.activeClickableMenu = viewEngine.CreateMenuFromAsset(VIEW_ASSET_MACHINE_SELECT, msc);
+        hoveredItem.Value = null;
+        MachineSelectContext context = new();
+        ModEntry.SavedMachineRules += context.UpdateBackgroundTint;
+        var menuCtrl = viewEngine.CreateMenuControllerFromAsset(VIEW_ASSET_MACHINE_SELECT, context);
+        menuCtrl.Closing += context.Closing;
+        Game1.activeClickableMenu = menuCtrl.Menu;
     }
 
     internal static bool ShowControlPanel(Item machine, bool asChildMenu = false)
     {
+        hoveredItem.Value = null;
         if (ControlPanelContext.TryCreate(machine) is not ControlPanelContext context)
             return false;
         if (!context.HasInputs)
@@ -67,7 +65,7 @@ internal static class MenuHandler
         return true;
     }
 
-    internal static void ShowSubItemGrid(IList<SubItemIcon>? itemDatas)
+    internal static void ShowSubItemGrid(string title, IList<SubItemIcon>? itemDatas)
     {
         if (itemDatas == null)
             return;
@@ -76,13 +74,13 @@ internal static class MenuHandler
         if (Game1.activeClickableMenu.GetChildMenu() is IClickableMenu childMenu)
         {
             childMenu.SetChildMenu(
-                viewEngine.CreateMenuFromAsset(VIEW_ASSET_SUBITEM_GRID, new SubitemGridContext(itemDatas))
+                viewEngine.CreateMenuFromAsset(VIEW_ASSET_SUBITEM_GRID, new SubitemGridContext(title, itemDatas))
             );
         }
         else
         {
             Game1.activeClickableMenu.SetChildMenu(
-                viewEngine.CreateMenuFromAsset(VIEW_ASSET_SUBITEM_GRID, new SubitemGridContext(itemDatas))
+                viewEngine.CreateMenuFromAsset(VIEW_ASSET_SUBITEM_GRID, new SubitemGridContext(title, itemDatas))
             );
         }
     }

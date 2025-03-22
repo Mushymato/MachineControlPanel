@@ -105,6 +105,11 @@ public sealed partial class MachineSelectContext
         }
     }
 
+    internal void Closing()
+    {
+        MenuHandler.HoveredItem = null;
+    }
+
     [Notify]
     public int hiddenByProgressionCount = 0;
 

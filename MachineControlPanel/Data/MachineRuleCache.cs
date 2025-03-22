@@ -222,7 +222,7 @@ public record IconDef(
                 sb.AppendJoin('\n', Notes);
             }
             if (sb.Length > 0)
-                return sb.ToString();
+                return sb.ToString().Trim();
             return null;
         }
     }

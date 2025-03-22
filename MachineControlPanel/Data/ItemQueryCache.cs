@@ -333,7 +333,7 @@ internal static class ItemQueryCache
                                 ? id.Replace("DROP_IN_ID", Quirks.DefaultThingId)
                                     .Replace("DROP_IN_PRESERVE", Quirks.DefaultThingId)
                                     .Replace("DROP_IN_QUALITY", SObject.lowQuality.ToString())
-                                    .Replace("NEARBY_FLOWER_ID", SObject.WildHoneyPreservedId)
+                                    .Replace("NEARBY_FLOWER_ID", Quirks.DefaultThingId)
                                 : id,
                         filter: ItemQuerySearchMode.AllOfTypeItem,
                         inputItem: Quirks.DefaultThing

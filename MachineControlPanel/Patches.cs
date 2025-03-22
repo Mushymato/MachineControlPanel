@@ -5,7 +5,6 @@ using MachineControlPanel.GUI;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Machines;
-using StardewValley.Menus;
 
 namespace MachineControlPanel;
 
@@ -48,19 +47,19 @@ internal static class Patches
             var modInfo = ModEntry.help.ModRegistry.Get("Pathoschild.LookupAnything");
             if (modInfo?.GetType().GetProperty("Mod")?.GetValue(modInfo) is IMod mod)
             {
+                var assembly = mod.GetType().Assembly;
                 if (
-                    mod.GetType()
-                        .Assembly.GetType(
-                            "Pathoschild.Stardew.LookupAnything.Framework.Lookups.Items.ItemLookupProvider"
-                        )
+                    assembly.GetType("Pathoschild.Stardew.LookupAnything.Framework.Lookups.Items.ItemLookupProvider")
                         is Type LAItemLookupProviderType
                     && AccessTools.Method(LAItemLookupProviderType, "GetSubject")
                         is MethodInfo LAItemLookupProviderGetTargets
+                    && assembly.GetType("Pathoschild.Stardew.LookupAnything.Framework.Data.ObjectContext")
+                        is Type LAObjectContextType
                     && (
                         LAItemLookupProviderBuildSubject = AccessTools.DeclaredMethod(
                             LAItemLookupProviderType,
                             "BuildSubject",
-                            [typeof(Item), null, typeof(GameLocation), typeof(bool)]
+                            [typeof(Item), LAObjectContextType, typeof(GameLocation), typeof(bool)]
                         )
                     ) != null
                 )
@@ -82,9 +81,9 @@ internal static class Patches
                 }
             }
         }
-        catch
+        catch (Exception err)
         {
-            ModEntry.Log("Failed to patch lookup anything ItemLookupProvider.GetSubject");
+            ModEntry.Log($"Failed to patch lookup anything ItemLookupProvider.GetSubject:\n{err}");
         }
 
         // non-vital patches
@@ -101,13 +100,22 @@ internal static class Patches
     {
         // this.BuildSubject(item, ObjectContext.Inventory, null);
         // Pathoschild.Stardew.LookupAnything.Framework.Lookups.Items.ItemSubject
-
         if (__result != null)
             return;
-        var res = LAItemLookupProviderBuildSubject.Invoke(__instance, [MenuHandler.HoveredItem, 2, null]);
-        ModEntry.Log($"{__result} -> {res}");
-        if (res != null)
-            __result = res;
+
+        if (MenuHandler.HoveredItem is Item hoveredItem)
+        {
+            try
+            {
+                var res = LAItemLookupProviderBuildSubject.Invoke(__instance, [hoveredItem, 2, null, false]);
+                if (res != null)
+                    __result = res;
+            }
+            catch (Exception err)
+            {
+                ModEntry.Log($"Failed in ItemLookupProvider_GetSubject_Postfix:\n{err}");
+            }
+        }
     }
 
     private static bool ShouldSkipMachineInputEntry(

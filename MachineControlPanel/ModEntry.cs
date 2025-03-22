@@ -123,6 +123,11 @@ public class ModEntry : Mod
     {
         if (!Context.IsWorldReady || Game1.activeClickableMenu != null)
             return;
+        if (Config.MachineSelectKey.JustPressed())
+        {
+            MenuHandler.ShowMachineSelect();
+            return;
+        }
         if (Config.ControlPanelKey.JustPressed())
         {
             // ICursorPosition.GrabTile is unreliable with gamepad controls. Instead recreate game logic.
@@ -138,8 +143,6 @@ public class ModEntry : Mod
             )
                 return;
         }
-        if (Config.MachineSelectKey.JustPressed())
-            MenuHandler.ShowMachineSelect();
     }
 
     /// <summary>

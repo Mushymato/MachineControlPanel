@@ -15,9 +15,6 @@
     },
     "bolt": {
       "SourceRect": "36,63,9,9"
-    },
-    "plus": {
-      "SourceRect": "108,81,9,9"
     }
   }
 }

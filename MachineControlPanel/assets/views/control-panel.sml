@@ -26,10 +26,10 @@
     </lane>
     <!-- Rules -->
     <scrollable *case="1" peeking="128" scrollbar-margin="8,0,0,0">
-      <grid item-layout="length: 88" padding="4,4" horizontal-item-alignment="middle">
+      <grid pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()| item-layout="length: 88" padding="4,4" horizontal-item-alignment="middle">
         <lane *repeat={RuleEntriesFiltered}
           pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
-          pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|
+          pointer-leave=|~ControlPanelContext.SetHoverRule()|
           opacity={Opacity}
           orientation="vertical" margin="8"
           horizontal-content-alignment="middle">
@@ -39,9 +39,7 @@
           <spacer layout={:InputSpacerLayout}/>
           <image sprite={SpinningCaret}
             layout="36px 36px"
-            margin="18,12,18,12"
-            +hover:scale="1.1"
-            +transition:scale="100ms EaseInSine"/>
+            margin="18,12,18,12"/>
           <rule-icon *repeat={:Outputs} />
         </lane>
       </grid>
@@ -54,23 +52,22 @@
             layout="24px 24px"
             margin="4"
             focusable="true"
-            left-click=|ToggleState()|
-            +hover:scale="1.1"
-            +transition:scale="100ms EaseInSine"/>
+            left-click=|ToggleState()|/>
         </lane>
         <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="stretch content" margin="0,0,8,0" fit="Stretch"/>
-        <grid *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
-          <panel *repeat={InputItemsFiltered} tooltip={:Tooltip} left-click=|ToggleState()| focusable="true">
+        <grid pointer-leave=|~ControlPanelContext.SetHoverInput()| *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
+          <panel *repeat={InputItemsFiltered} tooltip={:Tooltip}
+            left-click=|ToggleState()|
+            pointer-enter=|~ControlPanelContext.SetHoverInput(this)|
+            focusable="true">
             <image *repeat={:SpriteLayers} sprite={:Sprite} tint={^Tint} padding={:Padding} layout={:Layout}
               margin="6"
-              focusable="true"
-              +hover:scale="1.1"
-              +transition:scale="100ms EaseInSine"/>
+              focusable="true"/>
           </panel>
         </grid>
       </lane>
     </scrollable>
-</frame>
+  </frame>
 </lane>
 
 <template name="tab-label">
@@ -86,12 +83,17 @@
 </template>
 
 <template name="rule-icon">
-  <panel tooltip={:Tooltip} left-click=|ShowSubItemGrid()| focusable="true" padding="4" >
+  <panel tooltip={:Tooltip}
+    left-click=|ShowSubItemGrid()|
+    right-click=|ShowByproductsGrid()|
+    pointer-enter=|~ControlPanelContext.SetHoverRule(this)|
+    focusable="true"
+    padding="4" >
     <image *repeat={:SpriteLayers} sprite={:Sprite} tint={:Tint} padding={:Padding} layout={:Layout} margin="2" +state:enabled={:^IsMulti} +state:enabled:opacity="0.6"/>
     <image *if={:IsMulti} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 27px" />
     <panel layout="stretch stretch" horizontal-content-alignment="end" vertical-content-alignment="start">
       <image *if={:IsFuel} sprite={@mushymato.MachineControlPanel/sprites/emojis:bolt} layout="27px 27px"/>
-      <image *repeat={:EMCByProductOneItem} sprite={:Sprite} tint={:Tint} padding={:Padding} layout={:Layout}/>
+      <image *repeat={:EMCByproductReprItem} sprite={:Sprite} tint={:Tint} padding={:Padding} layout={:Layout}/>
     </panel>
     <panel *if={:HasQualityStar} layout="stretch stretch" horizontal-content-alignment="start" vertical-content-alignment="end">
       <image sprite={:QualityStar} layout="24px 24px"/>

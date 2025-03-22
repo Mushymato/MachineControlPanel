@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PropertyChanged.SourceGenerator;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
+using StardewValley.Menus;
 using StardewValley.Objects;
 
 namespace MachineControlPanel.GUI;
@@ -54,12 +55,6 @@ public record SpriteLayer(SDUISprite Sprite, Color Tint, string Layout, SDUIEdge
             );
         }
     }
-}
-
-public sealed record SubItemIcon(Item Item)
-{
-    public IEnumerable<SpriteLayer> SpriteLayers => SpriteLayer.FromItem(Item);
-    public readonly SDUITooltipData Tooltip = new(Item.getDescription(), Item.DisplayName, Item);
 }
 
 public sealed partial record InputIcon(Item InputItem)
@@ -144,18 +139,20 @@ public record RuleIcon(IconDef IconDef)
 
     public IEnumerable<SpriteLayer> SpriteLayers => SpriteLayer.FromItem(ReprItem);
 
-    public IEnumerable<SpriteLayer> EMCByProductOneItem
+    public IEnumerable<SpriteLayer> EMCByproductReprItem
     {
         get
         {
-            if (
-                IconDef is IconOutputDef iod
-                && iod.EMCByproduct?.Count == 1
-                && iod.EMCByproduct?.FirstOrDefault()?.Items?.Count == 1
-                && iod.EMCByproduct?.FirstOrDefault()?.Items?.FirstOrDefault() is Item byproductItem
-            )
+            if (IconDef is IconOutputDef iod && iod.EMCByproduct != null)
             {
-                return SpriteLayer.FromItem(byproductItem, 2);
+                if (iod.EMCByproduct.Count == 1 && iod.EMCByproduct.FirstOrDefault()?.Items?.Count == 1)
+                {
+                    return SpriteLayer.FromItem(iod.EMCByproduct?.FirstOrDefault()?.Items?.FirstOrDefault(), 2);
+                }
+                else if (iod.EMCByproduct.Count > 1)
+                {
+                    return [SpriteLayer.FromSprite(new(ChatBox.emojiTexture, new Rectangle(108, 81, 9, 9)), width: 32)];
+                }
             }
             return [];
         }
@@ -187,8 +184,7 @@ public record RuleIcon(IconDef IconDef)
     public int Count => IconDef.Count;
     public bool ShowCount => Count > 1;
 
-    public bool IsMulti => SubItems?.Count() > 1;
-    public float Opacity => IsMulti ? 0.6f : 1f;
+    public bool IsMulti => IconDef.Items?.Count > 1;
 
     public bool HasQualityStar => QualityStar != null;
     public Tuple<Texture2D, Rectangle>? QualityStar =>
@@ -201,25 +197,29 @@ public record RuleIcon(IconDef IconDef)
         };
 
     public bool IsFuel => IconDef.IsFuel;
-    private IList<SubItemIcon>? SubItems
-    {
-        get
-        {
-            if (IconDef.Items != null && IconDef.Items.Count > 1)
-                return IconDef.Items.Select(item => new SubItemIcon(item)).ToList();
-            else if (IconDef is IconOutputDef iod && iod.EMCByproduct != null && iod.EMCByproduct.Count > 1)
-                return iod
-                    .EMCByproduct.SelectMany(iconD => (iconD.Items ?? []).Select(item => new SubItemIcon(item)))
-                    .ToList();
-            return null;
-        }
-    }
 
     public void ShowSubItemGrid()
     {
-        if (EMCByProductOneItem.Any())
-            return;
-        MenuHandler.ShowSubItemGrid(SubItems);
+        if (IconDef.Items != null && IconDef.Items.Count > 1)
+        {
+            MenuHandler.ShowSubItemGrid(
+                I18n.RuleList_Items(),
+                IconDef.Items.Select(item => new SubItemIcon(item)).ToList()
+            );
+        }
+    }
+
+    public void ShowByproductsGrid()
+    {
+        if (IconDef is IconOutputDef iod && iod.EMCByproduct != null)
+        {
+            IList<Item>? byproducts = iod.EMCByproduct.SelectMany(iconD => iconD.Items ?? []).ToList();
+            if (byproducts.Count > 0)
+                MenuHandler.ShowSubItemGrid(
+                    I18n.RuleList_Byproducts(),
+                    byproducts.Select(item => new SubItemIcon(item)).ToList()
+                );
+        }
     }
 }
 
@@ -586,6 +586,11 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         }
     }
 
+    public void SetHoverRule(RuleIcon? ruleIcon = null) =>
+        MenuHandler.HoveredItem = ruleIcon == null || ruleIcon.IsMulti ? null : ruleIcon.ReprItem;
+
+    public void SetHoverInput(InputIcon? inputIcon = null) => MenuHandler.HoveredItem = inputIcon?.InputItem;
+
     internal void SaveChanges(string? locationKey) =>
         ModEntry.SaveMachineRules(
             Machine.QualifiedItemId,
@@ -598,6 +603,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     internal void Closing()
     {
         SaveChanges(MenuHandler.GlobalToggle.LocationKey);
+        MenuHandler.HoveredItem = null;
         MenuHandler.GlobalToggle.PropertyChanged -= RecheckSavedStates;
     }
 }
