@@ -40,6 +40,7 @@
     "rule-list.edited": "=",
     "rule-list.footer-note": "Only the host player can change machine settings.",
     "rule-list.search": "Search...",
+    "rule-list.no-rules": "No rules found for {{Name}}",
     "machine-select.scope.everywhere": "Everywhere",
     "machine-select.scope.current-location": "Current",
     "machine-select.hidden-by-progression-mode": "Not yet obtained machines are hidden due to \"Progression Mode\", disable it in config to see all machines.",

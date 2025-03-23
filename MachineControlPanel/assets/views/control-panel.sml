@@ -26,7 +26,34 @@
     </lane>
     <!-- Rules -->
     <scrollable *case="1" peeking="128" scrollbar-margin="8,0,0,0">
-      <grid pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()| item-layout="length: 88" padding="4,4" horizontal-item-alignment="middle">
+    
+      <lane pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|
+          layout="content[1236..] content"
+          orientation="vertical"
+          padding="4,4">
+        <panel *repeat={RuleEntriesFiltered} vertical-content-alignment="end">
+          <lane orientation="horizontal">
+            <lane *repeat={:this}
+              pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
+              pointer-leave=|~ControlPanelContext.SetHoverRule()|
+              opacity={Opacity}
+              orientation="vertical" margin="6"
+              horizontal-content-alignment="middle">
+              <checkbox *if={Active} is-checked={<>State} margin="0,12"/>
+              <spacer *!if={Active} layout="36px 56px" />
+              <rule-icon *repeat={:Inputs} />
+              <spacer layout={:InputSpacerLayout}/>
+              <image sprite={SpinningCaret}
+                layout="36px 36px"
+                margin="18,12,18,12"/>
+              <rule-icon *repeat={:Outputs} />
+            </lane>
+          </lane>
+          <image *!if={:LastRow} sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="-4,0,0,0" fit="Stretch"/>
+        </panel>
+      </lane>
+
+      <!-- <grid pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()| item-layout="length: 88" padding="4,4" horizontal-item-alignment="middle">
         <lane *repeat={RuleEntriesFiltered}
           pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
           pointer-leave=|~ControlPanelContext.SetHoverRule()|
@@ -42,7 +69,8 @@
             margin="18,12,18,12"/>
           <rule-icon *repeat={:Outputs} />
         </lane>
-      </grid>
+      </grid> -->
+
     </scrollable>
     <!-- Inputs -->
     <scrollable *case="2" peeking="128" scrollbar-margin="8,0,0,0">
@@ -52,6 +80,8 @@
             layout="24px 24px"
             margin="4"
             focusable="true"
+            +hover:scale="1.1"
+            +transition:scale="100ms EaseInSine"
             left-click=|ToggleState()|/>
         </lane>
         <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="stretch content" margin="0,0,8,0" fit="Stretch"/>
@@ -62,7 +92,9 @@
             focusable="true">
             <image *repeat={:SpriteLayers} sprite={:Sprite} tint={^Tint} padding={:Padding} layout={:Layout}
               margin="6"
-              focusable="true"/>
+              focusable="true"
+              +hover:scale="1.1"
+              +transition:scale="100ms EaseInSine"/>
           </panel>
         </grid>
       </lane>
@@ -89,8 +121,9 @@
     pointer-enter=|~ControlPanelContext.SetHoverRule(this)|
     focusable="true"
     padding="4" >
-    <image *repeat={:SpriteLayers} sprite={:Sprite} tint={:Tint} padding={:Padding} layout={:Layout} margin="2" +state:enabled={:^IsMulti} +state:enabled:opacity="0.6"/>
+    <image *repeat={:SpriteLayers} sprite={:Sprite} tint={:Tint} padding={:Padding} layout={:Layout} margin="2" opacity={:^IsMultiOpacity}/>
     <image *if={:IsMulti} sprite={@mushymato.MachineControlPanel/sprites/emojis:note} layout="27px 27px" />
+    <image *if={:HasDesc} sprite={@mushymato.MachineControlPanel/sprites/emojis:exclaim} layout="27px 27px" />
     <panel layout="stretch stretch" horizontal-content-alignment="end" vertical-content-alignment="start">
       <image *if={:IsFuel} sprite={@mushymato.MachineControlPanel/sprites/emojis:bolt} layout="27px 27px"/>
       <image *repeat={:EMCByproductReprItem} sprite={:Sprite} tint={:Tint} padding={:Padding} layout={:Layout}/>

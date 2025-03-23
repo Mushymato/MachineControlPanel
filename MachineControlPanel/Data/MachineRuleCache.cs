@@ -222,7 +222,11 @@ public record IconDef(
                 sb.AppendJoin('\n', Notes);
             }
             if (sb.Length > 0)
-                return sb.ToString().Trim();
+            {
+                string desc = sb.ToString().Trim();
+                if (string.Empty != desc)
+                    return desc;
+            }
             return null;
         }
     }
@@ -434,11 +438,24 @@ internal static class MachineRuleCache
     }
 #endif
 
+    internal static bool NoRules(string qId)
+    {
+        if (
+            !Machines.TryGetValue(qId, out MachineData? data)
+            || data.OutputRules == null
+            || data.OutputRules.Count == 0
+            || data.IsIncubator
+        )
+            return true;
+        return false;
+    }
+
     internal static IReadOnlyList<RuleIdentDefPair>? CreateRuleDefList(string qId)
     {
         if (
             !Machines.TryGetValue(qId, out MachineData? data)
             || data.OutputRules is not List<MachineOutputRule> outputRules
+            || data.OutputRules.Count == 0
             || data.IsIncubator
         )
             return null;

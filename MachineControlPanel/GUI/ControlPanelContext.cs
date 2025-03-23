@@ -185,6 +185,9 @@ public record RuleIcon(IconDef IconDef)
     public bool ShowCount => Count > 1;
 
     public bool IsMulti => IconDef.Items?.Count > 1;
+    public float IsMultiOpacity => IsMulti ? 0.6f : 1f;
+
+    public bool HasDesc => ReprItem != null && (IconDef.Condition != null || IconDef.Notes != null);
 
     public bool HasQualityStar => QualityStar != null;
     public Tuple<Texture2D, Rectangle>? QualityStar =>
@@ -424,13 +427,20 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         }
     );
 
-    public IEnumerable<RuleOutputEntry> RuleEntriesFiltered
+    public class RuleOutputEntriesRow : List<RuleOutputEntry>
+    {
+        public bool LastRow = false;
+    }
+
+    /// TODO: return this to just a list once the controller focus search on grid of lanes of focusables is fixed
+    public List<RuleOutputEntriesRow> RuleEntriesFiltered
     {
         get
         {
             int rowCnt = RULE_ITEM_ROW_CNT;
             int maxInputLength = 0;
-            List<RuleOutputEntry> ruleEntriesFiltered = [];
+            List<RuleOutputEntriesRow> ruleEntriesFiltered = [];
+            RuleOutputEntriesRow ruleEntriesFilteredRow = [];
             foreach (var rie in ruleEntries.Values)
             {
                 foreach (var output in rie.Def.Outputs)
@@ -443,28 +453,78 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
                         continue;
                     RuleOutputEntry ROE = new(rie, output);
                     ROE.SetupNotify();
-                    ruleEntriesFiltered.Add(ROE);
+                    ruleEntriesFilteredRow.Add(ROE);
                     maxInputLength = Math.Max(maxInputLength, ROE.InputLength);
                     rowCnt--;
                     if (rowCnt == 0)
                     {
                         for (int idx = RULE_ITEM_ROW_CNT; idx > 0; idx--)
                         {
-                            ruleEntriesFiltered[^idx].SpacerLength =
-                                maxInputLength - ruleEntriesFiltered[^idx].InputLength;
+                            ruleEntriesFilteredRow[^idx].SpacerLength =
+                                maxInputLength - ruleEntriesFilteredRow[^idx].InputLength;
                         }
                         rowCnt = RULE_ITEM_ROW_CNT;
                         maxInputLength = 0;
+                        ruleEntriesFiltered.Add(ruleEntriesFilteredRow);
+                        ruleEntriesFilteredRow = [];
                     }
                 }
             }
-            for (int idx = RULE_ITEM_ROW_CNT - rowCnt; idx > 0; idx--)
+            if (ruleEntriesFilteredRow.Any())
             {
-                ruleEntriesFiltered[^idx].SpacerLength = maxInputLength - ruleEntriesFiltered[^idx].InputLength;
+                for (int idx = RULE_ITEM_ROW_CNT - rowCnt; idx > 0; idx--)
+                {
+                    ruleEntriesFilteredRow[^idx].SpacerLength =
+                        maxInputLength - ruleEntriesFilteredRow[^idx].InputLength;
+                }
+                ruleEntriesFiltered.Add(ruleEntriesFilteredRow);
             }
+            ruleEntriesFiltered.Last().LastRow = true;
             return ruleEntriesFiltered;
         }
     }
+
+    // public IEnumerable<RuleOutputEntry> RuleEntriesFiltered
+    // {
+    //     get
+    //     {
+    //         int rowCnt = RULE_ITEM_ROW_CNT;
+    //         int maxInputLength = 0;
+    //         List<RuleOutputEntry> ruleEntriesFiltered = [];
+    //         foreach (var rie in ruleEntries.Values)
+    //         {
+    //             foreach (var output in rie.Def.Outputs)
+    //             {
+    //                 if (
+    //                     !string.IsNullOrEmpty(SearchText)
+    //                     && !rie.Def.Input.Match(SearchText)
+    //                     && !output.Match(SearchText)
+    //                 )
+    //                     continue;
+    //                 RuleOutputEntry ROE = new(rie, output);
+    //                 ROE.SetupNotify();
+    //                 ruleEntriesFiltered.Add(ROE);
+    //                 maxInputLength = Math.Max(maxInputLength, ROE.InputLength);
+    //                 rowCnt--;
+    //                 if (rowCnt == 0)
+    //                 {
+    //                     for (int idx = RULE_ITEM_ROW_CNT; idx > 0; idx--)
+    //                     {
+    //                         ruleEntriesFiltered[^idx].SpacerLength =
+    //                             maxInputLength - ruleEntriesFiltered[^idx].InputLength;
+    //                     }
+    //                     rowCnt = RULE_ITEM_ROW_CNT;
+    //                     maxInputLength = 0;
+    //                 }
+    //             }
+    //         }
+    //         for (int idx = RULE_ITEM_ROW_CNT - rowCnt; idx > 0; idx--)
+    //         {
+    //             ruleEntriesFiltered[^idx].SpacerLength = maxInputLength - ruleEntriesFiltered[^idx].InputLength;
+    //         }
+    //         return ruleEntriesFiltered;
+    //     }
+    // }
 
     public RuleInputEntry? HoverRuleEntry = null;
 

@@ -55,8 +55,8 @@ public sealed partial class MachineSelectContext
             subStop.Restart();
             if (ItemRegistry.Create(key) is not Item machine)
                 continue;
-            if ((MachineRuleCache.CreateRuleDefList(key)?.Count ?? 0) == 0)
-                continue;
+            // if (MachineRuleCache.NoRules(key))
+            //     continue;
             MachineSelectCell cell = new(key, value, machine);
             cell.UpdateBackgroundTint();
             yield return cell;

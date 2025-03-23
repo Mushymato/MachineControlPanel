@@ -53,7 +53,12 @@ internal static class MenuHandler
     {
         hoveredItem.Value = null;
         if (ControlPanelContext.TryCreate(machine) is not ControlPanelContext context)
+        {
+            // Game1.addHUDMessage(
+            //     new HUDMessage(I18n.RuleList_NoRules(machine.DisplayName))
+            // );
             return false;
+        }
         if (!context.HasInputs)
             context.PageIndex = (int)DefaultPageOption.Rules;
         var menuCtrl = viewEngine.CreateMenuControllerFromAsset(VIEW_ASSET_CONTROL_PANEL, context);
@@ -65,7 +70,7 @@ internal static class MenuHandler
         return true;
     }
 
-    internal static void ShowSubItemGrid(string title, IList<SubItemIcon>? itemDatas)
+    internal static void ShowSubItemGrid(string title, List<SubItemIcon>? itemDatas)
     {
         if (itemDatas == null)
             return;

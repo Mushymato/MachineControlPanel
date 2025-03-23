@@ -4,7 +4,7 @@
     <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="stretch 6px" margin="-4,2,-4,0" fit="Stretch"/>
     <scrollable peeking="128" scrollbar-margin="0,0,0,0" >
       <grid item-layout="length: 76+" horizontal-item-alignment="middle" padding="0,8,0,0">
-        <panel *repeat={:SubItems}
+        <panel *repeat={:SubItemsFiltered}
           tooltip={:Tooltip}
           pointer-enter=|^SetHover(this)|
           focusable="true">

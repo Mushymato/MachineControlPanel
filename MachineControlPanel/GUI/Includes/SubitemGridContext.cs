@@ -10,7 +10,7 @@ public sealed record SubItemIcon(Item Item)
 }
 
 /// <summary>Context for subitem grid</summary>
-public sealed record SubitemGridContext(string Header, IList<SubItemIcon> SubItems)
+public sealed record SubitemGridContext(string Header, List<SubItemIcon> SubItems)
 {
     private const int ICON_SIZE = 76;
     private const int HEADING = 38;
@@ -29,4 +29,6 @@ public sealed record SubitemGridContext(string Header, IList<SubItemIcon> SubIte
             return $"{ICON_SIZE * COL_CNT}px {neededHeight}px";
         }
     }
+
+    public List<SubItemIcon> SubItemsFiltered => SubItems.GetRange(0, Math.Min(SubItems.Count, 50));
 }
