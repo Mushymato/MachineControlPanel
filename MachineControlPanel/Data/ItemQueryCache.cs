@@ -319,7 +319,6 @@ internal static class ItemQueryCache
             {
                 itemQRes = mio
                     .RandomItemId.SelectMany(qId => ResolveMachineItemOutput(mio, qId))
-                    .Where(item => item is not null)
                     .ToList();
             }
             else
@@ -338,6 +337,7 @@ internal static class ItemQueryCache
                         filter: ItemQuerySearchMode.AllOfTypeItem,
                         inputItem: Quirks.DefaultThing
                     )
+                    .Where(item => item is not null)
                     .Select(res => ApplyMachineField(mio, res.Item))
                     .OrderBy(item => item.QualifiedItemId)
                     .ToList();

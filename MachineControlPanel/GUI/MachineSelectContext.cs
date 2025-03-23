@@ -49,20 +49,13 @@ public sealed partial class MachineSelectContext
     public static IEnumerable<MachineSelectCell> GetMachineCells()
     {
         Stopwatch stopwatch = Stopwatch.StartNew();
-        Stopwatch subStop = new();
         foreach ((string key, MachineData value) in MachineRuleCache.Machines)
         {
-            subStop.Restart();
             if (ItemRegistry.Create(key) is not Item machine)
                 continue;
-            // if (MachineRuleCache.NoRules(key))
-            //     continue;
             MachineSelectCell cell = new(key, value, machine);
             cell.UpdateBackgroundTint();
             yield return cell;
-            if (subStop.ElapsedMilliseconds > 200)
-                ModEntry.Log($"Build MachineSelectCell Slow: '{key}' took {subStop.Elapsed}");
-            subStop.Restart();
         }
         ModEntry.Log($"Build MachineSelectCells in {stopwatch.Elapsed}");
     }

@@ -31,7 +31,7 @@ public record SpriteLayer(SDUISprite Sprite, Color Tint, string Layout, SDUIEdge
         }
         int equiv64 = (int)(16 * scale);
         int equiv32 = (int)(8 * scale);
-        ParsedItemData data = ItemRegistry.GetData(reprItem.QualifiedItemId);
+        ParsedItemData data = ItemRegistry.GetDataOrErrorItem(reprItem.QualifiedItemId);
         // shirts are 8x8
         if (reprItem is Clothing clothes && clothes.clothesType.Value == Clothing.ClothesType.SHIRT)
         {

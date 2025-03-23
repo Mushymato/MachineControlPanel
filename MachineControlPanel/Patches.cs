@@ -167,6 +167,8 @@ internal static class Patches
         Item inputItem
     )
     {
+        if (trigger2 == null || machine == null || rule == null)
+            return false;
         RuleIdent ident = new(rule.Id, trigger2.Id);
         // check local
         if (
