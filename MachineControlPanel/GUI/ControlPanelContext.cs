@@ -5,6 +5,7 @@ using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PropertyChanged.SourceGenerator;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
@@ -65,7 +66,11 @@ public sealed partial record InputIcon(Item InputItem)
     [Notify]
     private bool state = true;
 
-    public void ToggleState() => State = !State;
+    public void ToggleState()
+    {
+        if (Context.IsMainPlayer)
+            State = !State;
+    }
 
     [Notify]
     private bool activeByRule = true;
@@ -100,7 +105,11 @@ public sealed partial record QualityStar(int Quality)
     [Notify]
     private bool state = true;
 
-    public void ToggleState() => State = !State;
+    public void ToggleState()
+    {
+        if (Context.IsMainPlayer)
+            State = !State;
+    }
 
     public Color? Tint
     {
@@ -277,6 +286,7 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
     }
 
     public bool Active => RIE.Active;
+    public bool ActiveAndMainPlayer => RIE.Active && Context.IsMainPlayer;
 
     public float Opacity => State && Active ? 1f : 0.6f;
 
@@ -336,6 +346,7 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
 
 public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<RuleIdentDefPair> RuleDefs)
 {
+    public bool IsMainPlayer => Context.IsMainPlayer;
     internal const int RULE_ITEM_ROW_CNT = 14;
     internal static Color DisabledColor = Color.Black * 0.8f;
     public GlobalToggleContext GlobalToggle => MenuHandler.GlobalToggle;
@@ -359,6 +370,21 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
 
     [Notify]
     public int pageIndex = (int)ModEntry.Config.DefaultPage;
+
+    public bool HandlePagingButton(SButton button)
+    {
+        switch (button)
+        {
+            case SButton.LeftTrigger:
+                ChangePage(1);
+                return true;
+            case SButton.RightTrigger:
+                ChangePage(2);
+                return true;
+            default:
+                return false;
+        }
+    }
 
     private void CheckInputIconActiveState(IEnumerable<InputIcon> inputItems)
     {
@@ -388,6 +414,8 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
 
     [Notify]
     private bool toggleAll = true;
+
+    public string ToggleAllTooltip => ToggleAll ? I18n.RuleList_DisableAll() : I18n.RuleList_EnableAll();
 
     private void ToggleAllInThisPage(object? sender, PropertyChangedEventArgs e)
     {

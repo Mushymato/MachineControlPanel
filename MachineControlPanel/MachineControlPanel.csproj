@@ -27,6 +27,7 @@
     <SMAPIDependency Include="spacechase0.GenericModConfigMenu" Required="false" />
     <SMAPIDependency Include="selph.ExtraMachineConfig" Required="false" />
     <SMAPIDependency Include="Pathoschild.ContentPatcher" Required="false" />
+    <SMAPIDependency Include="furyx639.ToolbarIcons" Required="false" />
   </ItemGroup>
 
   <ItemGroup>

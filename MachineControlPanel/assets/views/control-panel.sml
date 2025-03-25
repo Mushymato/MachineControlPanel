@@ -1,7 +1,7 @@
-<lane orientation="vertical" horizontal-content-alignment="end">
+<lane orientation="vertical" horizontal-content-alignment="end" button-press=|HandlePagingButton($Button)|>
   <lane orientation="horizontal" padding="0,46,26,-16" vertical-content-alignment="end">
-    <frame background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="60px 60px">
-      <checkbox is-checked={<>ToggleAll} margin="12"/>
+    <frame *if={:IsMainPlayer} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="60px 60px">
+      <checkbox is-checked={<>ToggleAll} tooltip={ToggleAllTooltip} margin="12"/>
     </frame>
     <include name="mushymato.MachineControlPanel/views/includes/global-toggle" *context={:GlobalToggle}/>
     <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="240px 60px" text-color="#43111B" focusable="true"/>
@@ -39,7 +39,13 @@
               opacity={Opacity}
               orientation="vertical" margin="6"
               horizontal-content-alignment="middle">
-              <checkbox *if={Active} is-checked={<>State} margin="0,12"/>
+              <panel *if={Active} margin="0,12">
+                <checkbox *if={~ControlPanelContext.IsMainPlayer} is-checked={<>State}/>
+                <panel *!if={~ControlPanelContext.IsMainPlayer} opacity="0.5">
+                  <image *if={State} sprite={@Mods/StardewUI/Sprites/CheckboxChecked} />
+                  <image *!if={State} sprite={@Mods/StardewUI/Sprites/CheckboxUnchecked} />
+                </panel>
+              </panel>
               <spacer *!if={Active} layout="36px 56px" />
               <rule-icon *repeat={:Inputs} />
               <spacer layout={:InputSpacerLayout}/>
@@ -86,7 +92,8 @@
         </lane>
         <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="stretch content" margin="0,0,8,0" fit="Stretch"/>
         <grid pointer-leave=|~ControlPanelContext.SetHoverInput()| *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
-          <panel *repeat={InputItemsFiltered} tooltip={:Tooltip}
+          <panel *if={~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFiltered}
+            tooltip={:Tooltip}
             left-click=|ToggleState()|
             pointer-enter=|~ControlPanelContext.SetHoverInput(this)|
             focusable="true">
@@ -95,6 +102,12 @@
               focusable="true"
               +hover:scale="1.1"
               +transition:scale="100ms EaseInSine"/>
+          </panel>
+          <panel *!if={~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFiltered}
+            tooltip={:Tooltip}
+            pointer-enter=|~ControlPanelContext.SetHoverInput(this)|
+            focusable="true">
+            <image *repeat={:SpriteLayers} sprite={:Sprite} tint={^Tint} padding={:Padding} layout={:Layout} margin="6"/>
           </panel>
         </grid>
       </lane>

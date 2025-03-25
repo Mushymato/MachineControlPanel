@@ -1,5 +1,6 @@
 using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
+using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
@@ -37,6 +38,20 @@ internal static class MenuHandler
 #if DEBUG
         viewEngine.EnableHotReloadingWithSourceSync();
 #endif
+
+        // iconic framework
+        if (helper.ModRegistry.GetApi<IIconicFrameworkApi>("furyx639.ToolbarIcons") is IIconicFrameworkApi ifApi)
+        {
+            ifApi.AddToolbarIcon(
+                ModEntry.ModId,
+                "LooseSprites/emojis",
+                new(72, 54, 9, 9),
+                I18n.Cmct_Action_MachineSelect_Title,
+                I18n.Cmct_Action_MachineSelect_Description,
+                ShowMachineSelect,
+                ShowControlPanelForCursorTile
+            );
+        }
     }
 
     internal static void ShowMachineSelect()
@@ -47,6 +62,18 @@ internal static class MenuHandler
         var menuCtrl = viewEngine.CreateMenuControllerFromAsset(VIEW_ASSET_MACHINE_SELECT, context);
         menuCtrl.Closing += context.Closing;
         Game1.activeClickableMenu = menuCtrl.Menu;
+    }
+
+    internal static void ShowControlPanelForCursorTile()
+    {
+        // ICursorPosition.GrabTile is unreliable with gamepad controls. Instead recreate game logic.
+        Vector2 cursorTile = Game1.currentCursorTile;
+        Point tile = Utility.tileWithinRadiusOfPlayer((int)cursorTile.X, (int)cursorTile.Y, 1, Game1.player)
+            ? cursorTile.ToPoint()
+            : Game1.player.GetGrabTile().ToPoint();
+        SObject? machine = Game1.player.currentLocation.getObjectAtTile(tile.X, tile.Y, ignorePassables: true);
+        if (machine != null && DataLoader.Machines(Game1.content).ContainsKey(machine.QualifiedItemId))
+            ShowControlPanel(machine);
     }
 
     internal static bool ShowControlPanel(Item machine, bool asChildMenu = false)

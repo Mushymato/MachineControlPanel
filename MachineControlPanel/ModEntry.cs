@@ -126,22 +126,10 @@ public class ModEntry : Mod
         if (Config.MachineSelectKey.JustPressed())
         {
             MenuHandler.ShowMachineSelect();
-            return;
         }
-        if (Config.ControlPanelKey.JustPressed())
+        else if (Config.ControlPanelKey.JustPressed())
         {
-            // ICursorPosition.GrabTile is unreliable with gamepad controls. Instead recreate game logic.
-            Vector2 cursorTile = Game1.currentCursorTile;
-            Point tile = Utility.tileWithinRadiusOfPlayer((int)cursorTile.X, (int)cursorTile.Y, 1, Game1.player)
-                ? cursorTile.ToPoint()
-                : Game1.player.GetGrabTile().ToPoint();
-            SObject? machine = Game1.player.currentLocation.getObjectAtTile(tile.X, tile.Y, ignorePassables: true);
-            if (
-                machine != null
-                && DataLoader.Machines(Game1.content).ContainsKey(machine.QualifiedItemId)
-                && MenuHandler.ShowControlPanel(machine)
-            )
-                return;
+            MenuHandler.ShowControlPanelForCursorTile();
         }
     }
 

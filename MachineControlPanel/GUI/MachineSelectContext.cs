@@ -51,6 +51,8 @@ public sealed partial class MachineSelectContext
         Stopwatch stopwatch = Stopwatch.StartNew();
         foreach ((string key, MachineData value) in MachineRuleCache.Machines)
         {
+            if (MachineRuleCache.NoRules(key))
+                continue;
             if (ItemRegistry.Create(key) is not Item machine)
                 continue;
             MachineSelectCell cell = new(key, value, machine);

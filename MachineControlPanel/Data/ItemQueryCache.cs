@@ -317,9 +317,7 @@ internal static class ItemQueryCache
         {
             if (randomItemId == null && mio.RandomItemId != null && mio.RandomItemId.Count > 0)
             {
-                itemQRes = mio
-                    .RandomItemId.SelectMany(qId => ResolveMachineItemOutput(mio, qId))
-                    .ToList();
+                itemQRes = mio.RandomItemId.SelectMany(qId => ResolveMachineItemOutput(mio, qId)).ToList();
             }
             else
             {
