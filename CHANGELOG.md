@@ -10,12 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Rewrote this entire mod to use SML instead of legacy shared library
 - Now supports per location rules
+- Added searching for rules/inputs
 - Various performance improvements
 
 ### Changed
 
 - Prefetch Caches no longer supported
-- Save on Change is now the only option, there are no longer buttons for saving.
+- Save on Change is now the only option, there are no longer buttons for saving
 
 ## [1.3.4] - 2025-01-18
 

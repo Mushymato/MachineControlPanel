@@ -20,7 +20,7 @@ Additional items required for a machine (i.e. fuel) are displayed with a "bolt" 
 
 Artisan machines, as of 1.6, operate on a priority list of rules dictating the outputs of a machine. The most common category of rules are those which trigger when player places an item into the machine. Each item is checked against rule from first to last, and the first matching rule accepts the input item and determine what the output item will be.
 
-Some rules take a number of different items, based on conditions or context tags. These are displayed as semi-transparent item with a "note" icon. The tooltip provides more info about their conditions, and clicking the icon displays all matched items. Some rules have hard to determine output items, in those cases a question mark icon is displayed instead. Question mark icon is also the placeholder for rules that don't accept input items.
+Some rules take a number of different items, based on conditions or context tags. These are displayed as semi-transparent item with a "note" icon. The tooltip provides more info about their conditions, and clicking the icon displays all matched items in a grid. Advanced conditions are marked with a exclaimation mark, and displayed in the tooltip. Some rules have hard to determine output items, in those cases a question mark icon is displayed instead. Question mark icon is also the placeholder for rules that don't accept input items.
 
 Besides the item based rules, this mod also let you turn off rules that produce without need for input, such as Coffee Maker. Disabling this type of rule may cause placed machines to not work even after enabling the rule again, until the machine in question is removed and placed again.
 
@@ -32,7 +32,7 @@ Crab Pots and Tappers seem like machines and get treated as such by automation m
 
 This page displays all items that can be put into a particular artisan machine.
 An input item is disabled by clicking on the item such that it becomes blacked out, and then pressing the save button.
-You can also prevent certain quality items from being used with the 4 quality icons at the top.
+You can also prevent certain quality items from being used with the 4 quality icons at the top, this is general and not per input item.
 
 ### Interaction between Rules and Inputs
 
@@ -42,19 +42,30 @@ For example, if the first bone items rule on the bone mill is disabled, all bone
 
 ## Global and Local
 
-Both Inputs and Rules support disabling rules and inputs for the current location only, or for everywhere in the world. This can be done by clicking the Globe icon.
+Both Inputs and Rules support disabling rules and inputs for the current location only, or for everywhere in the world. You can switch between the two mods by clicking the globe icon.
 
-When a rule/input is disabled everywhere, 
+A rule that is disabled everywhere will be disabled for current location regardless of currenct location settings.
+
+## Search
+
+There is a search box in both the machine select menu and the control panel menu.
+- In the machine select menu, this searches by machine name or qualified id.
+- In the control panel's rules page, this searches by input/output or description of rule.
+- IIn the control panel's inputs page, this searches by input item.
 
 ## Compatibility 
 
 * Machines added via [Content Patcher](https://www.nexusmods.com/stardewvalley/mods/1915) is supported by this mod.
-    * C# mods that add machines via content pipeline is also supported.
+    * C# mods that add machines via content pipeline targeting `Data/Machines` are also supported.
+* [Furniture Machines](https://www.nexusmods.com/stardewvalley/mods/31678) are supported by this mod.
 * [Extra Machine Configs](https://www.nexusmods.com/stardewvalley/mods/22256):
-    * Extra fuel and rule specific is displayed.
-    * Output byproducts are displayed with an icon on the top right of the output item.
+    * Extra fuel and rule specific output is displayed.
+    * Output byproducts are displayed with an icon on the top right of the output item. Right-click to show all byproducts.
 * Both menus in this mod supports [Lookup Anything](https://www.nexusmods.com/stardewvalley/mods/541).
-* NOT COMPATIBLE with [Producer Framework Mod](https://www.nexusmods.com/stardewvalley/mods/4970) machines, no support is planned.
+* You can open the two menus with [Iconic Framework](https://www.nexusmods.com/stardewvalley/mods/11026).
+    * Left click opens the machine select menu.
+    * Right click opens a control panel, if a valid machine is nearby.
+* __NOT COMPATIBLE__ with [Producer Framework Mod](https://www.nexusmods.com/stardewvalley/mods/4970) machines, no support is planned.
 
 ### Multiplayer
 
@@ -66,18 +77,17 @@ Only the host player is allowed to change machine rules, but everyone can open t
     * Default: Q
 * `Machine Select Key`: Press this key to open a selection menu for all machines in the game
     * Default: LeftControl+Q
-* `Save on Change`: Automatically save changes when closing the control panel or when changing pages.
 * `Progression Mode`: On the machine select page, hide not yet obtained machines.
 * `Default Page`: Page of control panel to display by default.
+* `Default Is Global`: Page of control panel to display by default.
 * `Alt Question Mark`: Use a more visible question mark icon for special outputs (previously the default icon).
-* `Prefetch Caches`: Preemptively cache relevant data to make menu open faster in game. Generally not an issue to enable, but another misbehaving mod can cause this mod to frequently reload the cache, leading to lag.
 * `Open Machine Select Menu`: Once a save is loaded, this option will display a button that opens the machine select menu, useful in case you are out of keybindings.
 
 ### Save Data
 
 Machine settings are recorded per farm in the save data, like vanilla save data this is written to the save file at end of the day and lost if you exit the game midday.
 
-In the machine selections menu, an opaque background indicates that machine has settings.
+In the machine selections menu, an opaque background indicates that machine has saved settings.
 
 ## Translations
 

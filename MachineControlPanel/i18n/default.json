@@ -9,8 +9,8 @@
     "config.open-machine-select-menu.description": "(Must load a save first)",
     // Behaviors
     "config.heading.behaviors": "Behaviors",
-    "config.save-on-change.name": "Save on Change",
-    "config.save-on-change.description": "Automatically save changes when closing the control panel or when changing pages.",
+    "config.default-is-global.name": "Default Is Global",
+    "config.save-on-change.description": "Edit global (everywhere) or by default.",
     "config.default-page.name": "Default Page",
     "config.default-page.description": "Page of control panel to display by default.",
     "config.default-page.machine-rules": "Machine Rules",
@@ -26,8 +26,6 @@
     "rule-list.special-input": "Special Input",
     "rule-list.special-output": "Special Output: {{method}}",
     // these button text can't be too long, they are fixed size on the UI
-    "rule-list.save": "Save",
-    "rule-list.reset": "Reset",
     "rule-list.rules": "Rules",
     "rule-list.inputs": "Inputs",
     "rule-list.disable-all": "Disable All",
@@ -40,7 +38,6 @@
     "rule-list.edited": "=",
     "rule-list.footer-note": "Only the host player can change machine settings.",
     "rule-list.search": "Search...",
-    "rule-list.no-rules": "No rules found for {{Name}}",
     "machine-select.scope.everywhere": "Everywhere",
     "machine-select.scope.current-location": "Current",
     "machine-select.hidden-by-progression-mode": "Not yet obtained machines are hidden due to \"Progression Mode\", disable it in config to see all machines.",

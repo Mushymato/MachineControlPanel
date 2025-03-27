@@ -78,12 +78,11 @@ internal static class MenuHandler
 
     internal static bool ShowControlPanel(Item machine, bool asChildMenu = false)
     {
+        GlobalToggle.IsGlobal = ModEntry.Config.DefaultIsGlobal;
         hoveredItem.Value = null;
         if (ControlPanelContext.TryCreate(machine) is not ControlPanelContext context)
         {
-            // Game1.addHUDMessage(
-            //     new HUDMessage(I18n.RuleList_NoRules(machine.DisplayName))
-            // );
+            ModEntry.Log($"No machine rules found for '{machine.DisplayName}'.");
             return false;
         }
         if (!context.HasInputs)

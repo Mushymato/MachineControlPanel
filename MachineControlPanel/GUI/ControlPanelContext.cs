@@ -402,7 +402,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         return null;
     }
 
-    public readonly string MachineName = Machine.DisplayName;
+    public readonly string MachineName = Context.IsMainPlayer ? Machine.DisplayName : I18n.RuleList_FooterNote();
     public readonly ParsedItemData MachineData = ItemRegistry.GetData(Machine.QualifiedItemId);
     public readonly SDUITooltipData MachineTooltip = new(Machine.getDescription(), Machine.DisplayName, Machine);
 
