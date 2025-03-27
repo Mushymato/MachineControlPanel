@@ -199,14 +199,23 @@ public record RuleIcon(IconDef IconDef)
     public bool HasDesc => ReprItem != null && (IconDef.Condition != null || IconDef.Notes != null);
 
     public bool HasQualityStar => QualityStar != null;
-    public Tuple<Texture2D, Rectangle>? QualityStar =>
-        IconDef.Quality switch
+    public Tuple<Texture2D, Rectangle>? QualityStar
+    {
+        get
         {
-            1 => new(Game1.mouseCursors, new Rectangle(338, 400, 8, 8)),
-            2 => new(Game1.mouseCursors, new Rectangle(346, 400, 8, 8)),
-            4 => new(Game1.mouseCursors, new Rectangle(346, 392, 8, 8)),
-            _ => null,
-        };
+            if (IconDef is IconOutputDef { CopyQuality: true })
+            {
+                return new(Game1.mouseCursors, new Rectangle(354, 400, 8, 8));
+            }
+            return IconDef.Quality switch
+            {
+                1 => new(Game1.mouseCursors, new Rectangle(338, 400, 8, 8)),
+                2 => new(Game1.mouseCursors, new Rectangle(346, 400, 8, 8)),
+                4 => new(Game1.mouseCursors, new Rectangle(346, 392, 8, 8)),
+                _ => null,
+            };
+        }
+    }
 
     public bool IsFuel => IconDef.IsFuel;
 
@@ -278,6 +287,7 @@ public sealed partial record RuleInputEntry(RuleDef Def)
 public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : INotifyPropertyChanged
 {
     private const int ICON_SIZE = 76;
+    private const int MAX_OUTPUT_DISPLAY = 5;
 
     public bool State
     {
@@ -306,21 +316,49 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
         }
     }
 
-    public IEnumerable<RuleIcon> Outputs
+    private IEnumerable<RuleIcon> GetOutputs()
+    {
+        yield return new(IOD);
+        if (IOD.SameGroupOutputs != null)
+            foreach (var sgoIOD in IOD.SameGroupOutputs)
+                yield return new(sgoIOD);
+    }
+
+    private List<RuleIcon>? outputs = null;
+    public bool HasOutputOverflow
     {
         get
         {
-            yield return new(IOD);
-            if (IOD.SameGroupOutputs != null)
-                foreach (var sgoIOD in IOD.SameGroupOutputs)
-                    yield return new(sgoIOD);
+            outputs ??= GetOutputs().ToList();
+            return outputs.Count > MAX_OUTPUT_DISPLAY;
         }
+    }
+    public IEnumerable<RuleIcon>? Outputs
+    {
+        get
+        {
+            outputs ??= GetOutputs().ToList();
+            if (!overflowOutputs && outputs.Count > MAX_OUTPUT_DISPLAY)
+                return outputs.GetRange(0, MAX_OUTPUT_DISPLAY);
+            return outputs;
+        }
+    }
+
+    private bool overflowOutputs = false;
+    private readonly SDUISprite PlusButton = new(Game1.mouseCursors, new Rectangle(184, 345, 7, 8));
+    private readonly SDUISprite MinusButton = new(Game1.mouseCursors, new Rectangle(177, 345, 7, 8));
+    public SDUISprite ToggleOverflowSprite => overflowOutputs ? MinusButton : PlusButton;
+
+    public void ToggleOverflowOutputs()
+    {
+        overflowOutputs = !overflowOutputs;
+        PropertyChanged?.Invoke(this, new(nameof(ToggleOverflowSprite)));
+        PropertyChanged?.Invoke(this, new(nameof(Outputs)));
     }
 
     public int InputLength => 1 + (RIE.Def.SharedFuel?.Count ?? 0) + (IOD.EMCFuel?.Count ?? 0);
     public int OutputLength => 1 + (IOD.SameGroupOutputs?.Count ?? 0);
 
-    // public int spacerLength = 0;
     public int SpacerLength = 0;
     public string InputSpacerLayout => SpacerLength > 0 ? $"{ICON_SIZE}px {ICON_SIZE * SpacerLength}px" : "0px 0px";
 
@@ -507,7 +545,8 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
                 }
                 ruleEntriesFiltered.Add(ruleEntriesFilteredRow);
             }
-            ruleEntriesFiltered.Last().LastRow = true;
+            if (ruleEntriesFiltered.Any())
+                ruleEntriesFiltered.Last().LastRow = true;
             return ruleEntriesFiltered;
         }
     }

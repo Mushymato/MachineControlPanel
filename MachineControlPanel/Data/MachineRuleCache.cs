@@ -256,10 +256,10 @@ public sealed record IconOutputDef(
     IReadOnlyList<string>? ContextTags = null,
     string? Condition = null,
     IReadOnlyList<string>? Notes = null,
-    bool IsFuel = false,
+    bool CopyQuality = false,
     IReadOnlyList<IconDef>? EMCFuel = null,
     IReadOnlyList<IconDef>? EMCByproduct = null
-) : IconDef(Items, Count, ContextTags, Condition, Notes, IsFuel)
+) : IconDef(Items, Count, ContextTags, Condition, Notes, false)
 {
     internal static IExtraMachineConfigApi? emc;
 
@@ -323,7 +323,8 @@ public sealed record IconOutputDef(
                 items[0].Stack,
                 Condition: mio.Condition,
                 EMCFuel: emcFuel,
-                EMCByproduct: emcExtraOutputs
+                EMCByproduct: emcExtraOutputs,
+                CopyQuality: mio.CopyQuality
             );
         }
         return null;

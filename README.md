@@ -40,6 +40,12 @@ Should the current rules settings completely prevent an input from being placed 
 
 For example, if the first bone items rule on the bone mill is disabled, all bone items except for bone fragments will become semi-transparent on the input page.
 
+## Global and Local
+
+Both Inputs and Rules support disabling rules and inputs for the current location only, or for everywhere in the world. This can be done by clicking the Globe icon.
+
+When a rule/input is disabled everywhere, 
+
 ## Compatibility 
 
 * Machines added via [Content Patcher](https://www.nexusmods.com/stardewvalley/mods/1915) is supported by this mod.

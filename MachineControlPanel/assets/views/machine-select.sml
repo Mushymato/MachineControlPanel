@@ -1,6 +1,5 @@
 <lane orientation="vertical" horizontal-content-alignment="middle" >
   <lane orientation="horizontal" vertical-content-alignment="middle">
-    <!-- <include name="mushymato.MachineControlPanel/views/includes/global-toggle" *context={:GlobalToggle}/> -->
     <image sprite={@mushymato.MachineControlPanel/sprites/cursors:magifyingGlass} layout="40px 40px" margin="8"/>
     <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="240px 60px" margin="0,14" text-color="#43111B" focusable="true"/>
   </lane>

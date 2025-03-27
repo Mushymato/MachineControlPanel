@@ -4,26 +4,39 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.4] - 2025-1-18
+## [2.0.0] - 2025-03-26
+
+### Added
+
+- Rewrote this entire mod to use SML instead of legacy shared library
+- Now supports per location rules
+- Various performance improvements
+
+### Changed
+
+- Prefetch Caches no longer supported
+- Save on Change is now the only option, there are no longer buttons for saving.
+
+## [1.3.4] - 2025-01-18
 
 ### Fixed
 
 - Update for StardewUI 0.6.0
 - Add a null check for Img, hopefully stop some crashes
 
-## [1.3.3] - 2025-1-18
+## [1.3.3] - 2025-01-18
 
 ### Fixed
 
 - Empty cond string
 
-## [1.3.2] - 2025-1-18
+## [1.3.2] - 2025-01-18
 
 ### Fixed
 
 - Invalid output method probes throwing error
 
-## [1.3.1] - 2025-1-17
+## [1.3.1] - 2025-01-17
 
 ### Fixed
 

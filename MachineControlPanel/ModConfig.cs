@@ -83,8 +83,8 @@ internal sealed class ModConfig
     /// <summary>Default page to use</summary>
     public DefaultPageOption DefaultPage { get; set; } = DefaultPageOption.Rules;
 
-    /// <summary>Save any changed rules when closing the menu</summary>
-    public bool SaveOnChange { get; set; } = true;
+    /// <summary>Whether menu starts in </summary>
+    public bool DefaultIsGlobal { get; set; } = true;
 
     /// <summary>On the machine selection page, hide machines the player don't not have yet.</summary>
     public bool ProgressionMode { get; set; } = true;
@@ -97,6 +97,8 @@ internal sealed class ModConfig
         ControlPanelKey = KeybindList.Parse($"{SButton.MouseLeft}, {SButton.ControllerB}");
         MachineSelectKey = KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
         DefaultPage = DefaultPageOption.Rules;
+        DefaultIsGlobal = true;
+        ProgressionMode = true;
         AltQuestionMark = false;
     }
 
@@ -147,13 +149,6 @@ internal sealed class ModConfig
         GMCM.AddSectionTitle(mod, I18n.Config_Heading_MenuAccess);
         GMCM.AddBoolOption(
             mod,
-            getValue: () => SaveOnChange,
-            setValue: (value) => SaveOnChange = value,
-            name: I18n.Config_SaveOnChange_Name,
-            tooltip: I18n.Config_SaveOnChange_Description
-        );
-        GMCM.AddBoolOption(
-            mod,
             getValue: () => ProgressionMode,
             setValue: (value) =>
             {
@@ -162,6 +157,17 @@ internal sealed class ModConfig
                     PlayerProgressionCache.Populate();
                 else
                     PlayerProgressionCache.Clear();
+            },
+            name: I18n.Config_ProgressionMode_Name,
+            tooltip: I18n.Config_ProgressionMode_Description
+        );
+        GMCM.AddBoolOption(
+            mod,
+            getValue: () => DefaultIsGlobal,
+            setValue: (value) =>
+            {
+                DefaultIsGlobal = value;
+                MenuHandler.GlobalToggle.IsGlobal = value;
             },
             name: I18n.Config_ProgressionMode_Name,
             tooltip: I18n.Config_ProgressionMode_Description

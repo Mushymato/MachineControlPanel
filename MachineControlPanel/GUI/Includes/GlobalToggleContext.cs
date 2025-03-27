@@ -7,14 +7,13 @@ namespace MachineControlPanel.GUI.Includes;
 public sealed partial class GlobalToggleContext()
 {
     [Notify]
-    public bool isGlobal = true;
+    public bool isGlobal = ModEntry.Config.DefaultIsGlobal;
 
     public void ToggleGlobalLocal()
     {
         IsGlobal = !IsGlobal;
     }
 
-    public string LocationDisplayName => Game1.currentLocation.NameOrUniqueName;
     internal string? LocationKey => IsGlobal ? null : Game1.currentLocation.NameOrUniqueName;
     internal string? NotLocationKey => !IsGlobal ? null : Game1.currentLocation.NameOrUniqueName;
 }

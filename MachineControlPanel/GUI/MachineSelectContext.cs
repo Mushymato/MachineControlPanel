@@ -40,9 +40,6 @@ public sealed partial record MachineSelectCell(string QId, MachineData Data, Ite
 /// <summary>Context for machine select</summary>
 public sealed partial class MachineSelectContext
 {
-    /// <summary>All machine data, loaded everytime menu is opened</summary>
-    public GlobalToggleContext GlobalToggle => MenuHandler.GlobalToggle;
-
     [Notify]
     private string searchText = "";
 

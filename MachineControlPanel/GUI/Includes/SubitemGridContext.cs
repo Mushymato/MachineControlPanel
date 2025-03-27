@@ -12,8 +12,8 @@ public sealed record SubItemIcon(Item Item)
 /// <summary>Context for subitem grid</summary>
 public sealed record SubitemGridContext(string Header, List<SubItemIcon> SubItems)
 {
-    private const int ICON_SIZE = 76;
-    private const int HEADING = 38;
+    private const int ICON_SIZE = 84;
+    private const int HEADING = 34;
     private const int COL_CNT = 8;
 
     public void SetHover(SubItemIcon? subItem = null) => MenuHandler.HoveredItem = subItem?.Item;
@@ -24,8 +24,8 @@ public sealed record SubitemGridContext(string Header, List<SubItemIcon> SubItem
         {
             if (SubItems.Count <= COL_CNT)
                 return $"{ICON_SIZE * Math.Max(SubItems.Count, 2)}px {ICON_SIZE + HEADING}px";
-            int neededHeight =
-                (int)Math.Min(Game1.viewport.Height * 0.6, ICON_SIZE * (1 + SubItems.Count / 8)) + HEADING;
+            int neededHeight = (int)
+                Math.Min(Game1.viewport.Height * 0.6, ICON_SIZE * Math.Ceiling((float)SubItems.Count / COL_CNT));
             return $"{ICON_SIZE * COL_CNT}px {neededHeight}px";
         }
     }

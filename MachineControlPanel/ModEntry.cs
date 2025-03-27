@@ -256,12 +256,18 @@ public class ModEntry : Mod
     /// <param name="args"></param>
     private void ConsoleResetSaveData(string command, string[] args)
     {
+        if (!Game1.IsMasterGame)
+        {
+            Log("Only the host player can use this command.", LogLevel.Error);
+            return;
+        }
         if (!Context.IsWorldReady)
         {
             Log("Must load save first.", LogLevel.Error);
             return;
         }
         Helper.Data.WriteSaveData<ModSaveData>(SAVEDATA, null);
+        help.Multiplayer.SendMessage(SaveData, SAVEDATA, modIDs: [ModManifest.UniqueID]);
         SaveData = new() { Version = ModManifest.Version };
     }
 

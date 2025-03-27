@@ -26,7 +26,6 @@
     </lane>
     <!-- Rules -->
     <scrollable *case="1" peeking="128" scrollbar-margin="8,0,0,0">
-    
       <lane pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|
           layout="content[1236..] content"
           orientation="vertical"
@@ -46,13 +45,18 @@
                   <image *!if={State} sprite={@Mods/StardewUI/Sprites/CheckboxUnchecked} />
                 </panel>
               </panel>
-              <spacer *!if={Active} layout="36px 56px" />
+              <spacer *!if={Active} layout="36px 60px" />
               <rule-icon *repeat={:Inputs} />
               <spacer layout={:InputSpacerLayout}/>
               <image sprite={SpinningCaret}
                 layout="36px 36px"
                 margin="18,12,18,12"/>
-              <rule-icon *repeat={:Outputs} />
+              <rule-icon *repeat={Outputs} />
+              <image *if={:HasOutputOverflow} left-click=|ToggleOverflowOutputs()|
+                sprite={ToggleOverflowSprite}
+                layout="28px 32px"
+                focusable="true"
+                padding="9,-2,9,8"/>
             </lane>
           </lane>
           <image *!if={:LastRow} sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="-4,0,0,0" fit="Stretch"/>
