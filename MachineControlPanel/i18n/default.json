@@ -10,7 +10,7 @@
     // Behaviors
     "config.heading.behaviors": "Behaviors",
     "config.default-is-global.name": "Default Is Global",
-    "config.save-on-change.description": "Edit global (everywhere) or by default.",
+    "config.default-is-global.description": "Edit global (everywhere) or by default.",
     "config.default-page.name": "Default Page",
     "config.default-page.description": "Page of control panel to display by default.",
     "config.default-page.machine-rules": "Machine Rules",

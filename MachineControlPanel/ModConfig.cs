@@ -169,8 +169,8 @@ internal sealed class ModConfig
                 DefaultIsGlobal = value;
                 MenuHandler.GlobalToggle.IsGlobal = value;
             },
-            name: I18n.Config_ProgressionMode_Name,
-            tooltip: I18n.Config_ProgressionMode_Description
+            name: I18n.Config_DefaultIsGlobal_Name,
+            tooltip: I18n.Config_DefaultIsGlobal_Description
         );
         GMCM.AddTextOption(
             mod,

@@ -10,7 +10,7 @@
     // Benaviors
     "config.heading.behaviors": "特性",
     "config.default-is-global.name": "默认全局",
-    "config.save-on-change.description": "默认设置全局规则",
+    "config.default-is-global.description": "默认设置全局规则",
     "config.default-page.name": "默认界面",
     "config.default-page.description": "打开控制面板后默认显示的页面",
     "config.default-page.machine-rules": "机器规则",
