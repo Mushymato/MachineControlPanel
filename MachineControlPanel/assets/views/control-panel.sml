@@ -31,7 +31,7 @@
           orientation="vertical"
           padding="4,4">
         <panel *repeat={RuleEntriesFiltered} vertical-content-alignment="end">
-          <lane orientation="horizontal">
+          <lane orientation="horizontal" margin="0,0,0,10">
             <lane *repeat={:this}
               pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
               pointer-leave=|~ControlPanelContext.SetHoverRule()|

@@ -189,7 +189,15 @@ public record IconDef(
         return null;
     }
 
-    internal static IconDef? FromEMCTagsFuel(IReadOnlyList<string> tags, int count)
+    internal static IconDef? FromEMCTagsFuelItems(IReadOnlyList<string> itemIds, int count)
+    {
+        IReadOnlyList<Item>? items = itemIds.Select(itemId => ItemRegistry.Create(itemId)).ToList();
+        if (items?.Count > 0)
+            return new IconDef(items, Count: count, IsFuel: true);
+        return null;
+    }
+
+    internal static IconDef? FromEMCTagsFuelTags(IReadOnlyList<string> tags, int count)
     {
         IReadOnlyList<Item>? items = ItemQueryCache.ResolveCondTagItems(
             tags,
@@ -295,12 +303,12 @@ public sealed record IconOutputDef(
                 emcFuel = [];
                 foreach (var fuel in emc.GetExtraRequirements(mio))
                 {
-                    if (FromEMCTagsFuel([fuel.Item1], fuel.Item2) is IconDef fuelDef)
+                    if (FromEMCTagsFuelItems([fuel.Item1], fuel.Item2) is IconDef fuelDef)
                         emcFuel.Add(fuelDef);
                 }
                 foreach (var fuel in emc.GetExtraTagsRequirements(mio))
                 {
-                    if (FromEMCTagsFuel(fuel.Item1.Split(','), fuel.Item2) is IconDef fuelDef)
+                    if (FromEMCTagsFuelTags(fuel.Item1.Split(','), fuel.Item2) is IconDef fuelDef)
                         emcFuel.Add(fuelDef);
                 }
                 if (emcFuel.Count == 0)
