@@ -155,6 +155,8 @@ public class ModEntry : Mod
     {
         if (e.Names.Any((name) => name.IsEquivalentTo("Data/Objects")))
             ItemQueryCache.Invalidate();
+        if (e.Names.Any((name) => name.IsEquivalentTo("Data/Machines")))
+            MachineRuleCache.Invalidate();
     }
 
     /// <summary>
