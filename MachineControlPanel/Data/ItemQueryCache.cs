@@ -5,10 +5,8 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Delegates;
 using StardewValley.Extensions;
-using StardewValley.GameData;
 using StardewValley.GameData.Machines;
 using StardewValley.Internal;
-using StardewValley.ItemTypeDefinitions;
 
 namespace MachineControlPanel.Data;
 

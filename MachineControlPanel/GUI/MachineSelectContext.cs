@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using MachineControlPanel.Data;
-using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
 using PropertyChanged.SourceGenerator;

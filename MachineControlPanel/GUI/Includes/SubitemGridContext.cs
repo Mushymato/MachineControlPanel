@@ -1,4 +1,5 @@
 using MachineControlPanel.Integration;
+using PropertyChanged.SourceGenerator;
 using StardewValley;
 
 namespace MachineControlPanel.GUI.Includes;
@@ -10,7 +11,7 @@ public sealed record SubItemIcon(Item Item)
 }
 
 /// <summary>Context for subitem grid</summary>
-public sealed record SubitemGridContext(string Header, List<SubItemIcon> SubItems)
+public sealed partial record SubitemGridContext(string Header, List<SubItemIcon> SubItems)
 {
     private const int ICON_SIZE = 84;
     private const int HEADING = 34;
@@ -30,5 +31,38 @@ public sealed record SubitemGridContext(string Header, List<SubItemIcon> SubItem
         }
     }
 
-    public List<SubItemIcon> SubItemsFiltered => SubItems.GetRange(0, Math.Min(SubItems.Count, 50));
+    [Notify]
+    private int paged = 1;
+
+    public List<SubItemIcon> SubItemsPaginated
+    {
+        get
+        {
+            int actualPage = Paged - 1;
+            int nextPageSize = Math.Min(
+                ModEntry.Config.GridItemsPageSize,
+                SubItems.Count - actualPage * ModEntry.Config.GridItemsPageSize
+            );
+            if (nextPageSize == 0)
+                nextPageSize = ModEntry.Config.GridItemsPageSize;
+            return SubItems.GetRange(actualPage * ModEntry.Config.GridItemsPageSize, nextPageSize);
+        }
+    }
+    public bool HasNextPage => Paged * ModEntry.Config.GridItemsPageSize < SubItems.Count;
+    public bool HasPrevPage => (Paged - 1) > 0;
+    public bool HasPagination => HasPrevPage || HasNextPage;
+
+    public void PrevPaginatedPage()
+    {
+        if (!HasPrevPage)
+            return;
+        Paged--;
+    }
+
+    public void NextPaginatedPage()
+    {
+        if (!HasNextPage)
+            return;
+        Paged++;
+    }
 }

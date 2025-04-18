@@ -24,79 +24,68 @@
       />
       <label text={:MachineName} tooltip={:MachineTooltip} font="dialogue" color="white" margin="0,24" />
     </lane>
+
     <!-- Rules -->
-    <scrollable *case="1" peeking="128" scrollbar-margin="8,0,0,0">
-      <lane pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|
-          layout="content[1236..] content"
-          orientation="vertical"
-          padding="4,4">
-        <panel *repeat={RuleEntriesFiltered} vertical-content-alignment="end">
-          <lane orientation="horizontal" margin="0,0,0,10">
-            <lane *repeat={:this}
-              pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
-              pointer-leave=|~ControlPanelContext.SetHoverRule()|
-              opacity={Opacity}
-              orientation="vertical" margin="6"
-              horizontal-content-alignment="middle">
-              <panel *if={Active} margin="0,12">
-                <checkbox *if={~ControlPanelContext.IsMainPlayer} is-checked={<>State}/>
-                <panel *!if={~ControlPanelContext.IsMainPlayer} opacity="0.5">
-                  <image *if={State} sprite={@Mods/StardewUI/Sprites/CheckboxChecked} />
-                  <image *!if={State} sprite={@Mods/StardewUI/Sprites/CheckboxUnchecked} />
+    <lane *case="1" pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()|
+        layout="content[1236..] content"
+        orientation="vertical"
+        padding="4,4">
+      <paginator has-pagination={HasRuleEntryPagination} curr-page={RuleEntriesPage} />
+      <image *if={HasRuleEntryPagination} sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="0,4,8,0" fit="Stretch"/>
+      <scrollable peeking="128" scrollbar-margin="8,0,0,0">
+        <lane orientation="vertical">
+          <panel *repeat={RuleEntriesFilteredPaginated} vertical-content-alignment="end">
+            <lane orientation="horizontal" margin="0,0,0,10">
+              <lane *repeat={:this}
+                pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
+                pointer-leave=|~ControlPanelContext.SetHoverRule()|
+                opacity={Opacity}
+                orientation="vertical" margin="6"
+                horizontal-content-alignment="middle">
+                <panel *if={Active} margin="0,12">
+                  <checkbox *if={~ControlPanelContext.IsMainPlayer} is-checked={<>State}/>
+                  <panel *!if={~ControlPanelContext.IsMainPlayer} opacity="0.5">
+                    <image *if={State} sprite={@Mods/StardewUI/Sprites/CheckboxChecked} />
+                    <image *!if={State} sprite={@Mods/StardewUI/Sprites/CheckboxUnchecked} />
+                  </panel>
                 </panel>
-              </panel>
-              <spacer *!if={Active} layout="36px 60px" />
-              <rule-icon *repeat={:Inputs} />
-              <spacer layout={:InputSpacerLayout}/>
-              <image sprite={SpinningCaret}
-                layout="36px 36px"
-                margin="18,12,18,12"/>
-              <rule-icon *repeat={Outputs} />
-              <image *if={:HasOutputOverflow} left-click=|ToggleOverflowOutputs()|
-                sprite={ToggleOverflowSprite}
-                layout="28px 32px"
-                focusable="true"
-                padding="9,-2,9,8"/>
+                <spacer *!if={Active} layout="36px 60px" />
+                <rule-icon *repeat={:Inputs} />
+                <spacer layout={:InputSpacerLayout}/>
+                <image sprite={SpinningCaret}
+                  layout="36px 36px"
+                  margin="18,12,18,12"/>
+                <rule-icon *repeat={Outputs} />
+                <image *if={:HasOutputOverflow} left-click=|ToggleOverflowOutputs()|
+                  sprite={ToggleOverflowSprite}
+                  layout="28px 32px"
+                  focusable="true"
+                  padding="9,-2,9,8"/>
+              </lane>
             </lane>
-          </lane>
-          <image *!if={:LastRow} sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="-4,0,0,0" fit="Stretch"/>
-        </panel>
-      </lane>
-
-      <!-- <grid pointer-leave=|~ControlPanelContext.HandleHoverRuleEntry()| item-layout="length: 88" padding="4,4" horizontal-item-alignment="middle">
-        <lane *repeat={RuleEntriesFiltered}
-          pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
-          pointer-leave=|~ControlPanelContext.SetHoverRule()|
-          opacity={Opacity}
-          orientation="vertical" margin="8"
-          horizontal-content-alignment="middle">
-          <checkbox *if={Active} is-checked={<>State} margin="0,8,0,12"/>
-          <spacer *!if={Active} layout="36px 56px" />
-          <rule-icon *repeat={:Inputs} />
-          <spacer layout={:InputSpacerLayout}/>
-          <image sprite={SpinningCaret}
-            layout="36px 36px"
-            margin="18,12,18,12"/>
-          <rule-icon *repeat={:Outputs} />
+            <image *!if={:LastRow} sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="-4,0,0,0" fit="Stretch"/>
+          </panel>
         </lane>
-      </grid> -->
+      </scrollable>
+    </lane>
 
-    </scrollable>
     <!-- Inputs -->
-    <scrollable *case="2" peeking="128" scrollbar-margin="8,0,0,0">
-      <lane orientation="vertical">
-        <lane orientation="horizontal" margin="16,8">
-          <image *repeat={QualityStars} sprite={:Sprite} tint={Tint}
-            layout="24px 24px"
-            margin="4"
-            focusable="true"
-            +hover:scale="1.1"
-            +transition:scale="100ms EaseInSine"
-            left-click=|ToggleState()|/>
-        </lane>
-        <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="stretch content" margin="0,0,8,0" fit="Stretch"/>
+    <lane *case="2" orientation="vertical">
+      <lane orientation="horizontal" margin="16,4">
+        <image *repeat={QualityStars} sprite={:Sprite} tint={Tint}
+          layout="24px 24px"
+          margin="4,12"
+          focusable="true"
+          +hover:scale="1.1"
+          +transition:scale="100ms EaseInSine"
+          left-click=|ToggleState()|/>
+          <paginator has-pagination={HasInputItemsPagination}  curr-page={InputItemsPage} />
+      </lane>
+      <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="0,0,8,0" fit="Stretch"/>
+      <!-- <image *if={HasRuleEntryPagination} sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="0,2,8,0" fit="Stretch"/> -->
+      <scrollable peeking="128" scrollbar-margin="8,0,0,0">
         <grid pointer-leave=|~ControlPanelContext.SetHoverInput()| *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
-          <panel *if={~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFiltered}
+          <panel *if={~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFilteredPaginated}
             tooltip={:Tooltip}
             left-click=|ToggleState()|
             pointer-enter=|~ControlPanelContext.SetHoverInput(this)|
@@ -107,15 +96,9 @@
               +hover:scale="1.1"
               +transition:scale="100ms EaseInSine"/>
           </panel>
-          <panel *!if={~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFiltered}
-            tooltip={:Tooltip}
-            pointer-enter=|~ControlPanelContext.SetHoverInput(this)|
-            focusable="true">
-            <image *repeat={:SpriteLayers} sprite={:Sprite} tint={^Tint} padding={:Padding} layout={:Layout} margin="6"/>
-          </panel>
         </grid>
-      </lane>
-    </scrollable>
+      </scrollable>
+    </lane>
   </frame>
 </lane>
 
@@ -152,4 +135,22 @@
       <digits number={:Count} scale="3"/>
     </panel>
   </panel>
+</template>
+
+<template name="paginator">
+  <lane *if={&has-pagination} orientation="horizontal" margin="6,0">
+    <button
+      hover-background={@Mods/StardewUI/Sprites/ButtonLight}
+      layout="45% content"
+      left-click=|PrevPaginatedPage()|
+      text={#pagination.prev-page}
+    />
+    <banner text={&curr-page} layout="10% stretch"/>
+    <button
+      hover-background={@Mods/StardewUI/Sprites/ButtonLight}
+      layout="stretch content"
+      left-click=|NextPaginatedPage()|
+      text={#pagination.next-page}
+    />
+  </lane>
 </template>

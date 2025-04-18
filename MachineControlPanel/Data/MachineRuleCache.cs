@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.Text;
-using HarmonyLib;
-using MachineControlPanel.Integration;
 using MachineControlPanel.Integration.IExtraMachineConfigApi;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;

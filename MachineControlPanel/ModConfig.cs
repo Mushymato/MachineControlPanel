@@ -92,6 +92,12 @@ internal sealed class ModConfig
     /// <summary>Use the more visible question mark icon that recolors rarely seem to touch :(</summary>
     public bool AltQuestionMark { get; set; } = false;
 
+    /// <summary>Maximum number of rows to display on rule entries page, lower this if you have performance issues</summary>
+    public int RuleEntriesPageSize { get; set; } = 15;
+
+    /// <summary>Maximum number of items to display on inputs page, lower this if you have performance issues</summary>
+    public int GridItemsPageSize { get; set; } = 2048;
+
     private void Reset()
     {
         ControlPanelKey = KeybindList.Parse($"{SButton.MouseLeft}, {SButton.ControllerB}");
@@ -100,6 +106,8 @@ internal sealed class ModConfig
         DefaultIsGlobal = true;
         ProgressionMode = true;
         AltQuestionMark = false;
+        RuleEntriesPageSize = 10;
+        GridItemsPageSize = 1024;
     }
 
     public void Register(IModHelper helper, IManifest mod)
@@ -188,6 +196,25 @@ internal sealed class ModConfig
                 },
             name: I18n.Config_DefaultPage_Name,
             tooltip: I18n.Config_DefaultPage_Description
+        );
+        GMCM.AddNumberOption(
+            mod,
+            getValue: () => RuleEntriesPageSize,
+            setValue: (value) => RuleEntriesPageSize = value,
+            name: I18n.Config_RuleEntriesPageSize_Name,
+            tooltip: I18n.Config_RuleEntriesPageSize_Description,
+            min: 1,
+            max: 25
+        );
+        GMCM.AddNumberOption(
+            mod,
+            getValue: () => GridItemsPageSize,
+            setValue: (value) => GridItemsPageSize = value,
+            name: I18n.Config_GridItemsPageSize_Name,
+            tooltip: I18n.Config_GridItemsPageSize_Description,
+            min: 16,
+            max: 4096,
+            interval: 16
         );
 
         GMCM.AddSectionTitle(mod, I18n.Config_Heading_Visual);

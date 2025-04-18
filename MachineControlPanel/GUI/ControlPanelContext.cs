@@ -385,7 +385,7 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
 public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<RuleIdentDefPair> RuleDefs)
 {
     public bool IsMainPlayer => Context.IsMainPlayer;
-    internal const int RULE_ITEM_ROW_CNT = 14;
+    internal const int RULE_ITEM_PER_ROW = 14;
     internal static Color DisabledColor = Color.Black * 0.8f;
     public GlobalToggleContext GlobalToggle => MenuHandler.GlobalToggle;
 
@@ -397,6 +397,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
             MenuHandler.GlobalToggle.PropertyChanged += context.RecheckSavedStates;
             context.PropertyChanged += context.ToggleAllInThisPage;
             context.RecheckSavedStates();
+            context.PropertyChanged += context.ResetOnSearchText;
             return context;
         }
         return null;
@@ -481,6 +482,15 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     [Notify]
     private string searchText = "";
 
+    private void ResetOnSearchText(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SearchText))
+        {
+            ruleOutputEntriesFiltered = null;
+            inputItemsFiltered = null;
+        }
+    }
+
     private readonly Dictionary<RuleIdent, RuleInputEntry> ruleEntries = RuleDefs.ToDictionary(
         kv => kv.Ident,
         kv => new RuleInputEntry(kv.Def)
@@ -498,100 +508,79 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         public bool LastRow = false;
     }
 
-    /// TODO: return this to just a list once the controller focus search on grid of lanes of focusables is fixed
-    public List<RuleOutputEntriesRow> RuleEntriesFiltered
+    private List<RuleOutputEntriesRow>? ruleOutputEntriesFiltered;
+
+    private List<RuleOutputEntriesRow> GetRuleOutputEntriesFiltered()
+    {
+        int rowCnt = RULE_ITEM_PER_ROW;
+        int maxInputLength = 0;
+        List<RuleOutputEntriesRow> ruleEntriesFiltered = [];
+        RuleOutputEntriesRow ruleEntriesFilteredRow = [];
+        foreach (var rie in ruleEntries.Values)
+        {
+            foreach (var output in rie.Def.Outputs)
+            {
+                if (!string.IsNullOrEmpty(SearchText) && !rie.Def.Input.Match(SearchText) && !output.Match(SearchText))
+                    continue;
+                RuleOutputEntry ROE = new(rie, output);
+                ROE.SetupNotify();
+                ruleEntriesFilteredRow.Add(ROE);
+                maxInputLength = Math.Max(maxInputLength, ROE.InputLength);
+                rowCnt--;
+                if (rowCnt == 0)
+                {
+                    for (int idx = RULE_ITEM_PER_ROW; idx > 0; idx--)
+                    {
+                        ruleEntriesFilteredRow[^idx].SpacerLength =
+                            maxInputLength - ruleEntriesFilteredRow[^idx].InputLength;
+                    }
+                    rowCnt = RULE_ITEM_PER_ROW;
+                    maxInputLength = 0;
+                    ruleEntriesFiltered.Add(ruleEntriesFilteredRow);
+                    ruleEntriesFilteredRow = [];
+                }
+            }
+        }
+        if (ruleEntriesFilteredRow.Any())
+        {
+            for (int idx = RULE_ITEM_PER_ROW - rowCnt; idx > 0; idx--)
+            {
+                ruleEntriesFilteredRow[^idx].SpacerLength = maxInputLength - ruleEntriesFilteredRow[^idx].InputLength;
+            }
+            ruleEntriesFiltered.Add(ruleEntriesFilteredRow);
+        }
+        if (ruleEntriesFiltered.Any())
+            ruleEntriesFiltered.Last().LastRow = true;
+        return ruleEntriesFiltered;
+    }
+
+    public List<RuleOutputEntriesRow> RuleEntriesFiltered =>
+        ruleOutputEntriesFiltered ??= GetRuleOutputEntriesFiltered();
+
+    // RuleEntries Pagination
+    [Notify]
+    private int ruleEntriesPage = 1;
+    public List<RuleOutputEntriesRow> RuleEntriesFilteredPaginated
     {
         get
         {
-            int rowCnt = RULE_ITEM_ROW_CNT;
-            int maxInputLength = 0;
-            List<RuleOutputEntriesRow> ruleEntriesFiltered = [];
-            RuleOutputEntriesRow ruleEntriesFilteredRow = [];
-            foreach (var rie in ruleEntries.Values)
-            {
-                foreach (var output in rie.Def.Outputs)
-                {
-                    if (
-                        !string.IsNullOrEmpty(SearchText)
-                        && !rie.Def.Input.Match(SearchText)
-                        && !output.Match(SearchText)
-                    )
-                        continue;
-                    RuleOutputEntry ROE = new(rie, output);
-                    ROE.SetupNotify();
-                    ruleEntriesFilteredRow.Add(ROE);
-                    maxInputLength = Math.Max(maxInputLength, ROE.InputLength);
-                    rowCnt--;
-                    if (rowCnt == 0)
-                    {
-                        for (int idx = RULE_ITEM_ROW_CNT; idx > 0; idx--)
-                        {
-                            ruleEntriesFilteredRow[^idx].SpacerLength =
-                                maxInputLength - ruleEntriesFilteredRow[^idx].InputLength;
-                        }
-                        rowCnt = RULE_ITEM_ROW_CNT;
-                        maxInputLength = 0;
-                        ruleEntriesFiltered.Add(ruleEntriesFilteredRow);
-                        ruleEntriesFilteredRow = [];
-                    }
-                }
-            }
-            if (ruleEntriesFilteredRow.Any())
-            {
-                for (int idx = RULE_ITEM_ROW_CNT - rowCnt; idx > 0; idx--)
-                {
-                    ruleEntriesFilteredRow[^idx].SpacerLength =
-                        maxInputLength - ruleEntriesFilteredRow[^idx].InputLength;
-                }
-                ruleEntriesFiltered.Add(ruleEntriesFilteredRow);
-            }
-            if (ruleEntriesFiltered.Any())
-                ruleEntriesFiltered.Last().LastRow = true;
-            return ruleEntriesFiltered;
+            int actualPage = RuleEntriesPage - 1;
+            List<RuleOutputEntriesRow> currEntries = RuleEntriesFiltered;
+            int nextPageSize = Math.Min(
+                ModEntry.Config.RuleEntriesPageSize,
+                currEntries.Count - actualPage * ModEntry.Config.RuleEntriesPageSize
+            );
+            if (nextPageSize == 0)
+                nextPageSize = ModEntry.Config.RuleEntriesPageSize;
+            return currEntries.GetRange(actualPage * ModEntry.Config.RuleEntriesPageSize, nextPageSize);
         }
     }
+    public bool HasPrevRuleEntryPage => (RuleEntriesPage - 1) > 0;
 
-    // public IEnumerable<RuleOutputEntry> RuleEntriesFiltered
-    // {
-    //     get
-    //     {
-    //         int rowCnt = RULE_ITEM_ROW_CNT;
-    //         int maxInputLength = 0;
-    //         List<RuleOutputEntry> ruleEntriesFiltered = [];
-    //         foreach (var rie in ruleEntries.Values)
-    //         {
-    //             foreach (var output in rie.Def.Outputs)
-    //             {
-    //                 if (
-    //                     !string.IsNullOrEmpty(SearchText)
-    //                     && !rie.Def.Input.Match(SearchText)
-    //                     && !output.Match(SearchText)
-    //                 )
-    //                     continue;
-    //                 RuleOutputEntry ROE = new(rie, output);
-    //                 ROE.SetupNotify();
-    //                 ruleEntriesFiltered.Add(ROE);
-    //                 maxInputLength = Math.Max(maxInputLength, ROE.InputLength);
-    //                 rowCnt--;
-    //                 if (rowCnt == 0)
-    //                 {
-    //                     for (int idx = RULE_ITEM_ROW_CNT; idx > 0; idx--)
-    //                     {
-    //                         ruleEntriesFiltered[^idx].SpacerLength =
-    //                             maxInputLength - ruleEntriesFiltered[^idx].InputLength;
-    //                     }
-    //                     rowCnt = RULE_ITEM_ROW_CNT;
-    //                     maxInputLength = 0;
-    //                 }
-    //             }
-    //         }
-    //         for (int idx = RULE_ITEM_ROW_CNT - rowCnt; idx > 0; idx--)
-    //         {
-    //             ruleEntriesFiltered[^idx].SpacerLength = maxInputLength - ruleEntriesFiltered[^idx].InputLength;
-    //         }
-    //         return ruleEntriesFiltered;
-    //     }
-    // }
+    public bool HasNextRuleEntryPage =>
+        RuleEntriesPage * ModEntry.Config.RuleEntriesPageSize < RuleEntriesFiltered.Count;
+
+    public bool HasRuleEntryPagination => HasPrevRuleEntryPage || HasNextRuleEntryPage;
 
     public RuleInputEntry? HoverRuleEntry = null;
 
@@ -634,11 +623,72 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     private List<InputIcon>? inputItems = null;
     private List<InputIcon> InputItems => inputItems ??= GetInputItems();
     public bool HasInputs => InputItems.Any();
-    public IEnumerable<InputIcon> InputItemsFiltered =>
-        InputItems.Where(
-            (ipt) =>
-                string.IsNullOrEmpty(SearchText) || ipt.InputItem.DisplayName.ToLower().Contains(SearchText.ToLower())
-        );
+    private List<InputIcon>? inputItemsFiltered = null;
+    public List<InputIcon> InputItemsFiltered =>
+        inputItemsFiltered ??= InputItems
+            .Where(
+                (ipt) =>
+                    string.IsNullOrEmpty(SearchText)
+                    || ipt.InputItem.DisplayName.ToLower().Contains(SearchText.ToLower())
+            )
+            .ToList();
+
+    // InputItems Pagination
+    [Notify]
+    private int inputItemsPage = 1;
+    public List<InputIcon> InputItemsFilteredPaginated
+    {
+        get
+        {
+            int actualPage = InputItemsPage - 1;
+            List<InputIcon> currItems = InputItemsFiltered;
+            int nextPageSize = Math.Min(
+                ModEntry.Config.GridItemsPageSize,
+                currItems.Count - actualPage * ModEntry.Config.GridItemsPageSize
+            );
+            if (nextPageSize == 0)
+                nextPageSize = ModEntry.Config.GridItemsPageSize;
+            return currItems.GetRange(actualPage * ModEntry.Config.GridItemsPageSize, nextPageSize);
+        }
+    }
+    public bool HasPrevInputItemsPage => (InputItemsPage - 1) > 0;
+    public bool HasNextInputItemsPage => InputItemsPage * ModEntry.Config.GridItemsPageSize < InputItemsFiltered.Count;
+    public bool HasInputItemsPagination => HasPrevInputItemsPage || HasNextInputItemsPage;
+
+    // Shared Pagination
+    public void PrevPaginatedPage()
+    {
+        switch (PageIndex)
+        {
+            case 1:
+                if (!HasPrevRuleEntryPage)
+                    return;
+                RuleEntriesPage--;
+                break;
+            case 2:
+                if (!HasPrevInputItemsPage)
+                    return;
+                InputItemsPage--;
+                break;
+        }
+    }
+
+    public void NextPaginatedPage()
+    {
+        switch (PageIndex)
+        {
+            case 1:
+                if (!HasNextRuleEntryPage)
+                    return;
+                RuleEntriesPage++;
+                break;
+            case 2:
+                if (!HasNextInputItemsPage)
+                    return;
+                InputItemsPage++;
+                break;
+        }
+    }
 
     public QualityStar[] GetQualityStars()
     {
