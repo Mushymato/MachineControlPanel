@@ -8,6 +8,7 @@
           layout="42% content"
           left-click=|PrevPaginatedPage()|
           text={#pagination.prev-page}
+          opacity={PrevPaginateButtonOpacity}
         />
         <banner text={Paged} layout="16% stretch"/>
         <button
@@ -15,6 +16,7 @@
           layout="stretch content"
           left-click=|NextPaginatedPage()|
           text={#pagination.next-page}
+          opacity={NextPaginateButtonOpacity}
         />
       </lane>
     </lane>

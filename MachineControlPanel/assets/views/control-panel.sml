@@ -43,8 +43,8 @@
                 orientation="vertical" margin="6"
                 horizontal-content-alignment="middle">
                 <panel *if={Active} margin="0,12">
-                  <checkbox *if={~ControlPanelContext.IsMainPlayer} is-checked={<>State}/>
-                  <panel *!if={~ControlPanelContext.IsMainPlayer} opacity="0.5">
+                  <checkbox *if={:~ControlPanelContext.IsMainPlayer} is-checked={<>State}/>
+                  <panel *!if={:~ControlPanelContext.IsMainPlayer} opacity="0.5">
                     <image *if={State} sprite={@Mods/StardewUI/Sprites/CheckboxChecked} />
                     <image *!if={State} sprite={@Mods/StardewUI/Sprites/CheckboxUnchecked} />
                   </panel>
@@ -82,10 +82,9 @@
           <paginator has-pagination={HasInputItemsPagination}  curr-page={InputItemsPage} />
       </lane>
       <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="0,0,8,0" fit="Stretch"/>
-      <!-- <image *if={HasRuleEntryPagination} sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="0,2,8,0" fit="Stretch"/> -->
       <scrollable peeking="128" scrollbar-margin="8,0,0,0">
         <grid pointer-leave=|~ControlPanelContext.SetHoverInput()| *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
-          <panel *if={~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFilteredPaginated}
+          <panel *if={:~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFilteredPaginated}
             tooltip={:Tooltip}
             left-click=|ToggleState()|
             pointer-enter=|~ControlPanelContext.SetHoverInput(this)|
@@ -95,6 +94,12 @@
               focusable="true"
               +hover:scale="1.1"
               +transition:scale="100ms EaseInSine"/>
+          </panel>
+          <panel *!if={:~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFilteredPaginated}
+            tooltip={:Tooltip}
+            pointer-enter=|~ControlPanelContext.SetHoverInput(this)|
+            focusable="true">
+            <image *repeat={:SpriteLayers} sprite={:Sprite} tint={^Tint} padding={:Padding} layout={:Layout} margin="6"/>
           </panel>
         </grid>
       </scrollable>
@@ -144,6 +149,7 @@
       layout="45% content"
       left-click=|PrevPaginatedPage()|
       text={#pagination.prev-page}
+      opacity={PrevPaginateButtonOpacity}
     />
     <banner text={&curr-page} layout="10% stretch"/>
     <button
@@ -151,6 +157,7 @@
       layout="stretch content"
       left-click=|NextPaginatedPage()|
       text={#pagination.next-page}
+      opacity={NextPaginateButtonOpacity}
     />
   </lane>
 </template>

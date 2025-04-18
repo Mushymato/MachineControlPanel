@@ -396,8 +396,8 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
             ControlPanelContext context = new(machine, ruleDefs);
             MenuHandler.GlobalToggle.PropertyChanged += context.RecheckSavedStates;
             context.PropertyChanged += context.ToggleAllInThisPage;
-            context.RecheckSavedStates();
             context.PropertyChanged += context.ResetOnSearchText;
+            context.RecheckSavedStates();
             return context;
         }
         return null;
@@ -484,11 +484,14 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
 
     private void ResetOnSearchText(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(SearchText))
-        {
-            ruleOutputEntriesFiltered = null;
-            inputItemsFiltered = null;
-        }
+        if (e.PropertyName != nameof(SearchText))
+            return;
+        ruleEntriesFiltered = null;
+        RuleEntriesPage = 1;
+        inputItemsFiltered = null;
+        InputItemsPage = 1;
+        OnPropertyChanged(new(nameof(RuleEntriesFilteredPaginated)));
+        OnPropertyChanged(new(nameof(InputItemsFilteredPaginated)));
     }
 
     private readonly Dictionary<RuleIdent, RuleInputEntry> ruleEntries = RuleDefs.ToDictionary(
@@ -508,9 +511,9 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         public bool LastRow = false;
     }
 
-    private List<RuleOutputEntriesRow>? ruleOutputEntriesFiltered;
+    private List<RuleOutputEntriesRow>? ruleEntriesFiltered;
 
-    private List<RuleOutputEntriesRow> GetRuleOutputEntriesFiltered()
+    private List<RuleOutputEntriesRow> GetRuleEntriesFiltered()
     {
         int rowCnt = RULE_ITEM_PER_ROW;
         int maxInputLength = 0;
@@ -554,8 +557,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         return ruleEntriesFiltered;
     }
 
-    public List<RuleOutputEntriesRow> RuleEntriesFiltered =>
-        ruleOutputEntriesFiltered ??= GetRuleOutputEntriesFiltered();
+    public List<RuleOutputEntriesRow> RuleEntriesFiltered => ruleEntriesFiltered ??= GetRuleEntriesFiltered();
 
     // RuleEntries Pagination
     [Notify]
@@ -564,8 +566,10 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     {
         get
         {
-            int actualPage = RuleEntriesPage - 1;
             List<RuleOutputEntriesRow> currEntries = RuleEntriesFiltered;
+            if (!HasRuleEntryPagination)
+                return currEntries;
+            int actualPage = RuleEntriesPage - 1;
             int nextPageSize = Math.Min(
                 ModEntry.Config.RuleEntriesPageSize,
                 currEntries.Count - actualPage * ModEntry.Config.RuleEntriesPageSize
@@ -640,8 +644,10 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     {
         get
         {
-            int actualPage = InputItemsPage - 1;
             List<InputIcon> currItems = InputItemsFiltered;
+            if (!HasInputItemsPagination)
+                return currItems;
+            int actualPage = InputItemsPage - 1;
             int nextPageSize = Math.Min(
                 ModEntry.Config.GridItemsPageSize,
                 currItems.Count - actualPage * ModEntry.Config.GridItemsPageSize
@@ -673,6 +679,14 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         }
     }
 
+    public float PrevPaginateButtonOpacity =>
+        PageIndex switch
+        {
+            1 => HasPrevRuleEntryPage ? 1f : 0.6f,
+            2 => HasPrevInputItemsPage ? 1f : 0.6f,
+            _ => throw new NotImplementedException(),
+        };
+
     public void NextPaginatedPage()
     {
         switch (PageIndex)
@@ -689,6 +703,14 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
                 break;
         }
     }
+
+    public float NextPaginateButtonOpacity =>
+        PageIndex switch
+        {
+            1 => HasNextRuleEntryPage ? 1f : 0.6f,
+            2 => HasNextInputItemsPage ? 1f : 0.6f,
+            _ => throw new NotImplementedException(),
+        };
 
     public QualityStar[] GetQualityStars()
     {

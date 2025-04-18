@@ -93,7 +93,7 @@ internal sealed class ModConfig
     public bool AltQuestionMark { get; set; } = false;
 
     /// <summary>Maximum number of rows to display on rule entries page, lower this if you have performance issues</summary>
-    public int RuleEntriesPageSize { get; set; } = 15;
+    public int RuleEntriesPageSize { get; set; } = 8;
 
     /// <summary>Maximum number of items to display on inputs page, lower this if you have performance issues</summary>
     public int GridItemsPageSize { get; set; } = 2048;
@@ -106,7 +106,7 @@ internal sealed class ModConfig
         DefaultIsGlobal = true;
         ProgressionMode = true;
         AltQuestionMark = false;
-        RuleEntriesPageSize = 10;
+        RuleEntriesPageSize = 8;
         GridItemsPageSize = 1024;
     }
 
@@ -203,8 +203,8 @@ internal sealed class ModConfig
             setValue: (value) => RuleEntriesPageSize = value,
             name: I18n.Config_RuleEntriesPageSize_Name,
             tooltip: I18n.Config_RuleEntriesPageSize_Description,
-            min: 1,
-            max: 25
+            min: 2,
+            max: 32
         );
         GMCM.AddNumberOption(
             mod,

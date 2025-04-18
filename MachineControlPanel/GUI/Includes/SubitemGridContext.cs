@@ -59,10 +59,14 @@ public sealed partial record SubitemGridContext(string Header, List<SubItemIcon>
         Paged--;
     }
 
+    public float PrevPaginateButtonOpacity => HasPrevPage ? 1f : 0.6f;
+
     public void NextPaginatedPage()
     {
         if (!HasNextPage)
             return;
         Paged++;
     }
+
+    public float NextPaginateButtonOpacity => HasNextPage ? 1f : 0.6f;
 }
