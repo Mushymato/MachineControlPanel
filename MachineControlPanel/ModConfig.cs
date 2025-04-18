@@ -96,7 +96,7 @@ internal sealed class ModConfig
     public int RuleEntriesPageSize { get; set; } = 8;
 
     /// <summary>Maximum number of items to display on inputs page, lower this if you have performance issues</summary>
-    public int GridItemsPageSize { get; set; } = 2048;
+    public int GridItemsPageSize { get; set; } = 1024;
 
     private void Reset()
     {
