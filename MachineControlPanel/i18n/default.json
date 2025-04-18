@@ -17,10 +17,10 @@
     "config.default-page.item-inputs": "Item Inputs",
     "config.progression-mode.name": "Progression Mode",
     "config.progression-mode.description": "On the machine select page, hide not yet obtained machines.",
-    "config.rule-entries-page-size.name": "Rule Entries Page Size",
-    "config.rule-entries-page-size.description": "Number of rows to display at once in the rule entries tab before splitting into pages, lower this number if you experiance lag in the menu.",
+    "config.rule-entries-page-size.name": "Rule Entries Page Row",
+    "config.rule-entries-page-size.description": "Number of rows in the rule entries tab to display in a single page, lower this number if you experiance lag in the menu.",
     "config.grid-items-page-size.name": "Grid Items Page Size",
-    "config.grid-items-page-size.description": "Number of items to display at once in the input items tab and the sub items modal menu before splitting into pages, lower this number if you experiance lag in the menu.",
+    "config.grid-items-page-size.description": "Number of items in the input items tab and the sub items modal to display in a single page, lower this number if you experiance lag in the menu.",
     // Visual
     "config.heading.visual": "Visual",
     "config.alt-question-mark.name": "Alt Question Mark",

@@ -17,6 +17,10 @@
     "config.default-page.item-inputs": "输入物品",
     "config.progression-mode.name": "进度模式",
     "config.progression-mode.description": "在机器选择菜单中隐藏未获取的机器",
+    "config.rule-entries-page-size.name": "机器规则每页行数",
+    "config.rule-entries-page-size.description": "机器规则每一页显示的行数，如果菜单中出现卡顿，请降低此数字。",
+    "config.grid-items-page-size.name": "物品网格每页数量",
+    "config.grid-items-page-size.description": "输入物品和副产品弹出框每一页显示物品数量，如果菜单中出现卡顿，请降低此数字。",
     // Visual
     "config.heading.visual": "外观",
     "config.alt-question-mark.name": "显眼问号标志",
@@ -44,6 +48,8 @@
     "skip-reason.rules": "{{Name}}因规则设置而退回",
     "skip-reason.inputs": "{{Name}}因输入设置而退回",
     "skip-reason.quality": "{{Name}}因品质设置而退回",
+    "pagination.prev-page": "上一页",
+    "pagination.next-page": "下一页",
     // placeholder default flavor object
     "object.thing.display-name": "东西",
     // CMCT
