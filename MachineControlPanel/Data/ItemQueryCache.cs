@@ -22,24 +22,26 @@ internal static class ItemQueryCache
     private static readonly Regex ExcludeTags = new("(quality_|preserve_sheet_index_).+");
     private static readonly Dictionary<string, IReadOnlyList<Item>?> conditionItemCache = [];
     private static readonly Dictionary<ValueTuple<string, string>, IReadOnlyList<Item>?> outputMethodCache = [];
-    private static readonly Dictionary<string, HashSet<string>> contextTagLookupCache = [];
+    private static Dictionary<string, HashSet<string>>? contextTagLookupCache = null;
+    private static Dictionary<string, HashSet<string>> ContextTagLookupCache =>
+        contextTagLookupCache ??= GetContextTagLookupCache();
     private static readonly Dictionary<string, IReadOnlyList<Item>> itemQueryCache = [];
 
     private static IReadOnlyList<Item>? allItems = null;
     private static IReadOnlyList<Item> AllItems =>
         allItems ??= ItemQueryResolver
-            .TryResolve(ALL_ITEMS, Context, filter: ItemQuerySearchMode.AllOfTypeItem)
+            .TryResolve(ALL_ITEMS, IQContext, filter: ItemQuerySearchMode.AllOfTypeItem)
             .Select(res => (Item)res.Item)
             .ToList();
-    internal static ItemQueryContext Context => new();
+    internal static ItemQueryContext IQContext => new();
 
     /// <summary>Clear cache, usually because Data/Objects was invalidated.</summary>
     internal static void Invalidate()
     {
         conditionItemCache.Clear();
-        contextTagLookupCache.Clear();
+        contextTagLookupCache = null;
+        ModEntry.Log("contextTagLookupCache = null", LogLevel.Warn);
         allItems = null;
-        PopulateContextTagLookupCache();
     }
 
     /// <summary>Export context tag lookup cache</summary>
@@ -47,31 +49,33 @@ internal static class ItemQueryCache
     internal static void Export(IModHelper helper)
     {
         var stopwatch = Stopwatch.StartNew();
-        contextTagLookupCache.Clear();
-        PopulateContextTagLookupCache();
+        contextTagLookupCache = null;
         helper.Data.WriteJsonFile(
             "export/context_tag_lookup.json",
-            contextTagLookupCache.ToDictionary((kv) => kv.Key, (kv) => kv.Value?.Select((kv1) => kv1).ToList())
+            ContextTagLookupCache.ToDictionary((kv) => kv.Key, (kv) => kv.Value?.Select((kv1) => kv1).ToList())
         );
         ModEntry.Log($"Wrote export/context_tag_lookup.json in {stopwatch.Elapsed}");
     }
 
-    internal static void PopulateContextTagLookupCache()
+    internal static Dictionary<string, HashSet<string>> GetContextTagLookupCache()
     {
-        foreach (ItemQueryResult result in ItemQueryResolver.TryResolve(ALL_ITEMS, Context))
+        ModEntry.Log("GetContextTagLookupCache", LogLevel.Warn);
+        Dictionary<string, HashSet<string>> newCache = [];
+        foreach (ItemQueryResult result in ItemQueryResolver.TryResolve(ALL_ITEMS, IQContext))
         {
             if (result.Item is not Item item)
                 continue;
             foreach (string tag in item.GetContextTags())
             {
-                if (!contextTagLookupCache.TryGetValue(tag, out HashSet<string>? cached))
+                if (!newCache.TryGetValue(tag, out HashSet<string>? cached))
                 {
                     cached = [];
-                    contextTagLookupCache[tag] = cached;
+                    newCache[tag] = cached;
                 }
                 cached.Add(item.QualifiedItemId);
             }
         }
+        return newCache;
     }
 
     /// <summary>Do fast lookup of context tags</summary>
@@ -92,7 +96,7 @@ internal static class ItemQueryCache
             string realTag = negate ? tag[1..] : tag;
             if (ExcludeTags.Match(realTag).Success)
                 continue;
-            if (contextTagLookupCache.TryGetValue(realTag, out HashSet<string>? cached))
+            if (ContextTagLookupCache.TryGetValue(realTag, out HashSet<string>? cached))
             {
                 if (negate)
                     exclude.AddRange(cached);
@@ -191,7 +195,7 @@ internal static class ItemQueryCache
         if (
             ItemQueryResolver.TryResolve(
                 ALL_ITEMS,
-                Context,
+                IQContext,
                 ItemQuerySearchMode.AllOfTypeItem,
                 condition,
                 avoidRepeat: true
@@ -322,7 +326,7 @@ internal static class ItemQueryCache
                 itemQRes = ItemQueryResolver
                     .TryResolve(
                         mio,
-                        Context,
+                        IQContext,
                         formatItemId: id =>
                             id != null
                                 ? id.Replace("DROP_IN_ID", Quirks.DefaultThingId)

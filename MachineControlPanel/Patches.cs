@@ -3,6 +3,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using MachineControlPanel.GUI;
 using StardewModdingAPI;
+using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.GameData.Machines;
 
@@ -22,11 +23,12 @@ internal static class Patches
     private static MethodInfo LAItemLookupProviderBuildSubject = null!;
 
     /// <summary>Hold skip reason, here is hoping single thread means its safe lol</summary>
-    private static SkipReason skipped = SkipReason.None;
+    private static PerScreen<SkipReason> skipped = new();
 
     internal static void Patch()
     {
         Harmony harmony = new(ModEntry.ModId);
+        skipped.Value = SkipReason.None;
 
         // important patches
         harmony.Patch(
@@ -131,21 +133,21 @@ internal static class Patches
             if (msdEntry.Inputs.Contains(inputItem.QualifiedItemId))
             {
                 ModEntry.LogOnce($"{machine.QualifiedItemId} Input {inputItem.QualifiedItemId} disabled.");
-                skipped = SkipReason.Input;
+                skipped.Value = SkipReason.Input;
                 return true;
             }
             if (msdEntry.Quality[inputItem.Quality])
             {
                 ModEntry.LogOnce($"{machine.QualifiedItemId} Quality {inputItem.Quality} disabled.");
-                skipped = SkipReason.Quality;
+                skipped.Value = SkipReason.Quality;
                 return true;
             }
         }
         if (msdEntry.Rules.Contains(ident))
         {
             ModEntry.LogOnce($"{machine.QualifiedItemId} Rule {ident} disabled.");
-            if (skipped != SkipReason.Input)
-                skipped = SkipReason.Rule;
+            if (skipped.Value != SkipReason.Input)
+                skipped.Value = SkipReason.Rule;
             return true;
         }
         return false;
@@ -218,7 +220,7 @@ internal static class Patches
     /// <summary>Unset skipped reason</summary>
     private static void SObject_PlaceInMachine_Prefix()
     {
-        skipped = SkipReason.None;
+        skipped.Value = SkipReason.None;
     }
 
     /// <summary>
@@ -334,7 +336,7 @@ internal static class Patches
         if (inputItem != null && who != null)
         {
             if (
-                skipped switch
+                skipped.Value switch
                 {
                     SkipReason.Rule => I18n.SkipReason_Rules(inputItem.DisplayName),
                     SkipReason.Input => I18n.SkipReason_Inputs(inputItem.DisplayName),
@@ -348,7 +350,7 @@ internal static class Patches
                 who.ignoreItemConsumptionThisFrame = true;
             }
         }
-        skipped = SkipReason.None;
+        skipped.Value = SkipReason.None;
     }
 
     /// <summary>

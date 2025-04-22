@@ -192,7 +192,6 @@ public class ModEntry : Mod
                 SaveData.ClearInvalidData();
             SaveData.Version = ModManifest.Version;
             Helper.Data.WriteSaveData(SAVEDATA, SaveData);
-            ItemQueryCache.PopulateContextTagLookupCache();
         }
         catch (InvalidOperationException)
         {

@@ -283,7 +283,7 @@ public sealed record IconOutputDef(
         if (mio.ItemId == "DROP_IN")
         {
             Item defaultItem = (Item)
-                ItemQueryResolver.ApplyItemFields(Quirks.DefaultThing.getOne(), mio, ItemQueryCache.Context);
+                ItemQueryResolver.ApplyItemFields(Quirks.DefaultThing.getOne(), mio, ItemQueryCache.IQContext);
             return new(
                 [defaultItem],
                 defaultItem.Stack,
