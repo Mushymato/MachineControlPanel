@@ -40,7 +40,6 @@ internal static class ItemQueryCache
     {
         conditionItemCache.Clear();
         contextTagLookupCache = null;
-        ModEntry.Log("contextTagLookupCache = null", LogLevel.Warn);
         allItems = null;
     }
 
@@ -59,7 +58,7 @@ internal static class ItemQueryCache
 
     internal static Dictionary<string, HashSet<string>> GetContextTagLookupCache()
     {
-        ModEntry.Log("GetContextTagLookupCache", LogLevel.Warn);
+        var stopwatch = Stopwatch.StartNew();
         Dictionary<string, HashSet<string>> newCache = [];
         foreach (ItemQueryResult result in ItemQueryResolver.TryResolve(ALL_ITEMS, IQContext))
         {
@@ -75,6 +74,7 @@ internal static class ItemQueryCache
                 cached.Add(item.QualifiedItemId);
             }
         }
+        ModEntry.Log($"GetContextTagLookupCache in {stopwatch.Elapsed}");
         return newCache;
     }
 

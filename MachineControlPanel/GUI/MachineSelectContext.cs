@@ -22,7 +22,7 @@ public sealed partial record MachineSelectCell(string QId, MachineData Data, Ite
     {
         if (
             ModEntry.SaveData.TryGetModSaveDataEntry(QId, null, out _)
-            || ModEntry.SaveData.TryGetModSaveDataEntry(QId, MenuHandler.GlobalToggle.LocationKey, out _)
+            || ModEntry.SaveData.TryGetModSaveDataEntry(QId, Game1.currentLocation.NameOrUniqueName, out _)
         )
         {
             BackgroundTint = Color.White;

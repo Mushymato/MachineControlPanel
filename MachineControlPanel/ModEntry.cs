@@ -56,6 +56,11 @@ public class ModEntry : Mod
         helper.Events.Multiplayer.PeerConnected += OnPeerConnected;
 
         helper.ConsoleCommands.Add(
+            "mcp-dump-savedata",
+            "Dump save data associated with this mod for debugging.",
+            ConsoleDumpSaveData
+        );
+        helper.ConsoleCommands.Add(
             "mcp-reset-savedata",
             "Reset save data associated with this mod.",
             ConsoleResetSaveData
@@ -271,6 +276,30 @@ public class ModEntry : Mod
         Helper.Data.WriteSaveData<ModSaveData>(SAVEDATA, null);
         help.Multiplayer.SendMessage(SaveData, SAVEDATA, modIDs: [ModManifest.UniqueID]);
         SaveData = new() { Version = ModManifest.Version };
+        Log($"Cleared all save data.", LogLevel.Info);
+    }
+
+    /// <summary>
+    /// Print save data, for debugging
+    /// </summary>
+    /// <param name="arg1"></param>
+    /// <param name="arg2"></param>
+    /// <exception cref="NotImplementedException"></exception>
+    private void ConsoleDumpSaveData(string arg1, string[] arg2)
+    {
+        if (!Game1.IsMasterGame)
+        {
+            Log("Only the host player can use this command.", LogLevel.Error);
+            return;
+        }
+        if (!Context.IsWorldReady)
+        {
+            Log("Must load save first.", LogLevel.Error);
+            return;
+        }
+        string saveDataJson = $"{SAVEDATA}.{Game1.GetSaveGameName()}.json";
+        Helper.Data.WriteJsonFile(saveDataJson, SaveData);
+        Log($"Wrote save data to '{Helper.DirectoryPath}/{saveDataJson}'", LogLevel.Info);
     }
 
 #if DEBUG
