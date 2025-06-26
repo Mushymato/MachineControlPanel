@@ -38,6 +38,8 @@ internal static class ItemQueryCache
     /// <summary>Clear cache, usually because Data/Objects was invalidated.</summary>
     internal static void Invalidate()
     {
+        ModEntry.Log("Invalidate ItemQueryCache");
+        itemQueryCache.Clear();
         conditionItemCache.Clear();
         contextTagLookupCache = null;
         allItems = null;
@@ -66,10 +68,11 @@ internal static class ItemQueryCache
                 continue;
             foreach (string tag in item.GetContextTags())
             {
-                if (!newCache.TryGetValue(tag, out HashSet<string>? cached))
+                string lowerTag = tag.ToLower();
+                if (!newCache.TryGetValue(lowerTag, out HashSet<string>? cached))
                 {
                     cached = [];
-                    newCache[tag] = cached;
+                    newCache[lowerTag] = cached;
                 }
                 cached.Add(item.QualifiedItemId);
             }
@@ -94,6 +97,7 @@ internal static class ItemQueryCache
         {
             bool negate = tag[0] == '!';
             string realTag = negate ? tag[1..] : tag;
+            realTag = realTag.ToLower();
             if (ExcludeTags.Match(realTag).Success)
                 continue;
             if (ContextTagLookupCache.TryGetValue(realTag, out HashSet<string>? cached))

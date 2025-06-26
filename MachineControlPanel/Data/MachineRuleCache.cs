@@ -411,6 +411,7 @@ internal static class MachineRuleCache
     /// <summary>Clear cache, usually because Data/Objects was invalidated.</summary>
     internal static void Invalidate()
     {
+        ModEntry.Log("Invalidate MachineRuleCache");
         machineRuleCache.Clear();
         machines = null;
     }
