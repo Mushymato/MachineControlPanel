@@ -49,7 +49,7 @@ internal static class ItemQueryCache
 
     internal static Item? GetItem(string qId)
     {
-        if (AllItemsDict.TryGetValue(qId, out Item? item))
+        if (AllItemsDict.TryGetValue(ItemRegistry.QualifyItemId(qId) ?? qId, out Item? item))
         {
             return item;
         }
