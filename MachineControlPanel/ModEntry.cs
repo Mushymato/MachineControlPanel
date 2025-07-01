@@ -33,6 +33,7 @@ public class ModEntry : Mod
     internal static ModSaveData SaveData { get; private set; } = null!;
     internal static IModHelper help = null!;
     public static event EventHandler<string>? SavedMachineRules;
+    public static readonly List<IAssetName> itemAssetNames = [];
 
     public override void Entry(IModHelper helper)
     {
@@ -77,6 +78,20 @@ public class ModEntry : Mod
         Config.Register(Helper, ModManifest);
         MenuHandler.Register(Helper);
         MachineRuleCache.Register(Helper);
+
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/Objects"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/BigCraftables"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/Boots"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/AdditionalWallpaperFlooring"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/Furniture"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/hats"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/Mannequins"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/Pants"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/Shirts"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/Tools"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/Trinkets"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/AdditionalWallpaperFlooring"));
+        itemAssetNames.Add(Helper.GameContent.ParseAssetName("Data/Weapons"));
     }
 
     /// <summary>
@@ -158,10 +173,21 @@ public class ModEntry : Mod
     /// <param name="e"></param>
     private void OnAssetInvalidated(object? sender, AssetsInvalidatedEventArgs e)
     {
-        if (e.Names.Any((name) => name.IsEquivalentTo("Data/Objects")))
-            ItemQueryCache.Invalidate();
+        foreach (IAssetName itemAssetName in itemAssetNames)
+        {
+            if (e.Names.Any((name) => name.IsEquivalentTo(itemAssetName)))
+            {
+                Log($"ItemQueryCache.Invalidate/MachineRuleCache.Invalidate due to '{itemAssetName}'");
+                ItemQueryCache.Invalidate();
+                MachineRuleCache.Invalidate();
+                return;
+            }
+        }
         if (e.Names.Any((name) => name.IsEquivalentTo("Data/Machines")))
+        {
+            Log("MachineRuleCache.Invalidate due to 'Data/Machines'");
             MachineRuleCache.Invalidate();
+        }
     }
 
     /// <summary>

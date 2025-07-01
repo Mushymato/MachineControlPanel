@@ -31,7 +31,7 @@ public record IconDef(
     bool IsFuel = false
 )
 {
-    readonly StringBuilder sb = new();
+    protected readonly StringBuilder sb = new();
 
     public int Quality => Math.Max(Items?.FirstOrDefault()?.Quality ?? 0, GetContextTagQuality(ContextTags));
 
@@ -100,7 +100,7 @@ public record IconDef(
         List<string>? notes = null;
         if (motr.RequiredItemId != null)
         {
-            if (ItemRegistry.Create(motr.RequiredItemId, allowNull: true) is Item reqItem)
+            if (ItemQueryCache.GetItem(motr.RequiredItemId) is Item reqItem)
             {
                 // if (motr.RequiredTags != null)
                 //     reqItem.GetContextTags().AddRange(motr.RequiredTags);
@@ -182,14 +182,16 @@ public record IconDef(
     /// <returns></returns>
     internal static IconDef? FromFuel(string itemId, int count)
     {
-        if (ItemRegistry.Create(itemId, allowNull: false) is Item item)
+        if (ItemQueryCache.GetItem(itemId) is Item item)
             return new IconDef([item], Count: count, IsFuel: true);
         return null;
     }
 
     internal static IconDef? FromEMCTagsFuelItems(IReadOnlyList<string> itemIds, int count)
     {
-        IReadOnlyList<Item>? items = itemIds.Select(itemId => ItemRegistry.Create(itemId)).ToList();
+        IReadOnlyList<Item>? items = itemIds
+            .Select(itemId => ItemQueryCache.GetItem(itemId) ?? ItemRegistry.Create(itemId))
+            .ToList();
         if (items?.Count > 0)
             return new IconDef(items, Count: count, IsFuel: true);
         return null;
@@ -213,8 +215,12 @@ public record IconDef(
         get
         {
             sb.Clear();
-            if (ContextTags != null)
-                sb.AppendJoin('\n', ContextTags);
+            if (
+                ContextTags != null
+                && ContextTags.Where(tag => !tag.StartsWith("id_")) is IEnumerable<string> filteredTags
+                && filteredTags.Any()
+            )
+                sb.AppendJoin('\n', filteredTags);
             if (Condition != null)
             {
                 if (sb.Length > 0)
@@ -348,7 +354,6 @@ public sealed record IconOutputDef(
 #if DEBUG
     public override string ToString()
     {
-        StringBuilder sb = new();
         if (Items != null)
         {
             sb.AppendJoin('|', Items.Select(item => item.QualifiedItemId));
@@ -411,7 +416,6 @@ internal static class MachineRuleCache
     /// <summary>Clear cache, usually because Data/Objects was invalidated.</summary>
     internal static void Invalidate()
     {
-        ModEntry.Log("Invalidate MachineRuleCache");
         machineRuleCache.Clear();
         machines = null;
     }

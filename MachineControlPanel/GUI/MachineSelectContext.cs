@@ -49,7 +49,7 @@ public sealed partial class MachineSelectContext
         {
             if (MachineRuleCache.NoRules(key))
                 continue;
-            if (ItemRegistry.Create(key) is not Item machine)
+            if (ItemQueryCache.GetItem(key) is not Item machine)
                 continue;
             MachineSelectCell cell = new(key, value, machine);
             cell.UpdateBackgroundTint();

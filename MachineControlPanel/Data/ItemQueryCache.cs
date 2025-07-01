@@ -7,13 +7,13 @@ using StardewValley.Delegates;
 using StardewValley.Extensions;
 using StardewValley.GameData.Machines;
 using StardewValley.Internal;
+using StardewValley.ItemTypeDefinitions;
 
 namespace MachineControlPanel.Data;
 
 /// <summary>Cache info about items matching a condition</summary>
 internal static class ItemQueryCache
 {
-    private const string ALL_ITEMS = "ALL_ITEMS";
     private static readonly Regex ItemContextTagGSQ = new(@"(!?)ITEM_CONTEXT_TAG (?:Target|Input) (.+)");
     private static readonly Regex ItemGSQ =
         new(
@@ -27,18 +27,38 @@ internal static class ItemQueryCache
         contextTagLookupCache ??= GetContextTagLookupCache();
     private static readonly Dictionary<string, IReadOnlyList<Item>> itemQueryCache = [];
 
-    private static IReadOnlyList<Item>? allItems = null;
-    private static IReadOnlyList<Item> AllItems =>
-        allItems ??= ItemQueryResolver
-            .TryResolve(ALL_ITEMS, IQContext, filter: ItemQuerySearchMode.AllOfTypeItem)
-            .Select(res => (Item)res.Item)
-            .ToList();
+    private static IEnumerable<Item> GetAllItems()
+    {
+        foreach (IItemDataDefinition itemType in ItemRegistry.ItemTypes)
+        {
+            foreach (ParsedItemData allDatum2 in itemType.GetAllData())
+            {
+                if (ItemRegistry.Create(allDatum2.QualifiedItemId, allowNull: true) is Item item)
+                {
+                    yield return item;
+                }
+            }
+        }
+    }
+
+    private static IReadOnlyDictionary<string, Item>? allItems = null;
+    private static IReadOnlyDictionary<string, Item> AllItemsDict =>
+        allItems ??= GetAllItems().ToDictionary(item => item.QualifiedItemId, item => item);
+    private static IReadOnlyList<Item> AllItems => AllItemsDict.Values.ToList();
     internal static ItemQueryContext IQContext => new();
+
+    internal static Item? GetItem(string qId)
+    {
+        if (AllItemsDict.TryGetValue(qId, out Item? item))
+        {
+            return item;
+        }
+        return null;
+    }
 
     /// <summary>Clear cache, usually because Data/Objects was invalidated.</summary>
     internal static void Invalidate()
     {
-        ModEntry.Log("Invalidate ItemQueryCache");
         itemQueryCache.Clear();
         conditionItemCache.Clear();
         contextTagLookupCache = null;
@@ -62,10 +82,8 @@ internal static class ItemQueryCache
     {
         var stopwatch = Stopwatch.StartNew();
         Dictionary<string, HashSet<string>> newCache = [];
-        foreach (ItemQueryResult result in ItemQueryResolver.TryResolve(ALL_ITEMS, IQContext))
+        foreach (Item item in AllItems)
         {
-            if (result.Item is not Item item)
-                continue;
             foreach (string tag in item.GetContextTags())
             {
                 string lowerTag = tag.ToLower();
@@ -119,7 +137,7 @@ internal static class ItemQueryCache
             );
             if (include != null)
                 aggregate = aggregate.Where(include.Contains);
-            items = aggregate.Except(exclude).Select(itemId => ItemRegistry.Create(itemId));
+            items = aggregate.Except(exclude).Select(itemId => GetItem(itemId) ?? ItemRegistry.Create(itemId));
             return true;
         }
         // do not bother handling the only !tag case, fall through to regular item query
@@ -196,20 +214,11 @@ internal static class ItemQueryCache
     /// <returns></returns>
     internal static IReadOnlyList<Item>? CreateConditionItemList(string condition)
     {
-        if (
-            ItemQueryResolver.TryResolve(
-                ALL_ITEMS,
-                IQContext,
-                ItemQuerySearchMode.AllOfTypeItem,
-                condition,
-                avoidRepeat: true
-            )
-                is ItemQueryResult[] results
-            && results.Any()
-        )
-        {
-            return results.Select(res => (Item)res.Item).ToList();
-        }
+        IEnumerable<Item> result = AllItems.Where(
+            (item) => GameStateQuery.CheckConditions(condition, targetItem: item)
+        );
+        if (result.Any())
+            return result.ToList();
         return null;
     }
 

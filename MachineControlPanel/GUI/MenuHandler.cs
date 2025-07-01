@@ -2,7 +2,6 @@ using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
-using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Menus;
