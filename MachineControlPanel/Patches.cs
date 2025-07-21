@@ -238,20 +238,13 @@ internal static class Patches
         {
             CodeMatcher matcher = new(instructions, generator);
 
-            CodeMatch ldlocAny = new(OpCodes.Ldloc_0);
-            ldlocAny.opcodes.Add(OpCodes.Ldloc_1);
-            ldlocAny.opcodes.Add(OpCodes.Ldloc_2);
-            ldlocAny.opcodes.Add(OpCodes.Ldloc_3);
-            ldlocAny.opcodes.Add(OpCodes.Ldloc);
-            ldlocAny.opcodes.Add(OpCodes.Ldloc_S);
-
             // insert just before if (trigger2.RequiredCount > inputItem.Stack)
             matcher
                 .Start()
                 .MatchStartForward(
                     [
                         new(OpCodes.Brfalse_S),
-                        ldlocAny,
+                        new(inst => inst.IsLdloc()),
                         new(
                             OpCodes.Callvirt,
                             AccessTools.PropertyGetter(
@@ -454,13 +447,7 @@ internal static class Patches
         try
         {
             CodeMatcher matcher = new(instructions, generator);
-
-            CodeMatch matchLdloc = new(OpCodes.Ldloc);
-            matchLdloc.opcodes.Add(OpCodes.Ldloc_0);
-            matchLdloc.opcodes.Add(OpCodes.Ldloc_1);
-            matchLdloc.opcodes.Add(OpCodes.Ldloc_2);
-            matchLdloc.opcodes.Add(OpCodes.Ldloc_3);
-            matchLdloc.opcodes.Add(OpCodes.Ldloc_S);
+            CodeMatch matchLdloc = new(inst => inst.IsLdloc());
 
             matcher
                 .MatchStartForward(

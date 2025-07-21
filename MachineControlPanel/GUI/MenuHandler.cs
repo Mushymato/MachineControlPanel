@@ -59,6 +59,7 @@ internal static class MenuHandler
         MachineSelectContext context = new();
         ModEntry.SavedMachineRules += context.UpdateBackgroundTint;
         var menuCtrl = viewEngine.CreateMenuControllerFromAsset(VIEW_ASSET_MACHINE_SELECT, context);
+        menuCtrl.EnableCloseButton();
         menuCtrl.Closing += context.Closing;
         Game1.activeClickableMenu = menuCtrl.Menu;
     }
@@ -87,6 +88,7 @@ internal static class MenuHandler
         if (!context.HasInputs)
             context.PageIndex = (int)DefaultPageOption.Rules;
         var menuCtrl = viewEngine.CreateMenuControllerFromAsset(VIEW_ASSET_CONTROL_PANEL, context);
+        menuCtrl.EnableCloseButton();
         menuCtrl.Closing += context.Closing;
         if (asChildMenu && Game1.activeClickableMenu != null)
             Game1.activeClickableMenu.SetChildMenu(menuCtrl.Menu);

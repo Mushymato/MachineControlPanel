@@ -1,11 +1,9 @@
-global using SObject = StardewValley.Object;
+﻿global using SObject = StardewValley.Object;
 using MachineControlPanel.Data;
 using MachineControlPanel.GUI;
-using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Menus;
 
 namespace MachineControlPanel;
 
