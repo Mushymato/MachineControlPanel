@@ -27,23 +27,32 @@ internal static class ItemQueryCache
         contextTagLookupCache ??= GetContextTagLookupCache();
     private static readonly Dictionary<string, IReadOnlyList<Item>> itemQueryCache = [];
 
-    private static IEnumerable<Item> GetAllItems()
+    private static IReadOnlyDictionary<string, Item> GetAllItems()
     {
+        Dictionary<string, Item> allItemsDict = [];
         foreach (IItemDataDefinition itemType in ItemRegistry.ItemTypes)
         {
-            foreach (ParsedItemData allDatum2 in itemType.GetAllData())
+            foreach (ParsedItemData allDatum in itemType.GetAllData())
             {
-                if (ItemRegistry.Create(allDatum2.QualifiedItemId, allowNull: true) is Item item)
+                if (allItemsDict.ContainsKey(allDatum.QualifiedItemId))
                 {
-                    yield return item;
+                    ModEntry.Log(
+                        $"Duplicate qualified item id '{allDatum.QualifiedItemId}' ({allDatum.DisplayName})",
+                        LogLevel.Warn
+                    );
+                    continue;
+                }
+                if (ItemRegistry.Create(allDatum.QualifiedItemId, allowNull: true) is Item item)
+                {
+                    allItemsDict[allDatum.QualifiedItemId] = item;
                 }
             }
         }
+        return allItemsDict;
     }
 
     private static IReadOnlyDictionary<string, Item>? allItems = null;
-    private static IReadOnlyDictionary<string, Item> AllItemsDict =>
-        allItems ??= GetAllItems().ToDictionary(item => item.QualifiedItemId, item => item);
+    private static IReadOnlyDictionary<string, Item> AllItemsDict => allItems ??= GetAllItems();
     private static IReadOnlyList<Item> AllItems => AllItemsDict.Values.ToList();
     internal static ItemQueryContext IQContext => new();
 
