@@ -410,7 +410,15 @@ internal static class MachineRuleCache
 
     internal static void Register(IModHelper helper)
     {
-        IconOutputDef.emc = helper.ModRegistry.GetApi<IExtraMachineConfigApi>("selph.ExtraMachineConfig");
+        try
+        {
+            IconOutputDef.emc = helper.ModRegistry.GetApi<IExtraMachineConfigApi>("selph.ExtraMachineConfig");
+        }
+        catch (Exception ex)
+        {
+            ModEntry.Log($"Failed to get 'selph.ExtraMachineConfig' API:\n{ex}", LogLevel.Warn);
+            IconOutputDef.emc = null;
+        }
     }
 
     /// <summary>Clear cache, usually because Data/Objects was invalidated.</summary>

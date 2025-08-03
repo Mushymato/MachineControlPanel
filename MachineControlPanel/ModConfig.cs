@@ -112,7 +112,15 @@ internal sealed class ModConfig
 
     public void Register(IModHelper helper, IManifest mod)
     {
-        var GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+        Integration.IGenericModConfigMenuApi? GMCM = null;
+        try
+        {
+            GMCM = helper.ModRegistry.GetApi<Integration.IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+        }
+        catch (Exception ex)
+        {
+            ModEntry.Log($"Failed to get 'spacechase0.GenericModConfigMenu' API:\n{ex}", LogLevel.Warn);
+        }
         if (GMCM == null)
         {
             helper.WriteConfig(this);

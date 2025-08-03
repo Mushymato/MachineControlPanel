@@ -38,18 +38,25 @@ internal static class MenuHandler
         viewEngine.EnableHotReloadingWithSourceSync();
 #endif
 
-        // iconic framework
-        if (helper.ModRegistry.GetApi<IIconicFrameworkApi>("furyx639.ToolbarIcons") is IIconicFrameworkApi ifApi)
+        try
         {
-            ifApi.AddToolbarIcon(
-                ModEntry.ModId,
-                "LooseSprites/emojis",
-                new(72, 54, 9, 9),
-                I18n.Cmct_Action_MachineSelect_Title,
-                I18n.Cmct_Action_MachineSelect_Description,
-                ShowMachineSelect,
-                ShowControlPanelForCursorTile
-            );
+            // iconic framework
+            if (helper.ModRegistry.GetApi<IIconicFrameworkApi>("furyx639.ToolbarIcons") is IIconicFrameworkApi ifApi)
+            {
+                ifApi.AddToolbarIcon(
+                    ModEntry.ModId,
+                    "LooseSprites/emojis",
+                    new(72, 54, 9, 9),
+                    I18n.Cmct_Action_MachineSelect_Title,
+                    I18n.Cmct_Action_MachineSelect_Description,
+                    ShowMachineSelect,
+                    ShowControlPanelForCursorTile
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            ModEntry.Log($"Failed to get 'furyx639.ToolbarIcons' API:\n{ex}", LogLevel.Warn);
         }
     }
 
