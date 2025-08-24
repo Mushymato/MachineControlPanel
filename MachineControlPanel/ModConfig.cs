@@ -92,6 +92,9 @@ internal sealed class ModConfig
     /// <summary>Use the more visible question mark icon that recolors rarely seem to touch :(</summary>
     public bool AltQuestionMark { get; set; } = false;
 
+    /// <summary>Use per save config data, if this is off, the configs comes from global data instead</summary>
+    public bool ConfigPerSave { get; set; } = true;
+
     /// <summary>Maximum number of rows to display on rule entries page, lower this if you have performance issues</summary>
     public int RuleEntriesPageSize { get; set; } = 8;
 
@@ -106,6 +109,7 @@ internal sealed class ModConfig
         DefaultIsGlobal = true;
         ProgressionMode = true;
         AltQuestionMark = false;
+        ConfigPerSave = true;
         RuleEntriesPageSize = 8;
         GridItemsPageSize = 1024;
     }
@@ -160,6 +164,25 @@ internal sealed class ModConfig
             name: I18n.Config_OpenMachineSelectMenu_Name,
             draw: OpenMenuButton.Draw,
             height: () => 80
+        );
+        GMCM.AddBoolOption(
+            mod,
+            getValue: () => ConfigPerSave,
+            setValue: (value) =>
+            {
+                if (Context.IsWorldReady)
+                {
+                    ModSaveData data = ModEntry.ReadData();
+                    ConfigPerSave = value;
+                    ModEntry.WriteData(data);
+                }
+                else
+                {
+                    ConfigPerSave = value;
+                }
+            },
+            name: I18n.Config_ConfigPerSave_Name,
+            tooltip: I18n.Config_ConfigPerSave_Description
         );
 
         GMCM.AddSectionTitle(mod, I18n.Config_Heading_MenuAccess);

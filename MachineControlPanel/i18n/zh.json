@@ -7,6 +7,8 @@
     "config.machine-select-key.description": "按此键打开机器选择菜单",
     "config.open-machine-select-menu.name": "打开机器选择菜单",
     "config.open-machine-select-menu.description": "（加载存档后可使用）",
+    "config.config-per-save.name": "存档独立设置",
+    "config.config-per-save.description": "在每个存档分别设置控制面板，或让所有存档共享设置。注意：如果你在更改这个设置时没有加载存档，有可能会丢失设置！",
     // Benaviors
     "config.heading.behaviors": "特性",
     "config.default-is-global.name": "默认全局",

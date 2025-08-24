@@ -7,6 +7,8 @@
     "config.machine-select-key.description": "Press this key to open a selection menu for all machines in the game.",
     "config.open-machine-select-menu.name": "Open Machine Select Menu",
     "config.open-machine-select-menu.description": "(Must load a save first)",
+    "config.config-per-save.name": "Config Per Save",
+    "config.config-per-save.description": "Store machine control panel configs per save, or have them be shared across saves. NOTE: you may lose your previous configs if you switch from per-save to global without being loaded into a save!",
     // Behaviors
     "config.heading.behaviors": "Behaviors",
     "config.default-is-global.name": "Default Is Global",

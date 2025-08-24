@@ -7,7 +7,7 @@ using StardewValley;
 
 namespace MachineControlPanel;
 
-public class ModEntry : Mod
+public sealed class ModEntry : Mod
 {
 #if DEBUG
     private const LogLevel DEFAULT_LOG_LEVEL = LogLevel.Debug;
@@ -201,6 +201,33 @@ public class ModEntry : Mod
     }
 
     /// <summary>
+    /// Wrapper around ReadSaveData OR ReadGlobalData
+    /// </summary>
+    /// <returns></returns>
+    internal static ModSaveData ReadData()
+    {
+        return Config.ConfigPerSave
+            ? help.Data.ReadSaveData<ModSaveData>(SAVEDATA)!
+            : help.Data.ReadGlobalData<ModSaveData>(SAVEDATA)!;
+    }
+
+    /// <summary>
+    /// Wrapper around ReadSaveData OR ReadGlobalData
+    /// </summary>
+    /// <returns></returns>
+    internal static void WriteData(ModSaveData? data)
+    {
+        if (Config.ConfigPerSave)
+        {
+            help.Data.WriteSaveData(SAVEDATA, data);
+        }
+        else
+        {
+            help.Data.WriteGlobalData(SAVEDATA, data);
+        }
+    }
+
+    /// <summary>
     /// Populate the has item cache
     /// Read save data on the host
     /// </summary>
@@ -214,13 +241,13 @@ public class ModEntry : Mod
             return;
         try
         {
-            SaveData = Helper.Data.ReadSaveData<ModSaveData>(SAVEDATA)!;
+            SaveData = ReadData();
             if (SaveData == null)
                 SaveData = new();
             else
                 SaveData.ClearInvalidData();
             SaveData.Version = ModManifest.Version;
-            Helper.Data.WriteSaveData(SAVEDATA, SaveData);
+            WriteData(SaveData);
         }
         catch (InvalidOperationException)
         {
@@ -276,7 +303,7 @@ public class ModEntry : Mod
             SAVEDATA_ENTRY,
             modIDs: [ModId]
         );
-        help.Data.WriteSaveData(SAVEDATA, SaveData);
+        WriteData(SaveData);
         SavedMachineRules?.Invoke(null, bigCraftableId);
     }
 
@@ -297,7 +324,7 @@ public class ModEntry : Mod
             Log("Must load save first.", LogLevel.Error);
             return;
         }
-        Helper.Data.WriteSaveData<ModSaveData>(SAVEDATA, null);
+        WriteData(null);
         help.Multiplayer.SendMessage(SaveData, SAVEDATA, modIDs: [ModManifest.UniqueID]);
         SaveData = new() { Version = ModManifest.Version };
         Log($"Cleared all save data.", LogLevel.Info);
