@@ -1,9 +1,11 @@
 using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
+using StardewValley.Extensions;
 using StardewValley.Menus;
 
 namespace MachineControlPanel.GUI;
@@ -57,6 +59,37 @@ internal static class MenuHandler
         catch (Exception ex)
         {
             ModEntry.Log($"Failed to get 'furyx639.ToolbarIcons' API:\n{ex}", LogLevel.Warn);
+        }
+
+        try
+        {
+            // mobile phone
+            if (helper.ModRegistry.GetApi<IMobilePhoneApi>("aedenthorn.MobilePhone") is IMobilePhoneApi mpApi)
+            {
+                Texture2D mobilePhoneIcon = new(Game1.graphics.GraphicsDevice, 9, 9);
+                Texture2D emojiTexture = Game1.content.Load<Texture2D>("LooseSprites\\emojis");
+                Color[] emojisArray = new Color[emojiTexture.GetElementCount()];
+                emojiTexture.GetData(emojisArray);
+                Color[] mobilePhoneIconData = new Color[9 * 9];
+                for (int i = 0; i < 9; i++)
+                {
+                    for (int j = 0; j < 9; j++)
+                    {
+                        mobilePhoneIconData[j * 9 + i] = emojisArray[(54 + j) * emojiTexture.ActualWidth + 72 + i];
+                    }
+                }
+                mobilePhoneIcon.SetData(mobilePhoneIconData);
+                mpApi.AddApp(
+                    ModEntry.ModId,
+                    I18n.Cmct_Action_MachineSelect_Title(),
+                    ShowMachineSelect,
+                    mobilePhoneIcon
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            ModEntry.Log($"Failed to get 'aedenthorn.MobilePhone' API:\n{ex}", LogLevel.Warn);
         }
     }
 

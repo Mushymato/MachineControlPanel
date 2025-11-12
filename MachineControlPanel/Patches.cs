@@ -25,7 +25,7 @@ internal static class Patches
     /// <summary>Hold skip reason, here is hoping single thread means its safe lol</summary>
     private static PerScreen<SkipReason> skipped = new();
 
-    internal static void Patch()
+    internal static void Apply()
     {
         Harmony harmony = new(ModEntry.ModId);
         skipped.Value = SkipReason.None;

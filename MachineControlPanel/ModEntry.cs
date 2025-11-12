@@ -40,7 +40,7 @@ public sealed class ModEntry : Mod
         man = ModManifest;
         help = helper;
         Config = Helper.ReadConfig<ModConfig>();
-        Patches.Patch();
+        Patches.Apply();
 
         // shared events
         helper.Events.GameLoop.GameLaunched += OnGameLaunched;
