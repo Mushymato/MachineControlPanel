@@ -6,7 +6,6 @@ using StardewValley.ItemTypeDefinitions;
 namespace MachineControlPanel.Integration;
 
 /// <summary>Duck types for StardewUI</summary>
-
 public record SDUIEdges(int Left, int Top, int Right, int Bottom)
 {
     public static readonly SDUIEdges NONE = new(0, 0, 0, 0);

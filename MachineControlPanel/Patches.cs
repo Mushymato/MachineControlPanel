@@ -241,21 +241,19 @@ internal static class Patches
             // insert just before if (trigger2.RequiredCount > inputItem.Stack)
             matcher
                 .Start()
-                .MatchStartForward(
-                    [
-                        new(OpCodes.Brfalse_S),
-                        new(inst => inst.IsLdloc()),
-                        new(
-                            OpCodes.Callvirt,
-                            AccessTools.PropertyGetter(
-                                typeof(MachineOutputTriggerRule),
-                                nameof(MachineOutputTriggerRule.RequiredCount)
-                            )
-                        ),
-                        new(OpCodes.Ldarg_3),
-                        new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Item), nameof(Item.Stack))),
-                    ]
-                )
+                .MatchStartForward([
+                    new(OpCodes.Brfalse_S),
+                    new(inst => inst.IsLdloc()),
+                    new(
+                        OpCodes.Callvirt,
+                        AccessTools.PropertyGetter(
+                            typeof(MachineOutputTriggerRule),
+                            nameof(MachineOutputTriggerRule.RequiredCount)
+                        )
+                    ),
+                    new(OpCodes.Ldarg_3),
+                    new(OpCodes.Callvirt, AccessTools.PropertyGetter(typeof(Item), nameof(Item.Stack))),
+                ])
                 .ThrowIfNotMatch("Did not find 'if (trigger2.RequiredCount > inputItem.Stack)'");
 
             Label lbl = (Label)matcher.Operand; // label to end of loop
@@ -265,50 +263,44 @@ internal static class Patches
             // Check for MachineOutputTrigger.ItemPlacedInMachine
             matcher
                 .Advance(1)
-                .InsertAndAdvance(
-                    [
-                        // ldloc from match
-                        new(OpCodes.Ldarg_0), // Object machine
-                        new(OpCodes.Ldarg_1), // MachineOutputRule rule
-                        new(OpCodes.Ldarg_3), // Item inputItem
-                        // new(OpCodes.Ldloc, idx), // foreach idx
-                        new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(Patches), nameof(ShouldSkipMachineInput))),
-                        new(OpCodes.Brtrue, lbl),
-                        ldloc, // MachineOutputTriggerRule trigger2
-                    ]
-                );
+                .InsertAndAdvance([
+                    // ldloc from match
+                    new(OpCodes.Ldarg_0), // Object machine
+                    new(OpCodes.Ldarg_1), // MachineOutputRule rule
+                    new(OpCodes.Ldarg_3), // Item inputItem
+                    // new(OpCodes.Ldloc, idx), // foreach idx
+                    new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(Patches), nameof(ShouldSkipMachineInput))),
+                    new(OpCodes.Brtrue, lbl),
+                    ldloc, // MachineOutputTriggerRule trigger2
+                ]);
 
             // Check for MachineOutputTrigger.DayUpdate
             matcher
-                .MatchStartForward(
-                    [
-                        new(OpCodes.Ldarg_S, (byte)6),
-                        new(ldloc.opcode, ldloc.operand),
-                        new(OpCodes.Stind_Ref),
-                        new(OpCodes.Ldarg_S, (byte)7),
-                        new(OpCodes.Ldc_I4_0),
-                        new(OpCodes.Stind_I1),
-                    ]
-                )
+                .MatchStartForward([
+                    new(OpCodes.Ldarg_S, (byte)6),
+                    new(ldloc.opcode, ldloc.operand),
+                    new(OpCodes.Stind_Ref),
+                    new(OpCodes.Ldarg_S, (byte)7),
+                    new(OpCodes.Ldc_I4_0),
+                    new(OpCodes.Stind_I1),
+                ])
                 .ThrowIfNotMatch("Failed 'triggerRule = trigger2; matchesExceptCount = false;");
 
             matcher
                 .SetAndAdvance(OpCodes.Ldarg_2, null) // MachineOutputTrigger trigger
-                .Insert(
-                    [
-                        ldloc.Clone(), // MachineOutputTriggerRule trigger2
-                        new(OpCodes.Ldarg_0), // Object machine
-                        new(OpCodes.Ldarg_1), // MachineOutputRule rule
-                        new(OpCodes.Ldarg_3), // Item inputItem
-                        // new(OpCodes.Ldloc, idx), // foreach idx
-                        new(
-                            OpCodes.Call,
-                            AccessTools.DeclaredMethod(typeof(Patches), nameof(ShouldSkipMachineInput_DayUpdate))
-                        ),
-                        new(OpCodes.Brtrue, lbl),
-                        new(OpCodes.Ldarg_S, (byte)6),
-                    ]
-                );
+                .Insert([
+                    ldloc.Clone(), // MachineOutputTriggerRule trigger2
+                    new(OpCodes.Ldarg_0), // Object machine
+                    new(OpCodes.Ldarg_1), // MachineOutputRule rule
+                    new(OpCodes.Ldarg_3), // Item inputItem
+                    // new(OpCodes.Ldloc, idx), // foreach idx
+                    new(
+                        OpCodes.Call,
+                        AccessTools.DeclaredMethod(typeof(Patches), nameof(ShouldSkipMachineInput_DayUpdate))
+                    ),
+                    new(OpCodes.Brtrue, lbl),
+                    new(OpCodes.Ldarg_S, (byte)6),
+                ]);
 
             return matcher.Instructions();
         }
@@ -363,60 +355,52 @@ internal static class Patches
 
             matcher
                 .Start()
-                .MatchStartForward(
-                    [
-                        new(
-                            OpCodes.Stfld,
-                            AccessTools.Field(typeof(Farmer), nameof(Farmer.ignoreItemConsumptionThisFrame))
-                        ),
-                        new(OpCodes.Ldc_I4_0),
-                        new(OpCodes.Ret),
-                        new(OpCodes.Ldarg_3),
-                    ]
-                )
+                .MatchStartForward([
+                    new(
+                        OpCodes.Stfld,
+                        AccessTools.Field(typeof(Farmer), nameof(Farmer.ignoreItemConsumptionThisFrame))
+                    ),
+                    new(OpCodes.Ldc_I4_0),
+                    new(OpCodes.Ret),
+                    new(OpCodes.Ldarg_3),
+                ])
                 .ThrowIfNotMatch("Did not find 'who.ignoreItemConsumptionThisFrame = true; } } return false;");
             matcher.Advance(1);
             // if not reached by jump, go to ret
             matcher.InsertAndAdvance([new(OpCodes.Br, matcher.Labels.Last())]);
-            matcher.Insert(
-                [
-                    new(OpCodes.Ldarg_2),
-                    new(OpCodes.Ldarg_S, (sbyte)4),
-                    new(OpCodes.Call, AccessTools.Method(typeof(Patches), nameof(ShowSkippedReasonMessage))),
-                ]
-            );
+            matcher.Insert([
+                new(OpCodes.Ldarg_2),
+                new(OpCodes.Ldarg_S, (sbyte)4),
+                new(OpCodes.Call, AccessTools.Method(typeof(Patches), nameof(ShowSkippedReasonMessage))),
+            ]);
             matcher.CreateLabel(out Label lbl);
 
             // change 2 prev false branches to jump to the new label
 
-            matcher.MatchEndBackwards(
-                [
-                    new(
-                        OpCodes.Call,
-                        AccessTools.Method(
-                            typeof(GameStateQuery),
-                            nameof(GameStateQuery.CheckConditions),
-                            [
-                                typeof(string),
-                                typeof(GameLocation),
-                                typeof(Farmer),
-                                typeof(Item),
-                                typeof(Random),
-                                typeof(HashSet<string>),
-                            ]
-                        )
-                    ),
-                    new(OpCodes.Brfalse_S),
-                ]
-            );
+            matcher.MatchEndBackwards([
+                new(
+                    OpCodes.Call,
+                    AccessTools.Method(
+                        typeof(GameStateQuery),
+                        nameof(GameStateQuery.CheckConditions),
+                        [
+                            typeof(string),
+                            typeof(GameLocation),
+                            typeof(Farmer),
+                            typeof(Item),
+                            typeof(Random),
+                            typeof(HashSet<string>),
+                        ]
+                    )
+                ),
+                new(OpCodes.Brfalse_S),
+            ]);
             matcher.Operand = lbl;
 
-            matcher.MatchEndBackwards(
-                [
-                    new(OpCodes.Ldfld, AccessTools.Field(typeof(MachineData), nameof(MachineData.InvalidItemMessage))),
-                    new(OpCodes.Brfalse_S),
-                ]
-            );
+            matcher.MatchEndBackwards([
+                new(OpCodes.Ldfld, AccessTools.Field(typeof(MachineData), nameof(MachineData.InvalidItemMessage))),
+                new(OpCodes.Brfalse_S),
+            ]);
             matcher.Operand = lbl;
 
             return matcher.Instructions();
@@ -450,27 +434,23 @@ internal static class Patches
             CodeMatch matchLdloc = new(inst => inst.IsLdloc());
 
             matcher
-                .MatchStartForward(
-                    [
-                        new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(ArgUtility), nameof(ArgUtility.Get))),
-                        matchLdloc,
-                        matchLdloc,
-                        new(OpCodes.Ldc_I4_1),
-                        new(OpCodes.Add),
-                        new(OpCodes.Ldc_I4_1),
-                        new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(ArgUtility), nameof(ArgUtility.GetInt))),
-                    ]
-                )
+                .MatchStartForward([
+                    new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(ArgUtility), nameof(ArgUtility.Get))),
+                    matchLdloc,
+                    matchLdloc,
+                    new(OpCodes.Ldc_I4_1),
+                    new(OpCodes.Add),
+                    new(OpCodes.Ldc_I4_1),
+                    new(OpCodes.Call, AccessTools.DeclaredMethod(typeof(ArgUtility), nameof(ArgUtility.GetInt))),
+                ])
                 .ThrowIfNotMatch("Failed to find ArgUtility.Get/ArgUtility.GetInt block")
                 .Advance(1)
-                .Insert(
-                    [
-                        new(
-                            OpCodes.Call,
-                            AccessTools.DeclaredMethod(typeof(Patches), nameof(CheckDeconstructorQualifiedItemId))
-                        ),
-                    ]
-                );
+                .Insert([
+                    new(
+                        OpCodes.Call,
+                        AccessTools.DeclaredMethod(typeof(Patches), nameof(CheckDeconstructorQualifiedItemId))
+                    ),
+                ]);
 
             return matcher.Instructions();
         }

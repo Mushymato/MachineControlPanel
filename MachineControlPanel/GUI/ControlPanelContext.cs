@@ -39,8 +39,12 @@ public record SpriteLayer(SDUISprite Sprite, Color Tint, string Layout, SDUIEdge
             Texture2D texture = data.GetTexture();
             Rectangle sourceRect = data.GetSourceRect();
             yield return new(new(texture, sourceRect), Color.White, $"{equiv32}px {equiv32}px", new((int)(4 * scale)));
-            Rectangle layerRect =
-                new(sourceRect.X + texture.Width / 2, sourceRect.Y, sourceRect.Width, sourceRect.Height);
+            Rectangle layerRect = new(
+                sourceRect.X + texture.Width / 2,
+                sourceRect.Y,
+                sourceRect.Width,
+                sourceRect.Height
+            );
             yield return new(new(texture, layerRect), Color.White, $"{equiv32}px {equiv32}px", new((int)(4 * scale)));
             yield break;
         }

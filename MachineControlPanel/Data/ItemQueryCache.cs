@@ -15,10 +15,9 @@ namespace MachineControlPanel.Data;
 internal static class ItemQueryCache
 {
     private static readonly Regex ItemContextTagGSQ = new(@"(!?)ITEM_CONTEXT_TAG (?:Target|Input) (.+)");
-    private static readonly Regex ItemGSQ =
-        new(
-            "\\!?(ITEM_CATEGORY|ITEM_HAS_EXPLICIT_OBJECT_CATEGORY|ITEM_ID|ITEM_ID_PREFIX|ITEM_NUMERIC_ID|ITEM_OBJECT_TYPE|ITEM_TYPE|ITEM_EDIBILITY) .+"
-        );
+    private static readonly Regex ItemGSQ = new(
+        "\\!?(ITEM_CATEGORY|ITEM_HAS_EXPLICIT_OBJECT_CATEGORY|ITEM_ID|ITEM_ID_PREFIX|ITEM_NUMERIC_ID|ITEM_OBJECT_TYPE|ITEM_TYPE|ITEM_EDIBILITY) .+"
+    );
     private static readonly Regex ExcludeTags = new("(quality_|preserve_sheet_index_).+");
     private static readonly Dictionary<string, IReadOnlyList<Item>?> conditionItemCache = [];
     private static readonly Dictionary<ValueTuple<string, string>, IReadOnlyList<Item>?> outputMethodCache = [];
