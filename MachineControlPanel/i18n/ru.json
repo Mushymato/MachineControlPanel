@@ -1,0 +1,60 @@
+{
+    // Menu Access
+    "config.heading.menu-access": "Доступ к меню",
+    "config.control-panel-key.name": "Клавиша панели управления",
+    "config.control-panel-key.description": "Нажмите эту клавишу рядом с машиной, чтобы открыть её панель управления.",
+    "config.machine-select-key.name": "Клавиша выбора машины",
+    "config.machine-select-key.description": "Нажмите эту клавишу, чтобы открыть меню выбора всех машин.",
+    "config.open-machine-select-menu.name": "Открыть меню выбора машин",
+    "config.open-machine-select-menu.description": "(Сначала загрузите сохранение)",
+    "config.config-per-save.name": "Настройки на сохранение",
+    "config.config-per-save.description": "Сохранять настройки панели управления отдельно для каждого файла сохранения или сделать их общими. ВНИМАНИЕ: Переключение с отдельных на общие настройки БЕЗ загрузки сохранения может привести к их потере!",
+    // Behaviors
+    "config.heading.behaviors": "Поведение",
+    "config.default-is-global.name": "Редактировать общие",
+    "config.default-is-global.description": "По умолчанию редактировать общие настройки (действуют везде).",
+    "config.default-page.name": "Страница по умолчанию",
+    "config.default-page.description": "Страница панели управления, открываемая по умолчанию.",
+    "config.default-page.machine-rules": "Правила машин",
+    "config.default-page.item-inputs": "Вводимые предметы",
+    "config.progression-mode.name": "Режим прохождения",
+    "config.progression-mode.description": "В меню выбора скрывать машины, которые вы ещё не получали.",
+    "config.rule-entries-page-size.name": "Строк на странице (правила)",
+    "config.rule-entries-page-size.description": "Сколько строк показывать на одной странице вкладки правил. Уменьшите, если меню тормозит.",
+    "config.grid-items-page-size.name": "Предметов на странице (сетка)",
+    "config.grid-items-page-size.description": "Сколько предметов показывать на одной странице вкладки ввода и побочных продуктов. Уменьшите, если меню тормозит.",
+    // Visual
+    "config.heading.visual": "Внешний вид",
+    "config.alt-question-mark.name": "Альтернативный значок '?'",
+    "config.alt-question-mark.description": "Использовать более заметный и яркий значок вопросительного знака (старый вариант).",
+    // rule list
+    "rule-list.same-as-input": "Как у вводимого",
+    "rule-list.special-input": "Особый ввод",
+    "rule-list.special-output": "Особый вывод: {{method}}",
+    // these button text can't be too long, they are fixed size on the UI
+    "rule-list.rules": "Правила",
+    "rule-list.inputs": "Вводимые",
+    "rule-list.disable-all": "Выкл. все",
+    "rule-list.enable-all": "Вкл. все",
+    "rule-list.more-outputs": "Выводов: {{Count}}",
+    "rule-list.items": "Предметы",
+    "rule-list.byproducts": "Побочные",
+    // this char is appeneded after Rules or Inputs if edits exist for one
+    // most languages should use * but in english it looks angry
+    "rule-list.edited": "＊",
+    "rule-list.footer-note": "Настройки машин может менять только хост.",
+    "rule-list.search": "Поиск...",
+    "machine-select.scope.everywhere": "Везде",
+    "machine-select.scope.current-location": "Текущая",
+    "machine-select.hidden-by-progression-mode": "Неоткрытые машины скрыты (Режим прохождения). Отключите его в настройках, чтобы видеть все.",
+    "skip-reason.rules": "{{Name}}: правила отключены.",
+    "skip-reason.inputs": "{{Name}}: ввод отключён.",
+    "skip-reason.quality": "{{Name}}: качество отключено.",
+    "pagination.prev-page": "Предыдущая",
+    "pagination.next-page": "Следующая",
+    // placeholder default flavor object
+    "object.thing.display-name": "Предмет",
+    // CMCT
+    "cmct.action.machine-select.title": "Панель управления машинами",
+    "cmct.action.machine-select.description": "Открыть меню выбора машин для панели управления."
+}
