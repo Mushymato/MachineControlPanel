@@ -18,7 +18,7 @@
     <Description>A control panel for machine rules.</Description>
     <UniqueId>mushymato.MachineControlPanel</UniqueId>
     <UpdateKeys>nexus:28261</UpdateKeys>
-    <Version>2.1.0</Version>
+    <Version>2.1.1</Version>
     <MinimumApiVersion_Behavior>Update</MinimumApiVersion_Behavior>
     <MinimumGameVersion_Behavior>UpdateFull</MinimumGameVersion_Behavior>
     <Dependencies_VersionBehavior>Ignore</Dependencies_VersionBehavior>

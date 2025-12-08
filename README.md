@@ -92,7 +92,9 @@ In the machine selections menu, an opaque background indicates that machine has 
 ## Translations
 
 * English
-* Simplified Chinese
+* 简体中文
+* Русский (by [ellatuk](https://github.com/ellatuk))
+
 
 ## Special Thanks
 
