@@ -80,6 +80,7 @@ Only the host player is allowed to change machine rules, but everyone can open t
 * `Progression Mode`: On the machine select page, hide not yet obtained machines.
 * `Default Page`: Page of control panel to display by default.
 * `Default Is Global`: Page of control panel to display by default.
+* `Config Per Save`: Determines how the save data is retained.
 * `Alt Question Mark`: Use a more visible question mark icon for special outputs (previously the default icon).
 * `Open Machine Select Menu`: Once a save is loaded, this option will display a button that opens the machine select menu, useful in case you are out of keybindings.
 
@@ -87,7 +88,9 @@ Only the host player is allowed to change machine rules, but everyone can open t
 
 Machine settings are recorded per farm in the save data, like vanilla save data this is written to the save file at end of the day and lost if you exit the game midday.
 
-In the machine selections menu, an opaque background indicates that machine has saved settings.
+You can change this by disabling `Config Per Save` in the configurations. With this, the machine settings are saved to global app data immediately on change.
+
+In the machine selections menu, an opaque background indicates that machine has settings.
 
 ## Translations
 
