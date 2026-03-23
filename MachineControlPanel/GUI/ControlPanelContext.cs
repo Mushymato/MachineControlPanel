@@ -814,11 +814,6 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         }
     }
 
-    public void SetHoverRule(RuleIcon? ruleIcon = null) =>
-        MenuHandler.HoveredItem = ruleIcon == null || ruleIcon.IsMulti ? null : ruleIcon.ReprItem;
-
-    public void SetHoverInput(InputIcon? inputIcon = null) => MenuHandler.HoveredItem = inputIcon?.InputItem;
-
     internal void SaveChanges(string? locationKey) =>
         ModEntry.SaveMachineRules(
             Machine.QualifiedItemId,
@@ -831,7 +826,6 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     internal void Closing()
     {
         SaveChanges(MenuHandler.GlobalToggle.LocationKey);
-        MenuHandler.HoveredItem = null;
         MenuHandler.GlobalToggle.PropertyChanged -= RecheckSavedStates;
     }
 }

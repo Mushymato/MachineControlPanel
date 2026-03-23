@@ -17,8 +17,6 @@ public sealed partial record SubitemGridContext(string Header, List<SubItemIcon>
     private const int HEADING = 34;
     private const int COL_CNT = 8;
 
-    public void SetHover(SubItemIcon? subItem = null) => MenuHandler.HoveredItem = subItem?.Item;
-
     public string SubitemLayout
     {
         get

@@ -86,19 +86,12 @@ public sealed partial class MachineSelectContext
         }
     }
 
-    public void SetHover(MachineSelectCell? cell = null) => MenuHandler.HoveredItem = cell?.Machine;
-
     internal void UpdateBackgroundTint(object? sender, string e)
     {
         if (machineCells.TryGetValue(e, out MachineSelectCell? cell))
         {
             cell.UpdateBackgroundTint();
         }
-    }
-
-    internal void Closing()
-    {
-        MenuHandler.HoveredItem = null;
     }
 
     [Notify]

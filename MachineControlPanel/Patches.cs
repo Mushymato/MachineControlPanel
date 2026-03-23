@@ -20,15 +20,13 @@ internal static class Patches
         Quality = 3,
     }
 
-    private static MethodInfo LAItemLookupProviderBuildSubject = null!;
-
     /// <summary>Hold skip reason, here is hoping single thread means its safe lol</summary>
-    private static PerScreen<SkipReason> skipped = new();
+    private static SkipReason skipped = SkipReason.None;
 
     internal static void Apply()
     {
         Harmony harmony = new(ModEntry.ModId);
-        skipped.Value = SkipReason.None;
+        skipped = SkipReason.None;
 
         // important patches
         harmony.Patch(
@@ -43,51 +41,6 @@ internal static class Patches
         );
         ModEntry.Log($"Applied SObject.PlaceInMachine Transpiler", LogLevel.Trace);
 
-        // lookup anything patch
-        try
-        {
-            var modInfo = ModEntry.help.ModRegistry.Get("Pathoschild.LookupAnything");
-            if (modInfo?.GetType().GetProperty("Mod")?.GetValue(modInfo) is IMod mod)
-            {
-                var assembly = mod.GetType().Assembly;
-                if (
-                    assembly.GetType("Pathoschild.Stardew.LookupAnything.Framework.Lookups.Items.ItemLookupProvider")
-                        is Type LAItemLookupProviderType
-                    && AccessTools.Method(LAItemLookupProviderType, "GetSubject")
-                        is MethodInfo LAItemLookupProviderGetTargets
-                    && assembly.GetType("Pathoschild.Stardew.LookupAnything.Framework.Data.ObjectContext")
-                        is Type LAObjectContextType
-                    && (
-                        LAItemLookupProviderBuildSubject = AccessTools.DeclaredMethod(
-                            LAItemLookupProviderType,
-                            "BuildSubject",
-                            [typeof(Item), LAObjectContextType, typeof(GameLocation), typeof(bool)]
-                        )
-                    ) != null
-                )
-                {
-                    ModEntry.Log(
-                        $"Patching LookupAnything: {LAItemLookupProviderGetTargets}::{LAItemLookupProviderGetTargets}"
-                    );
-                    harmony.Patch(
-                        original: LAItemLookupProviderGetTargets,
-                        postfix: new HarmonyMethod(typeof(Patches), nameof(ItemLookupProvider_GetSubject_Postfix))
-                    );
-                }
-                else
-                {
-                    foreach (Type type in typeof(Game1).Assembly.GetTypes())
-                    {
-                        ModEntry.Log(type.ToString());
-                    }
-                }
-            }
-        }
-        catch (Exception err)
-        {
-            ModEntry.Log($"Failed to patch lookup anything ItemLookupProvider.GetSubject:\n{err}");
-        }
-
         // non-vital patches
         harmony.Patch(
             original: AccessTools.DeclaredMethod(typeof(SObject), nameof(SObject.OutputDeconstructor)),
@@ -96,28 +49,6 @@ internal static class Patches
                 priority: Priority.VeryLow
             )
         );
-    }
-
-    private static void ItemLookupProvider_GetSubject_Postfix(object __instance, ref object __result)
-    {
-        // this.BuildSubject(item, ObjectContext.Inventory, null);
-        // Pathoschild.Stardew.LookupAnything.Framework.Lookups.Items.ItemSubject
-        if (__result != null)
-            return;
-
-        if (MenuHandler.HoveredItem is Item hoveredItem)
-        {
-            try
-            {
-                var res = LAItemLookupProviderBuildSubject.Invoke(__instance, [hoveredItem, 2, null, false]);
-                if (res != null)
-                    __result = res;
-            }
-            catch (Exception err)
-            {
-                ModEntry.Log($"Failed in ItemLookupProvider_GetSubject_Postfix:\n{err}");
-            }
-        }
     }
 
     private static bool ShouldSkipMachineInputEntry(
@@ -133,21 +64,21 @@ internal static class Patches
             if (msdEntry.Inputs.Contains(inputItem.QualifiedItemId))
             {
                 ModEntry.LogOnce($"{machine.QualifiedItemId} Input {inputItem.QualifiedItemId} disabled.");
-                skipped.Value = SkipReason.Input;
+                skipped = SkipReason.Input;
                 return true;
             }
             if (msdEntry.Quality[inputItem.Quality])
             {
                 ModEntry.LogOnce($"{machine.QualifiedItemId} Quality {inputItem.Quality} disabled.");
-                skipped.Value = SkipReason.Quality;
+                skipped = SkipReason.Quality;
                 return true;
             }
         }
         if (msdEntry.Rules.Contains(ident))
         {
             ModEntry.LogOnce($"{machine.QualifiedItemId} Rule {ident} disabled.");
-            if (skipped.Value != SkipReason.Input)
-                skipped.Value = SkipReason.Rule;
+            if (skipped != SkipReason.Input)
+                skipped = SkipReason.Rule;
             return true;
         }
         return false;
@@ -220,7 +151,7 @@ internal static class Patches
     /// <summary>Unset skipped reason</summary>
     private static void SObject_PlaceInMachine_Prefix()
     {
-        skipped.Value = SkipReason.None;
+        skipped = SkipReason.None;
     }
 
     /// <summary>
@@ -321,7 +252,7 @@ internal static class Patches
         if (inputItem != null && who != null)
         {
             if (
-                skipped.Value switch
+                skipped switch
                 {
                     SkipReason.Rule => I18n.SkipReason_Rules(inputItem.DisplayName),
                     SkipReason.Input => I18n.SkipReason_Inputs(inputItem.DisplayName),
@@ -335,7 +266,7 @@ internal static class Patches
                 who.ignoreItemConsumptionThisFrame = true;
             }
         }
-        skipped.Value = SkipReason.None;
+        skipped = SkipReason.None;
     }
 
     /// <summary>

@@ -25,7 +25,7 @@
       <grid item-layout="length: 76+" horizontal-item-alignment="middle" padding="0,8,0,0">
         <panel *repeat={SubItemsPaginated}
           tooltip={:Tooltip}
-          pointer-enter=|^SetHover(this)|
+          hovered-subject={:Item}
           focusable="true">
           <image *repeat={:SpriteLayers} sprite={:Sprite} tint={:Tint} layout={:Layout} padding={:Padding} focusable="true"/>
         </panel>

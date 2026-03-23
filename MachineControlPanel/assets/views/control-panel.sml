@@ -38,7 +38,6 @@
             <lane orientation="horizontal" margin="0,0,0,10">
               <lane *repeat={:this}
                 pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
-                pointer-leave=|~ControlPanelContext.SetHoverRule()|
                 opacity={Opacity}
                 orientation="vertical" margin="6"
                 horizontal-content-alignment="middle">
@@ -83,11 +82,11 @@
       </lane>
       <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="0,0,8,0" fit="Stretch"/>
       <scrollable peeking="128" scrollbar-margin="8,0,0,0" progress={<>ScrollableProgress}>
-        <grid pointer-leave=|~ControlPanelContext.SetHoverInput()| *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
+        <grid *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
           <panel *if={:~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFilteredPaginated}
             tooltip={:Tooltip}
             left-click=|ToggleState()|
-            pointer-enter=|~ControlPanelContext.SetHoverInput(this)|
+            hovered-subject={:InputItem}
             focusable="true">
             <image *repeat={:SpriteLayers} sprite={:Sprite} tint={^Tint} padding={:Padding} layout={:Layout}
               margin="6"
@@ -97,7 +96,7 @@
           </panel>
           <panel *!if={:~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFilteredPaginated}
             tooltip={:Tooltip}
-            pointer-enter=|~ControlPanelContext.SetHoverInput(this)|
+            hovered-subject={:InputItem}
             focusable="true">
             <image *repeat={:SpriteLayers} sprite={:Sprite} tint={^Tint} padding={:Padding} layout={:Layout} margin="6"/>
           </panel>
@@ -123,7 +122,7 @@
   <panel tooltip={:Tooltip}
     left-click=|ShowSubItemGrid()|
     right-click=|ShowByproductsGrid()|
-    pointer-enter=|~ControlPanelContext.SetHoverRule(this)|
+    hovered-subject={:ReprItem}
     focusable="true"
     padding="4" >
     <image *repeat={:SpriteLayers} sprite={:Sprite} tint={:Tint} padding={:Padding} layout={:Layout} margin="2" opacity={:^IsMultiOpacity}/>

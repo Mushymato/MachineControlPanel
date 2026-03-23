@@ -17,14 +17,6 @@ internal static class MenuHandler
     internal static string VIEW_ASSET_MACHINE_SELECT = null!;
     internal static string VIEW_ASSET_CONTROL_PANEL = null!;
     internal static string VIEW_ASSET_SUBITEM_GRID = null!;
-    private static readonly PerScreen<Item?> hoveredItem = new();
-
-    // private static readonly PerScreen<WeakReference<MachineSelectContext?>> machineSelectContext = new();
-    internal static Item? HoveredItem
-    {
-        get => hoveredItem.Value;
-        set => hoveredItem.Value = value;
-    }
     internal static GlobalToggleContext GlobalToggle = new();
 
     internal static void Register(IModHelper helper)
@@ -95,12 +87,10 @@ internal static class MenuHandler
 
     internal static void ShowMachineSelect()
     {
-        hoveredItem.Value = null;
         MachineSelectContext context = new();
         ModEntry.SavedMachineRules += context.UpdateBackgroundTint;
         var menuCtrl = viewEngine.CreateMenuControllerFromAsset(VIEW_ASSET_MACHINE_SELECT, context);
         menuCtrl.EnableCloseButton();
-        menuCtrl.Closing += context.Closing;
         Game1.activeClickableMenu = menuCtrl.Menu;
     }
 
@@ -119,7 +109,6 @@ internal static class MenuHandler
     internal static bool ShowControlPanel(Item machine, bool asChildMenu = false)
     {
         GlobalToggle.IsGlobal = ModEntry.Config.DefaultIsGlobal;
-        hoveredItem.Value = null;
         if (ControlPanelContext.TryCreate(machine) is not ControlPanelContext context)
         {
             ModEntry.Log($"No machine rules found for '{machine.DisplayName}'.");

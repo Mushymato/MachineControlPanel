@@ -4,13 +4,13 @@
     <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="240px 60px" margin="0,14" text-color="#43111B" focusable="true"/>
   </lane>
   <scrollable layout="75%[1152..] 90%[608..]" peeking="128" scrollbar-margin="0,0,0,0">
-    <grid pointer-leave=|SetHover()| item-layout="length: 104+" horizontal-item-alignment="middle">
+    <grid item-layout="length: 104+" horizontal-item-alignment="middle">
       <frame
         *repeat={MachineCellsFiltered}
         background={@mushymato.MachineControlPanel/sprites/cursors:shopBg}
         background-tint={BackgroundTint}
         tooltip={:Tooltip}
-        pointer-enter=|^SetHover(this)|
+        hovered-subject={:Machine}
         left-click=|ShowControlPanel()|
         focusable="true"
         padding="16,20,16,12"
