@@ -32,7 +32,7 @@
         padding="4,4">
       <paginator has-pagination={HasRuleEntryPagination} curr-page={RuleEntriesPage} />
       <image *if={HasRuleEntryPagination} sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="0,4,8,0" fit="Stretch"/>
-      <scrollable peeking="128" scrollbar-margin="8,0,0,0">
+      <scrollable peeking="128" scrollbar-margin="8,0,0,0" progress={<>ScrollableProgress} scroll-step="1">
         <lane orientation="vertical">
           <panel *repeat={RuleEntriesFilteredPaginated} vertical-content-alignment="end">
             <lane orientation="horizontal" margin="0,0,0,10">
@@ -82,7 +82,7 @@
           <paginator has-pagination={HasInputItemsPagination}  curr-page={InputItemsPage} />
       </lane>
       <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="0,0,8,0" fit="Stretch"/>
-      <scrollable peeking="128" scrollbar-margin="8,0,0,0">
+      <scrollable peeking="128" scrollbar-margin="8,0,0,0" progress={<>ScrollableProgress}>
         <grid pointer-leave=|~ControlPanelContext.SetHoverInput()| *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
           <panel *if={:~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFilteredPaginated}
             tooltip={:Tooltip}

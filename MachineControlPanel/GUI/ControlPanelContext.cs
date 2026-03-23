@@ -563,7 +563,30 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
 
     public List<RuleOutputEntriesRow> RuleEntriesFiltered => ruleEntriesFiltered ??= GetRuleEntriesFiltered();
 
-    // RuleEntries Pagination
+    private float[] scrollableProgress = [0, 0];
+    public float ScrollableProgress
+    {
+        get { return scrollableProgress[PageIndex - 1]; }
+        set
+        {
+            scrollableProgress[PageIndex - 1] = value;
+            if (value <= 0 && PrevPaginatedPage())
+            {
+                ResetScrollableProgress(false);
+            }
+            else if (value >= 1 && NextPaginatedPage())
+            {
+                ResetScrollableProgress(true);
+            }
+        }
+    }
+
+    public void ResetScrollableProgress(bool isNext)
+    {
+        scrollableProgress[PageIndex - 1] = isNext ? 0f : 0.9999f;
+        OnPropertyChanged(new(nameof(ScrollableProgress)));
+    }
+
     [Notify]
     private int ruleEntriesPage = 1;
     public List<RuleOutputEntriesRow> RuleEntriesFilteredPaginated
@@ -666,21 +689,22 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
     public bool HasInputItemsPagination => HasPrevInputItemsPage || HasNextInputItemsPage;
 
     // Shared Pagination
-    public void PrevPaginatedPage()
+    public bool PrevPaginatedPage()
     {
         switch (PageIndex)
         {
             case 1:
                 if (!HasPrevRuleEntryPage)
-                    return;
+                    return false;
                 RuleEntriesPage--;
-                break;
+                return true;
             case 2:
                 if (!HasPrevInputItemsPage)
-                    return;
+                    return false;
                 InputItemsPage--;
-                break;
+                return true;
         }
+        return false;
     }
 
     public float PrevPaginateButtonOpacity =>
@@ -691,21 +715,22 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
             _ => throw new NotImplementedException(),
         };
 
-    public void NextPaginatedPage()
+    public bool NextPaginatedPage()
     {
         switch (PageIndex)
         {
             case 1:
                 if (!HasNextRuleEntryPage)
-                    return;
+                    return false;
                 RuleEntriesPage++;
-                break;
+                return true;
             case 2:
                 if (!HasNextInputItemsPage)
-                    return;
+                    return false;
                 InputItemsPage++;
-                break;
+                return true;
         }
+        return false;
     }
 
     public float NextPaginateButtonOpacity =>
