@@ -10,6 +10,7 @@
       <tab-label *if={HasInputs} page="2" text={#rule-list.inputs} margin={TabMarginInputs}/>
       <image sprite={:MachineData}
         tooltip={:MachineTooltip}
+        focusable="true"
         layout="48px 96px"
         margin="12,-16,12,0"
         fit="Contain"
@@ -33,7 +34,7 @@
         padding="4,4">
       <paginator has-pagination={HasRuleEntryPagination} curr-page={RuleEntriesPage} />
       <image *if={HasRuleEntryPagination} sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="0,4,8,0" fit="Stretch"/>
-      <scrollable peeking="128" scrollbar-margin="8,0,0,0" progress={<>ScrollableProgress} scroll-step="1">
+      <scrollable peeking="128" scrollbar-margin="8,0,0,0" progress={<>ScrollableProgress}>
         <lane orientation="vertical">
           <panel *repeat={RuleEntriesFilteredPaginated} vertical-content-alignment="end">
             <lane orientation="horizontal" margin="0,0,0,10">
@@ -43,7 +44,7 @@
                 orientation="vertical" margin="6"
                 horizontal-content-alignment="middle">
                 <panel *if={Active} margin="0,12">
-                  <checkbox *if={:~ControlPanelContext.IsMainPlayer} is-checked={<>State}/>
+                  <checkbox *if={:~ControlPanelContext.IsMainPlayer} is-checked={<>State} />
                   <panel *!if={:~ControlPanelContext.IsMainPlayer} opacity="0.5">
                     <image *if={State} sprite={@Mods/StardewUI/Sprites/CheckboxChecked} />
                     <image *!if={State} sprite={@Mods/StardewUI/Sprites/CheckboxUnchecked} />
@@ -54,7 +55,8 @@
                 <spacer layout={:InputSpacerLayout}/>
                 <image sprite={SpinningCaret}
                   layout="36px 36px"
-                  margin="18,12,18,12"/>
+                  margin="18,12,18,12"
+                  focusable="true"/>
                 <rule-icon *repeat={Outputs} />
                 <image *if={:HasOutputOverflow} left-click=|ToggleOverflowOutputs()|
                   sprite={ToggleOverflowSprite}
@@ -111,11 +113,10 @@
   <frame
     background={@mushymato.MachineControlPanel/sprites/cursors:tabBg}
     padding="18,16,18,12"
-    focusable="true"
     margin={&margin}
     left-click=|ChangePage(&page)|
     >
-    <label text={&text}/>
+    <label focusable="true" text={&text}/>
   </frame>
 </template>
 

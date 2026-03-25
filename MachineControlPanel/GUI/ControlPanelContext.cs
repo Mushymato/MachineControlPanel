@@ -147,7 +147,10 @@ public record RuleIcon(IconDef IconDef)
                     return byproductItem;
             }
         }
-        return reprItem;
+        // screen reader: pass stack info over
+        Item reprItemWithStack = reprItem.getOne();
+        reprItemWithStack.Stack = IconDef.Count;
+        return reprItemWithStack;
     }
 
     public IEnumerable<SpriteLayer> SpriteLayers => SpriteLayer.FromItem(ReprItem);
@@ -175,20 +178,34 @@ public record RuleIcon(IconDef IconDef)
     {
         get
         {
+            bool isOutput = IconDef is IconOutputDef;
             string? desc = IconDef.Desc;
             if (IconDef.Items?.Count != 1)
             {
                 if (desc != null)
-                    return new(desc);
+                    return new(isOutput ? desc : I18n.RuleList_Tooltip_InputGroup(desc));
                 if (IconDef.Items?.Count > 1)
                     return new(I18n.RuleList_MoreOutputs(Count: IconDef.Items.Count));
                 return null;
             }
             else if (ReprItem != null)
             {
-                if (desc != null)
-                    return new(desc, ReprItem.DisplayName.Trim(), ReprItem);
-                return new(ReprItem.getDescription(), ReprItem.DisplayName, ReprItem);
+                string name = ReprItem.DisplayName.Trim();
+                if (isOutput)
+                {
+                    if ((IconDef as IconOutputDef)?.EMCByproduct?.Count is int byproductCount && byproductCount > 0)
+                        name = I18n.RuleList_Tooltip_OutputByproduct(name, byproductCount);
+                    else
+                        name = I18n.RuleList_Tooltip_Output(name);
+                }
+                else
+                {
+                    if (IsFuel)
+                        name = I18n.RuleList_Tooltip_Fuel(name);
+                    else
+                        name = I18n.RuleList_Tooltip_Input(name);
+                }
+                return new(desc ?? ReprItem.getDescription(), name, ReprItem);
             }
             return null;
         }
