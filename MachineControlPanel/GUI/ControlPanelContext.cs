@@ -267,6 +267,8 @@ public record RuleIcon(IconDef IconDef)
 
 public sealed partial record RuleInputEntry(RuleDef Def)
 {
+    public string ScreenReadIdx { get; set; } = "0";
+
     private const int SPINNING_CARET_FRAMES = 6;
     private static readonly List<Tuple<Texture2D, Rectangle>> SpinningCaretFrames = Enumerable
         .Range(0, SPINNING_CARET_FRAMES)
@@ -540,10 +542,12 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         int maxInputLength = 0;
         List<RuleOutputEntriesRow> ruleEntriesFiltered = [];
         RuleOutputEntriesRow ruleEntriesFilteredRow = [];
+        int rieIdx = 0;
         foreach (var rie in ruleEntries.Values)
         {
             foreach (var output in rie.Def.Outputs)
             {
+                rie.ScreenReadIdx = I18n.RuleList_Seq(++rieIdx);
                 if (!string.IsNullOrEmpty(SearchText) && !rie.Def.Input.Match(SearchText) && !output.Match(SearchText))
                     continue;
                 RuleOutputEntry ROE = new(rie, output);

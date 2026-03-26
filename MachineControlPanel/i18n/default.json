@@ -63,5 +63,7 @@
   "rule-list.tooltip.fuel": "Fuel: {{name}}",
   "rule-list.tooltip.fuel-group": "Fuel Group:\n{{name}}",
   "rule-list.tooltip.output": "Output: {{name}}",
-  "rule-list.tooltip.output-byproduct": "Output: {{name}} with {{count}} byproducts"
+  "rule-list.tooltip.output-byproduct": "Output: {{name}} with {{count}} byproducts",
+  // Screen Reader
+  "rule-list.seq": "Rule {{idx}}"
 }

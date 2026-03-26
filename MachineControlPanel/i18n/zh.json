@@ -63,5 +63,7 @@
   "rule-list.tooltip.fuel": "燃料：{{name}}",
   "rule-list.tooltip.fuel-group": "燃料类：\n{{name}}",
   "rule-list.tooltip.output": "产出：{{name}}",
-  "rule-list.tooltip.output-byproduct": "产出：{{name}}，副产品{{count}}个"
+  "rule-list.tooltip.output-byproduct": "产出：{{name}}，副产品{{count}}个",
+  // Screen Reader
+  "rule-list.seq": "规则{{idx}}"
 }

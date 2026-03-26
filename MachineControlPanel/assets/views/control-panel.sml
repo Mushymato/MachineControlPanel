@@ -44,7 +44,7 @@
                 orientation="vertical" margin="6"
                 horizontal-content-alignment="middle">
                 <panel *if={Active} margin="0,12">
-                  <checkbox *if={:~ControlPanelContext.IsMainPlayer} is-checked={<>State} />
+                  <checkbox *if={:~ControlPanelContext.IsMainPlayer} is-checked={<>State} screen-read={:RIE.ScreenReadIdx} />
                   <panel *!if={:~ControlPanelContext.IsMainPlayer} opacity="0.5">
                     <image *if={State} sprite={@Mods/StardewUI/Sprites/CheckboxChecked} />
                     <image *!if={State} sprite={@Mods/StardewUI/Sprites/CheckboxUnchecked} />
@@ -55,8 +55,7 @@
                 <spacer layout={:InputSpacerLayout}/>
                 <image sprite={SpinningCaret}
                   layout="36px 36px"
-                  margin="18,12,18,12"
-                  focusable="true"/>
+                  margin="18,12,18,12"/>
                 <rule-icon *repeat={Outputs} />
                 <image *if={:HasOutputOverflow} left-click=|ToggleOverflowOutputs()|
                   sprite={ToggleOverflowSprite}
