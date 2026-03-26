@@ -65,5 +65,6 @@
   "rule-list.tooltip.output": "产出：{{name}}",
   "rule-list.tooltip.output-byproduct": "产出：{{name}}，副产品{{count}}个",
   // Screen Reader
-  "rule-list.seq": "规则{{idx}}"
+  "rule-list.s-r.seq": "规则{{idx}}",
+  "rule-list.s-r.quality": "品质{{quality}}",
 }

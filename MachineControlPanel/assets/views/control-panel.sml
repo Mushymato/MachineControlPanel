@@ -79,6 +79,7 @@
           focusable="true"
           +hover:scale="1.1"
           +transition:scale="100ms EaseInSine"
+          screen-read={:ScreenRead}
           left-click=|ToggleState()|/>
           <paginator has-pagination={HasInputItemsPagination}  curr-page={InputItemsPage} />
       </lane>

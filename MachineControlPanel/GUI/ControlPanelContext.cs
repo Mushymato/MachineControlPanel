@@ -128,6 +128,8 @@ public sealed partial record QualityStar(int Quality)
             };
         }
     }
+
+    public string ScreenRead => I18n.RuleList_SR_Quality(Quality);
 }
 
 public record RuleIcon(IconDef IconDef)
@@ -547,7 +549,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         {
             foreach (var output in rie.Def.Outputs)
             {
-                rie.ScreenReadIdx = I18n.RuleList_Seq(++rieIdx);
+                rie.ScreenReadIdx = I18n.RuleList_SR_Seq(++rieIdx);
                 if (!string.IsNullOrEmpty(SearchText) && !rie.Def.Input.Match(SearchText) && !output.Match(SearchText))
                     continue;
                 RuleOutputEntry ROE = new(rie, output);

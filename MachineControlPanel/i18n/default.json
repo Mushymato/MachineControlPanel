@@ -65,5 +65,6 @@
   "rule-list.tooltip.output": "Output: {{name}}",
   "rule-list.tooltip.output-byproduct": "Output: {{name}} with {{count}} byproducts",
   // Screen Reader
-  "rule-list.seq": "Rule {{idx}}"
+  "rule-list.s-r.seq": "Rule {{idx}}",
+  "rule-list.s-r.quality": "Quality {{quality}}",
 }
