@@ -100,7 +100,13 @@ internal static class Patches
         Item inputItem
     )
     {
-        if (trigger2 == null || rule == null || machine == null || machine.Location == null)
+        if (
+            trigger2 == null
+            || rule == null
+            || machine == null
+            || machine.Location == null
+            || ModEntry.SaveData == null
+        )
             return false;
         RuleIdent ident = new(rule.Id, trigger2.Id);
         // check local

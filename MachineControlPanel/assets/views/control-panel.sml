@@ -44,7 +44,7 @@
                 orientation="vertical" margin="6"
                 horizontal-content-alignment="middle">
                 <panel *if={Active} margin="0,12">
-                  <checkbox *if={:~ControlPanelContext.IsMainPlayer} is-checked={<>State} screen-read={:RIE.ScreenReadIdx} />
+                  <checkbox *if={:~ControlPanelContext.IsMainPlayer} is-checked={<>State} screen-read="Rule Checkbox" />
                   <panel *!if={:~ControlPanelContext.IsMainPlayer} opacity="0.5">
                     <image *if={State} sprite={@Mods/StardewUI/Sprites/CheckboxChecked} />
                     <image *!if={State} sprite={@Mods/StardewUI/Sprites/CheckboxUnchecked} />
