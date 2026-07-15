@@ -6,6 +6,7 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.GameData.Machines;
+using StardewValley.GameData.Objects;
 using StardewValley.Internal;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
@@ -187,14 +188,27 @@ public record IconDef(
         return null;
     }
 
-    internal static IconDef? FromEMCTagsFuelItems(IReadOnlyList<string> itemIds, int count)
+    internal static IconDef? FromEMCTagsFuelItems(string itemId, int count)
     {
-        IReadOnlyList<Item>? items = itemIds
-            .Select(itemId => ItemQueryCache.GetItem(itemId) ?? ItemRegistry.Create(itemId))
-            .ToList();
-        if (items?.Count > 0)
-            return new IconDef(items, Count: count, IsFuel: true);
-        return null;
+        IReadOnlyList<Item>? items = [];
+        // TODO: cache the category -> tag mapping maybe
+        if (int.TryParse(itemId, out int category) && category < 0)
+        {
+            string key = Game1.objectData.FirstOrDefault(kv => kv.Value.Category == category).Key;
+            HashSet<string> baseContextTags = ItemContextTagManager.GetBaseContextTags(key);
+            if (baseContextTags.LastOrDefault(tag => tag.StartsWith("category_")) is string categoryTag)
+            {
+                items = ItemQueryCache.ResolveCondTagItems(
+                    [categoryTag],
+                    null,
+                    out IReadOnlyList<string>? contextTags,
+                    out string? condition
+                );
+                return new IconDef(items, Count: count, ContextTags: contextTags, Condition: condition, IsFuel: true);
+            }
+        }
+        items = [ItemQueryCache.GetItem(itemId) ?? ItemRegistry.Create(itemId)];
+        return new IconDef(items, Count: count, IsFuel: true);
     }
 
     internal static IconDef? FromEMCTagsFuelTags(IReadOnlyList<string> tags, int count)
@@ -307,7 +321,7 @@ public sealed record IconOutputDef(
                 emcFuel = [];
                 foreach (var fuel in emc.GetExtraRequirements(mio))
                 {
-                    if (FromEMCTagsFuelItems([fuel.Item1], fuel.Item2) is IconDef fuelDef)
+                    if (FromEMCTagsFuelItems(fuel.Item1, fuel.Item2) is IconDef fuelDef)
                         emcFuel.Add(fuelDef);
                 }
                 foreach (var fuel in emc.GetExtraTagsRequirements(mio))

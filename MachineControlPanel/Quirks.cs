@@ -1,4 +1,6 @@
-using System.Text.Json;
+using System.Security.Cryptography;
+using System.Text;
+using Newtonsoft.Json;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Machines;
@@ -8,6 +10,7 @@ namespace MachineControlPanel;
 
 internal static class Quirks
 {
+    internal static MD5 md5 = MD5.Create();
     internal static string DefaultThingId = "(O)0";
     internal static Item? defaultThing = null;
     internal static SObject DefaultThing
@@ -25,8 +28,7 @@ internal static class Quirks
     internal static string HashMD5(object? input, Dictionary<string, int>? buckets = null)
     {
         // Use input string to calculate MD5 hash
-        using System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create();
-        byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(JsonSerializer.Serialize(input));
+        byte[] inputBytes = Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(input));
         byte[] hashBytes = md5.ComputeHash(inputBytes);
         string hashMD5 = Convert.ToHexString(hashBytes);
         // hash collision
