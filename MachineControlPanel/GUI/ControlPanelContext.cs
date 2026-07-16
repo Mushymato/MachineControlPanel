@@ -407,19 +407,24 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
     }
 }
 
-public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<RuleIdentDefPair> RuleDefs)
+public sealed partial record ControlPanelContext(
+    Item Machine,
+    IReadOnlyList<RuleIdentDefPair> RuleDefs,
+    bool RealMachine = false
+)
 {
     public bool IsMainPlayer => Context.IsMainPlayer;
     internal const int RULE_ITEM_PER_ROW = 14;
     internal static Color DisabledColor = Color.Black * 0.8f;
-    public GlobalToggleContext GlobalToggle => MenuHandler.GlobalToggle;
+    public LocalityToggleContext LocalityToggle => MenuHandler.LocalityToggle;
+    public OverlayToggleContext OverlayToggle => MenuHandler.OverlayToggle;
 
-    internal static ControlPanelContext? TryCreate(Item machine)
+    internal static ControlPanelContext? TryCreate(Item machine, bool realMachine = false)
     {
         if (MachineRuleCache.TryGetRuleDefList(machine.QualifiedItemId) is IReadOnlyList<RuleIdentDefPair> ruleDefs)
         {
-            ControlPanelContext context = new(machine, ruleDefs);
-            MenuHandler.GlobalToggle.PropertyChanged += context.RecheckSavedStates;
+            ControlPanelContext context = new(machine, ruleDefs, realMachine);
+            MenuHandler.LocalityToggle.PropertyChanged += context.RecheckSavedStates;
             context.PropertyChanged += context.ToggleAllInThisPage;
             context.PropertyChanged += context.ResetOnSearchText;
             context.RecheckSavedStates();
@@ -524,8 +529,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         kv => new RuleInputEntry(kv.Def)
         {
             State = ModEntry.SaveData.RuleState(
-                Machine.QualifiedItemId,
-                MenuHandler.GlobalToggle.LocationKey,
+                MenuHandler.LocalityToggle.DataKey(Machine),
                 kv.Ident
             ),
         }
@@ -662,8 +666,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
                 inputIcon = new(item);
                 inputIcon.OriginRules[ident] = false;
                 inputIcon.State = ModEntry.SaveData.InputState(
-                    Machine.QualifiedItemId,
-                    MenuHandler.GlobalToggle.LocationKey,
+                    MenuHandler.LocalityToggle.DataKey(Machine),
                     item.QualifiedItemId
                 );
                 seenItem[item.QualifiedItemId] = inputIcon;
@@ -770,8 +773,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         foreach (var qs in qstars)
         {
             qs.State = ModEntry.SaveData.QualityState(
-                Machine.QualifiedItemId,
-                MenuHandler.GlobalToggle.LocationKey,
+                MenuHandler.LocalityToggle.DataKey(Machine),
                 qs.Quality
             );
         }
@@ -785,9 +787,9 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
 
     public void RecheckSavedStates(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != "IsGlobal")
+        if (e.PropertyName != nameof(LocalityToggleContext.Locality))
             return;
-        SaveChanges(MenuHandler.GlobalToggle.NotLocationKey);
+        SaveChanges(MenuHandler.LocalityToggle.PreviousDataKey(Machine));
         RecheckSavedStates();
     }
 
@@ -796,51 +798,72 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
         foreach (var kv in ruleEntries)
         {
             kv.Value.State = ModEntry.SaveData.RuleState(
-                Machine.QualifiedItemId,
-                MenuHandler.GlobalToggle.LocationKey,
+                MenuHandler.LocalityToggle.DataKey(Machine),
                 kv.Key
             );
         }
         foreach (var inputIcon in InputItems)
         {
             inputIcon.State = ModEntry.SaveData.InputState(
-                Machine.QualifiedItemId,
-                MenuHandler.GlobalToggle.LocationKey,
+                MenuHandler.LocalityToggle.DataKey(Machine),
                 inputIcon.InputItem.QualifiedItemId
             );
         }
-        if (MenuHandler.GlobalToggle.LocationKey == null)
+        switch (MenuHandler.LocalityToggle.Locality)
         {
-            foreach (var kv in ruleEntries)
-                kv.Value.Active = true;
-            foreach (var inputIcon in InputItems)
-                inputIcon.ActiveByGlobal = true;
-        }
-        else
-        {
-            foreach (var kv in ruleEntries)
-            {
-                kv.Value.Active = ModEntry.SaveData.RuleState(Machine.QualifiedItemId, null, kv.Key);
-            }
-            foreach (var inputIcon in InputItems)
-            {
-                inputIcon.ActiveByGlobal = ModEntry.SaveData.InputState(
-                    Machine.QualifiedItemId,
-                    null,
-                    inputIcon.InputItem.QualifiedItemId
-                );
-            }
-            if (PageIndex == 2)
-            {
-                CheckInputIconActiveState(InputItems);
-            }
+            case PanelLocality.Global:
+                foreach (var kv in ruleEntries)
+                    kv.Value.Active = true;
+                foreach (var inputIcon in InputItems)
+                    inputIcon.ActiveByGlobal = true;
+                break;
+
+            case PanelLocality.PerLocation:
+                foreach (var kv in ruleEntries)
+                {
+                    kv.Value.Active = ModEntry.SaveData.RuleState(MsdKey.Global(Machine), kv.Key);
+                }
+                foreach (var inputIcon in InputItems)
+                {
+                    inputIcon.ActiveByGlobal = ModEntry.SaveData.InputState(
+                        MsdKey.Global(Machine),
+                        inputIcon.InputItem.QualifiedItemId
+                    );
+                }
+                if (PageIndex == 2)
+                {
+                    CheckInputIconActiveState(InputItems);
+                }
+                break;
+
+            case PanelLocality.PerMachine:
+                foreach (var kv in ruleEntries)
+                {
+                    kv.Value.Active = ModEntry.SaveData.RuleState(MsdKey.Global(Machine), kv.Key)
+                        && ModEntry.SaveData.RuleState(MsdKey.PerLocation(Machine, Game1.currentLocation), kv.Key);
+                }
+                foreach (var inputIcon in InputItems)
+                {
+                    inputIcon.ActiveByGlobal = ModEntry.SaveData.InputState(
+                            MsdKey.Global(Machine),
+                            inputIcon.InputItem.QualifiedItemId
+                        )
+                        && ModEntry.SaveData.InputState(
+                            MsdKey.PerLocation(Machine, Game1.currentLocation),
+                            inputIcon.InputItem.QualifiedItemId
+                        );
+                }
+                if (PageIndex == 2)
+                {
+                    CheckInputIconActiveState(InputItems);
+                }
+                break;
         }
     }
 
-    internal void SaveChanges(string? locationKey) =>
+    internal void SaveChanges(MsdKey key) =>
         ModEntry.SaveMachineRules(
-            Machine.QualifiedItemId,
-            locationKey,
+            key,
             ruleEntries.Where(kv => !kv.Value.State).Select(kv => kv.Key),
             InputItems.Where(v => !v.State).Select(v => v.InputItem.QualifiedItemId),
             [!QualityStars[0].State, !QualityStars[1].State, !QualityStars[2].State, false, !QualityStars[3].State]
@@ -848,7 +871,7 @@ public sealed partial record ControlPanelContext(Item Machine, IReadOnlyList<Rul
 
     internal void Closing()
     {
-        SaveChanges(MenuHandler.GlobalToggle.LocationKey);
-        MenuHandler.GlobalToggle.PropertyChanged -= RecheckSavedStates;
+        SaveChanges(MenuHandler.LocalityToggle.DataKey(Machine));
+        MenuHandler.LocalityToggle.PropertyChanged -= RecheckSavedStates;
     }
 }

@@ -17,7 +17,8 @@ internal static class MenuHandler
     internal static string VIEW_ASSET_MACHINE_SELECT = null!;
     internal static string VIEW_ASSET_CONTROL_PANEL = null!;
     internal static string VIEW_ASSET_SUBITEM_GRID = null!;
-    internal static GlobalToggleContext GlobalToggle = new();
+    internal static LocalityToggleContext LocalityToggle = new();
+    internal static OverlayToggleContext OverlayToggle = new();
 
     internal static void Register(IModHelper helper)
     {
@@ -103,13 +104,13 @@ internal static class MenuHandler
             : Game1.player.GetGrabTile().ToPoint();
         SObject? machine = Game1.player.currentLocation.getObjectAtTile(tile.X, tile.Y, ignorePassables: true);
         if (machine != null && DataLoader.Machines(Game1.content).ContainsKey(machine.QualifiedItemId))
-            ShowControlPanel(machine);
+            ShowControlPanel(machine, realMachine: true);
     }
 
-    internal static bool ShowControlPanel(Item machine, bool asChildMenu = false)
+    internal static bool ShowControlPanel(Item machine, bool realMachine = false, bool asChildMenu = false)
     {
-        GlobalToggle.IsGlobal = ModEntry.Config.DefaultIsGlobal;
-        if (ControlPanelContext.TryCreate(machine) is not ControlPanelContext context)
+        LocalityToggle.ControlPanelOpened(realMachine);
+        if (ControlPanelContext.TryCreate(machine, realMachine) is not ControlPanelContext context)
         {
             ModEntry.Log($"No machine rules found for '{machine.DisplayName}'.");
             return false;

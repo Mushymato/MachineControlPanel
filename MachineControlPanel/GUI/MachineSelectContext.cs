@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using MachineControlPanel.Data;
+using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
 using PropertyChanged.SourceGenerator;
@@ -21,8 +22,8 @@ public sealed partial record MachineSelectCell(string QId, MachineData Data, Ite
     public void UpdateBackgroundTint()
     {
         if (
-            ModEntry.SaveData.TryGetModSaveDataEntry(QId, null, out _)
-            || ModEntry.SaveData.TryGetModSaveDataEntry(QId, Game1.currentLocation.NameOrUniqueName, out _)
+            ModEntry.SaveData.TryGetModSaveDataEntry(MsdKey.Global(Machine), out _)
+            || ModEntry.SaveData.TryGetModSaveDataEntry(MsdKey.PerLocation(Machine, Game1.currentLocation), out _)
         )
         {
             BackgroundTint = Color.White;
@@ -33,7 +34,7 @@ public sealed partial record MachineSelectCell(string QId, MachineData Data, Ite
         }
     }
 
-    public void ShowControlPanel() => MenuHandler.ShowControlPanel(Machine, asChildMenu: true);
+    public void ShowControlPanel() => MenuHandler.ShowControlPanel(Machine, realMachine: false, asChildMenu: true);
 }
 
 /// <summary>Context for machine select</summary>
@@ -41,6 +42,8 @@ public sealed partial class MachineSelectContext
 {
     [Notify]
     private string searchText = "";
+
+    public OverlayToggleContext OverlayToggle => MenuHandler.OverlayToggle;
 
     public static IEnumerable<MachineSelectCell> GetMachineCells()
     {
