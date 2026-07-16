@@ -150,7 +150,8 @@ internal static class Quirks
     internal static void CloseAllMenus(string? sound)
     {
         var menu = Game1.activeClickableMenu;
-        while (menu.GetChildMenu() is IClickableMenu child) menu = child;
+        while (menu.GetChildMenu() is IClickableMenu child)
+            menu = child;
 
         var closedSomething = false;
         while (menu.readyToClose())
@@ -159,16 +160,22 @@ internal static class Quirks
             var parent = menu.GetParentMenu();
             menu.exitThisMenuNoSound();
 
-            if (parent is IClickableMenu p) menu = p;
-            else break;
+            if (parent is IClickableMenu p)
+                menu = p;
+            else
+                break;
         }
 
-        if (closedSomething && sound is string s) Game1.playSound(s);
+        if (closedSomething && sound is string s)
+            Game1.playSound(s);
     }
 
     // =^-^=
     internal static int DivFloor(int a, int b) => (((a < 0) ^ (b < 0)) && (a % b != 0)) ? a / b - 1 : a / b;
+
     internal static int RemFloor(int a, int b) => (((a < 0) ^ (b < 0)) && (a % b != 0)) ? a % b + b : a % b;
+
     internal static int DivCeil(int a, int b) => (((a < 0) == (b < 0)) && (a % b != 0)) ? a / b + 1 : a / b;
+
     internal static int RemCeil(int a, int b) => (((a < 0) == (b < 0)) && (a % b != 0)) ? a % b - b : a % b;
 }

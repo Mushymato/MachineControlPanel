@@ -211,7 +211,8 @@ public sealed class ModEntry : Mod
 
     private void OnWarped(object? sender, WarpedEventArgs e)
     {
-        if (e.Player == Game1.player) Overlay.Value.Enabled = false;
+        if (e.Player == Game1.player)
+            Overlay.Value.Enabled = false;
     }
 
     private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
@@ -316,9 +317,11 @@ public sealed class ModEntry : Mod
         }
         SaveData.Version = man.Version;
         var message = SaveData.SetMachineRules(key, disabledRules, disabledInputs, disabledQuality);
-        if (message != null) help.Multiplayer.SendMessage(message, SAVEDATA_ENTRY, modIDs: [ModId]);
+        if (message != null)
+            help.Multiplayer.SendMessage(message, SAVEDATA_ENTRY, modIDs: [ModId]);
         WriteData(SaveData);
-        if (key.QId != null) SavedMachineRules?.Invoke(null, key.QId);
+        if (key.QId != null)
+            SavedMachineRules?.Invoke(null, key.QId);
     }
 
     /// <summary>

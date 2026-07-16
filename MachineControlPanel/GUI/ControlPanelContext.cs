@@ -528,10 +528,7 @@ public sealed partial record ControlPanelContext(
         kv => kv.Ident,
         kv => new RuleInputEntry(kv.Def)
         {
-            State = ModEntry.SaveData.RuleState(
-                MenuHandler.LocalityToggle.DataKey(Machine),
-                kv.Ident
-            ),
+            State = ModEntry.SaveData.RuleState(MenuHandler.LocalityToggle.DataKey(Machine), kv.Ident),
         }
     );
 
@@ -772,10 +769,7 @@ public sealed partial record ControlPanelContext(
         QualityStar[] qstars = [new QualityStar(0), new QualityStar(1), new QualityStar(2), new QualityStar(4)];
         foreach (var qs in qstars)
         {
-            qs.State = ModEntry.SaveData.QualityState(
-                MenuHandler.LocalityToggle.DataKey(Machine),
-                qs.Quality
-            );
+            qs.State = ModEntry.SaveData.QualityState(MenuHandler.LocalityToggle.DataKey(Machine), qs.Quality);
         }
         return qstars;
     }
@@ -797,10 +791,7 @@ public sealed partial record ControlPanelContext(
     {
         foreach (var kv in ruleEntries)
         {
-            kv.Value.State = ModEntry.SaveData.RuleState(
-                MenuHandler.LocalityToggle.DataKey(Machine),
-                kv.Key
-            );
+            kv.Value.State = ModEntry.SaveData.RuleState(MenuHandler.LocalityToggle.DataKey(Machine), kv.Key);
         }
         foreach (var inputIcon in InputItems)
         {
@@ -839,15 +830,14 @@ public sealed partial record ControlPanelContext(
             case PanelLocality.PerMachine:
                 foreach (var kv in ruleEntries)
                 {
-                    kv.Value.Active = ModEntry.SaveData.RuleState(MsdKey.Global(Machine), kv.Key)
+                    kv.Value.Active =
+                        ModEntry.SaveData.RuleState(MsdKey.Global(Machine), kv.Key)
                         && ModEntry.SaveData.RuleState(MsdKey.PerLocation(Machine, Game1.currentLocation), kv.Key);
                 }
                 foreach (var inputIcon in InputItems)
                 {
-                    inputIcon.ActiveByGlobal = ModEntry.SaveData.InputState(
-                            MsdKey.Global(Machine),
-                            inputIcon.InputItem.QualifiedItemId
-                        )
+                    inputIcon.ActiveByGlobal =
+                        ModEntry.SaveData.InputState(MsdKey.Global(Machine), inputIcon.InputItem.QualifiedItemId)
                         && ModEntry.SaveData.InputState(
                             MsdKey.PerLocation(Machine, Game1.currentLocation),
                             inputIcon.InputItem.QualifiedItemId

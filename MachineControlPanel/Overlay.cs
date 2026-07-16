@@ -10,8 +10,10 @@ public sealed class Overlay
 
     public bool TryEnable()
     {
-        if (Enabled) return true;
-        if (Game1.currentLocation == null) return false;
+        if (Enabled)
+            return true;
+        if (Game1.currentLocation == null)
+            return false;
 
         foreach (var (pos, obj) in Game1.currentLocation.Objects.Pairs)
         {
@@ -26,8 +28,10 @@ public sealed class Overlay
 
     public void Draw(SpriteBatch b)
     {
-        if (!Enabled) return;
-        if (Game1.currentLocation == null) return;
+        if (!Enabled)
+            return;
+        if (Game1.currentLocation == null)
+            return;
 
         var square = new Point(Game1.tileSize - 2, Game1.tileSize - 2);
 
@@ -45,7 +49,8 @@ public sealed class Overlay
 
                 if (Game1.currentLocation.Objects.TryGetValue(pos, out var obj) && ModSaveData.MachineHasData(obj))
                 {
-                    Utility.DrawSquare(b,
+                    Utility.DrawSquare(
+                        b,
                         pixelArea: new(point, square),
                         borderWidth: 0,
                         backgroundColor: new(255, 128, 255, 64)
@@ -53,7 +58,8 @@ public sealed class Overlay
                 }
                 else
                 {
-                    Utility.DrawSquare(b,
+                    Utility.DrawSquare(
+                        b,
                         pixelArea: new(point, square),
                         borderWidth: 0,
                         backgroundColor: new(0, 0, 0, 64)

@@ -19,45 +19,52 @@ public sealed record ModSaveDataEntry(
 {
     public bool IsEmpty()
     {
-        if (Rules.Any() || Inputs.Any()) return false;
-        for (int i = 0; i < Quality.Length; i++) if (Quality[i]) return false;
+        if (Rules.Any() || Inputs.Any())
+            return false;
+        for (int i = 0; i < Quality.Length; i++)
+            if (Quality[i])
+                return false;
         return true;
     }
 }
 
-public enum PanelLocality { Global, PerLocation, PerMachine }
+public enum PanelLocality
+{
+    Global,
+    PerLocation,
+    PerMachine,
+}
 
 public struct MsdKey
 {
     // sum type: Global { string QId } | PerLocation { string QId, string Location } | PerMachine { Item Machine }
 
-    public static MsdKey Global(Item machine) => new()
-    {
-        Type = PanelLocality.Global,
-        QId = machine.QualifiedItemId,
-    };
+    public static MsdKey Global(Item machine) => new() { Type = PanelLocality.Global, QId = machine.QualifiedItemId };
 
-    public static MsdKey PerLocation(SObject machine) => new()
-    {
-        Type = PanelLocality.PerLocation,
-        QId = machine.QualifiedItemId,
-        Location = machine.Location.NameOrUniqueName,
-    };
+    public static MsdKey PerLocation(SObject machine) =>
+        new()
+        {
+            Type = PanelLocality.PerLocation,
+            QId = machine.QualifiedItemId,
+            Location = machine.Location.NameOrUniqueName,
+        };
 
-    public static MsdKey PerLocation(Item machine, GameLocation location) => new()
-    {
-        Type = PanelLocality.PerLocation,
-        QId = machine.QualifiedItemId,
-        Location = location.NameOrUniqueName,
-    };
+    public static MsdKey PerLocation(Item machine, GameLocation location) =>
+        new()
+        {
+            Type = PanelLocality.PerLocation,
+            QId = machine.QualifiedItemId,
+            Location = location.NameOrUniqueName,
+        };
 
-    public static MsdKey PerMachine(SObject machine) => new()
-    {
-        Type = PanelLocality.PerMachine,
-        QId = machine.QualifiedItemId,
-        Location = machine.Location.NameOrUniqueName,
-        Machine = machine,
-    };
+    public static MsdKey PerMachine(SObject machine) =>
+        new()
+        {
+            Type = PanelLocality.PerMachine,
+            QId = machine.QualifiedItemId,
+            Location = machine.Location.NameOrUniqueName,
+            Machine = machine,
+        };
 
     // |    Type     |  QId   | Location | Machine |
     // |-------------|--------|----------|---------|
@@ -208,13 +215,16 @@ public sealed class ModSaveData
             disabledInputs.ToImmutableHashSet(),
             disabledQuality
         );
-        if (entry.IsEmpty()) entry = null;
+        if (entry.IsEmpty())
+            entry = null;
 
         switch (key.Type)
         {
             case PanelLocality.Global:
-                if (entry == null) Disabled.Remove(key.QId!);
-                else Disabled[key.QId!] = entry;
+                if (entry == null)
+                    Disabled.Remove(key.QId!);
+                else
+                    Disabled[key.QId!] = entry;
                 return new ModSaveDataEntryMessage(key.QId!, null, entry);
 
             case PanelLocality.PerLocation:
@@ -223,13 +233,17 @@ public sealed class ModSaveData
                     perLocation = [];
                     DisabledPerLocation[key.Location!] = perLocation;
                 }
-                if (entry == null) perLocation.Remove(key.QId!);
-                else perLocation[key.QId!] = entry;
+                if (entry == null)
+                    perLocation.Remove(key.QId!);
+                else
+                    perLocation[key.QId!] = entry;
                 return new ModSaveDataEntryMessage(key.QId!, key.Location!, entry);
 
             case PanelLocality.PerMachine:
-                if (entry == null) key.Machine!.modData.Remove($"{ModEntry.ModId}_{PER_MACHINE}");
-                else key.Machine!.modData[$"{ModEntry.ModId}_{PER_MACHINE}"] = JsonConvert.SerializeObject(entry);
+                if (entry == null)
+                    key.Machine!.modData.Remove($"{ModEntry.ModId}_{PER_MACHINE}");
+                else
+                    key.Machine!.modData[$"{ModEntry.ModId}_{PER_MACHINE}"] = JsonConvert.SerializeObject(entry);
                 return null;
 
             default:
@@ -248,13 +262,17 @@ public sealed class ModSaveData
                 : null,
 
             PanelLocality.PerMachine => key.Machine!.modData.TryGetValue(
-                $"{ModEntry.ModId}_{PER_MACHINE}", out string json
-            ) ? JsonConvert.DeserializeObject<ModSaveDataEntry>(json) : null,
+                $"{ModEntry.ModId}_{PER_MACHINE}",
+                out string json
+            )
+                ? JsonConvert.DeserializeObject<ModSaveDataEntry>(json)
+                : null,
 
             _ => null,
         };
 
-        if (entry != null && entry.IsEmpty()) entry = null;
+        if (entry != null && entry.IsEmpty())
+            entry = null;
         return entry != null;
     }
 

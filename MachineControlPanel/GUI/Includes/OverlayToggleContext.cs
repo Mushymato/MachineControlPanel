@@ -13,7 +13,8 @@ public sealed class OverlayToggleContext
             Game1.addHUDMessage(new(I18n.OverlayToggle_NoData(), HUDMessage.error_type));
             Quirks.CloseAllMenus(sound: "bigDeSelect");
         }
-        else Quirks.CloseAllMenus(sound: "bigSelect");
+        else
+            Quirks.CloseAllMenus(sound: "bigSelect");
     }
 
     public void HideOverlay()
