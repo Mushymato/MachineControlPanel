@@ -46,8 +46,6 @@ public sealed partial class MachineSelectContext
     [Notify]
     private string searchText = "";
 
-    public OverlayToggleContext OverlayToggle => MenuHandler.OverlayToggle;
-
     public static IEnumerable<MachineSelectCell> GetMachineCells()
     {
         Stopwatch stopwatch = Stopwatch.StartNew();
@@ -106,4 +104,11 @@ public sealed partial class MachineSelectContext
     public string HiddenByProgressionCountLabel => $"+{HiddenByProgressionCount}";
 
     public bool ShowHiddenCount => ModEntry.Config.ProgressionMode && HiddenByProgressionCount > 0;
+
+    #region overlay toggle
+    public void ShowOverlay()
+    {
+        MenuHandler.ShowOverlayInfo();
+    }
+    #endregion
 }

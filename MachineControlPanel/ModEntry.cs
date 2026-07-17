@@ -1,6 +1,7 @@
 ﻿global using SObject = StardewValley.Object;
 using MachineControlPanel.Data;
 using MachineControlPanel.GUI;
+using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
@@ -143,8 +144,16 @@ public sealed class ModEntry : Mod
     /// <param name="e"></param>
     private void OnButtonsChanged(object? sender, ButtonsChangedEventArgs e)
     {
-        if (!Context.IsWorldReady || Game1.activeClickableMenu != null)
+        if (!Context.IsWorldReady)
             return;
+        if (Game1.activeClickableMenu != null)
+        {
+            if (Overlay.Value.Enabled && Game1.currentLocation.map != null)
+            {
+                Quirks.PanScreen(e, Game1.currentLocation.map);
+            }
+            return;
+        }
         if (Config.MachineSelectKey.JustPressed())
         {
             MenuHandler.ShowMachineSelect();

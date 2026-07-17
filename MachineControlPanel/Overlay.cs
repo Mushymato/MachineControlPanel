@@ -5,20 +5,18 @@ using StardewValley;
 
 namespace MachineControlPanel;
 
-public sealed class Overlay(int screenId)
+public sealed class Overlay
 {
-    public bool Enabled
+    private static readonly Point square = new(Game1.tileSize - 1, Game1.tileSize - 1);
+    private readonly int screenId;
+
+    public Overlay(int screenId)
     {
-        get => field;
-        set
-        {
-            field = value;
-            if (field)
-                ModEntry.help.Events.Display.RenderedWorld += OnRenderedWorld;
-            else
-                ModEntry.help.Events.Display.RenderedWorld -= OnRenderedWorld;
-        }
+        this.screenId = screenId;
+        ModEntry.help.Events.Display.RenderedWorld += OnRenderedWorld;
     }
+
+    public bool Enabled { get; set; }
 
     public bool CanEnable
     {
@@ -54,6 +52,8 @@ public sealed class Overlay(int screenId)
                 count++;
             }
         }
+        if (count == 0)
+            return I18n.Overlay_NoData();
         return I18n.Overlay_CountTotal(count, total);
     }
 
@@ -65,8 +65,6 @@ public sealed class Overlay(int screenId)
             return;
         if (Game1.currentLocation == null)
             return;
-
-        var square = new Point(Game1.tileSize - 2, Game1.tileSize - 2);
 
         var x = Quirks.DivFloor(Game1.viewport.X, Game1.tileSize) - 1;
         var y = Quirks.DivFloor(Game1.viewport.Y, Game1.tileSize) - 1;

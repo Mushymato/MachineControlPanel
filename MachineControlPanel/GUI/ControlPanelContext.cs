@@ -417,7 +417,6 @@ public sealed partial record ControlPanelContext(
     internal const int RULE_ITEM_PER_ROW = 14;
     internal static Color DisabledColor = Color.Black * 0.8f;
     public LocalityToggleContext LocalityToggle => MenuHandler.LocalityToggle;
-    public OverlayToggleContext OverlayToggle => MenuHandler.OverlayToggle;
 
     internal static ControlPanelContext? TryCreate(Item machine, bool realMachine = false)
     {
@@ -870,4 +869,12 @@ public sealed partial record ControlPanelContext(
         SaveChanges(MenuHandler.LocalityToggle.DataKey(Machine));
         MenuHandler.LocalityToggle.PropertyChanged -= RecheckSavedStates;
     }
+
+    #region overlay toggle
+    public void ShowOverlay()
+    {
+        SaveChanges(MenuHandler.LocalityToggle.DataKey(Machine));
+        MenuHandler.ShowOverlayInfo();
+    }
+    #endregion
 }

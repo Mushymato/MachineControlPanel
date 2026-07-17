@@ -29,9 +29,7 @@ public sealed partial class LocalityToggleContext()
         }
         else
         {
-            if (realMachine)
-                Locality = PanelLocality.PerMachine;
-            Locality = PanelLocality.PerLocation;
+            Locality = realMachine ? PanelLocality.PerMachine : PanelLocality.PerLocation;
         }
         previousLocality = Locality;
     }

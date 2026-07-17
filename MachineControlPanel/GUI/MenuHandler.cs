@@ -3,10 +3,10 @@ using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
-using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.Menus;
+using xTile;
 
 namespace MachineControlPanel.GUI;
 
@@ -19,7 +19,6 @@ internal static class MenuHandler
     internal const string VIEW_ASSET_SUBITEM_GRID = $"{VIEW_ASSET_PREFIX}/subitem-grid";
     internal const string VIEW_ASSET_OVERLAY_INFO = $"{VIEW_ASSET_PREFIX}/overlay-info";
     internal static LocalityToggleContext LocalityToggle = new();
-    internal static OverlayToggleContext OverlayToggle = new();
 
     internal static void Register(IModHelper helper)
     {
@@ -149,6 +148,8 @@ internal static class MenuHandler
         IClickableMenu priorMenu = Game1.activeClickableMenu;
         if (priorMenu != null)
             Game1.nextClickableMenu.Insert(0, priorMenu);
+        ModEntry.Overlay.Value.Enabled = true;
+        // Utility.TryOpenShopMenu("QiGemShop", null, true);
         IMenuController overlayMenuCtrl = viewEngine.CreateMenuControllerFromAsset(
             VIEW_ASSET_OVERLAY_INFO,
             new { CountTotal = ModEntry.Overlay.Value.GetCountTotalString() }
@@ -158,10 +159,19 @@ internal static class MenuHandler
         overlayMenuCtrl.DimmingAmount = 0f;
         overlayMenuCtrl.Closing += () =>
         {
+            Game1.viewportFreeze = false;
             ModEntry.Overlay.Value.Enabled = false;
             // jank to fix on framework side
             Game1.displayHUD = true;
         };
+        if (
+            Game1.currentLocation?.map is Map map
+            && (map.DisplayWidth > Game1.viewport.Width || map.DisplayHeight > Game1.viewport.Height)
+        )
+        {
+            Game1.viewportFreeze = true;
+            Game1.clampViewportToGameMap();
+        }
         ModEntry.Overlay.Value.Enabled = true;
         Game1.activeClickableMenu = overlayMenuCtrl.Menu;
         // jank to fix on framework side

@@ -1,11 +1,14 @@
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
 using StardewModdingAPI;
+using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.GameData.Machines;
 using StardewValley.GameData.Objects;
 using StardewValley.Menus;
+using xTile;
 
 namespace MachineControlPanel;
 
@@ -177,4 +180,62 @@ internal static class Quirks
     internal static int DivCeil(int a, int b) => (((a < 0) == (b < 0)) && (a % b != 0)) ? a / b + 1 : a / b;
 
     internal static int RemCeil(int a, int b) => (((a < 0) == (b < 0)) && (a % b != 0)) ? a % b - b : a % b;
+
+    internal static void PanScreen(ButtonsChangedEventArgs e, Map map, int panSpeed = 8)
+    {
+        // allow panning viewport with WASD keys
+        int panX = 0;
+        int panY = 0;
+        if (Game1.options.gamepadControls)
+        {
+            GamePadState gamePadState = Game1.input.GetGamePadState();
+            if (gamePadState.ThumbSticks.Left.X < -0.25)
+            {
+                panX -= panSpeed;
+            }
+            else if (gamePadState.ThumbSticks.Left.X > 0.25)
+            {
+                panX += panSpeed;
+            }
+            if (gamePadState.ThumbSticks.Left.Y > 0.25)
+            {
+                panY -= panSpeed;
+            }
+            else if (gamePadState.ThumbSticks.Left.Y < -0.25)
+            {
+                panY += panSpeed;
+            }
+        }
+        else
+        {
+            foreach (Keys k in e.Held)
+            {
+                if (Game1.options.doesInputListContain(Game1.options.moveDownButton, k))
+                {
+                    panY += panSpeed;
+                }
+                else if (Game1.options.doesInputListContain(Game1.options.moveRightButton, k))
+                {
+                    panX += panSpeed;
+                }
+                else if (Game1.options.doesInputListContain(Game1.options.moveUpButton, k))
+                {
+                    panY -= panSpeed;
+                }
+                else if (Game1.options.doesInputListContain(Game1.options.moveLeftButton, k))
+                {
+                    panX -= panSpeed;
+                }
+            }
+        }
+
+        if (map.DisplayWidth > Game1.viewport.Width && panX != 0)
+        {
+            Game1.viewport.X = Math.Clamp(Game1.viewport.X + panX, 0, map.DisplayWidth - Game1.viewport.Width);
+        }
+        if (map.DisplayHeight > Game1.viewport.Height && panY != 0)
+        {
+            Game1.viewport.Y = Math.Clamp(Game1.viewport.Y + panY, 0, map.DisplayHeight - Game1.viewport.Height);
+        }
+    }
 }
