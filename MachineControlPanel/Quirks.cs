@@ -12,7 +12,7 @@ namespace MachineControlPanel;
 internal static class Quirks
 {
     internal static MD5 md5 = MD5.Create();
-    internal static string DefaultThingId = "(O)0";
+    internal static string DefaultThingId = $"{ModEntry.ModId}_DefaultItem";
     internal static Item? defaultThing = null;
     internal static SObject DefaultThing
     {
@@ -132,7 +132,6 @@ internal static class Quirks
     /// <param name="asset"></param>
     internal static void AddDefaultItemNamedSomethingOtherThanWeedses(IAssetData asset)
     {
-        DefaultThingId = $"{ModEntry.ModId}_DefaultItem";
         IDictionary<string, ObjectData> data = asset.AsDictionary<string, ObjectData>().Data;
         data[DefaultThingId] = new()
         {

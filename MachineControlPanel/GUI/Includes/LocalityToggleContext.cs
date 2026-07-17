@@ -13,24 +13,26 @@ public sealed partial class LocalityToggleContext()
 
     private bool realMachine;
 
-    // | realMachine | DefaultIsGlobal | PerMachineControlPanel |     Locality (toggle order)     |
-    // |-------------|-----------------|------------------------|---------------------------------|
-    // |    true     |      true       |          true          | PerMachine, Global, PerLocation |
-    // |    true     |      true       |          false         | Global, PerLocation, PerMachine |
-    // |    true     |      false      |          true          | PerMachine, PerLocation, Global |
-    // |    true     |      false      |          false         | PerLocation, Global, PerMachine |
-    // |    false    |      true       |           -            |       Global, PerLocation       |
-    // |    false    |      false      |           -            |       PerLocation, Global       |
+    // | realMachine | DefaultIsGlobal |     Locality (toggle order)     |
+    // |-------------|-----------------|---------------------------------|
+    // |    true     |      true       | PerMachine, Global, PerLocation |
+    // |    true     |      false      | PerMachine, PerLocation, Global |
+    // |    false    |      true       |       Global, PerLocation       |
+    // |    false    |      false      |       PerLocation, Global       |
 
     internal void ControlPanelOpened(bool realMachine = false)
     {
         this.realMachine = realMachine;
-        if (realMachine && ModEntry.Config.PerMachineControlPanel)
-            Locality = PanelLocality.PerMachine;
-        else if (ModEntry.Config.DefaultIsGlobal)
+        if (ModEntry.Config.DefaultIsGlobal)
+        {
             Locality = PanelLocality.Global;
+        }
         else
+        {
+            if (realMachine)
+                Locality = PanelLocality.PerMachine;
             Locality = PanelLocality.PerLocation;
+        }
         previousLocality = Locality;
     }
 
@@ -65,16 +67,16 @@ public sealed partial class LocalityToggleContext()
             };
     }
 
-    internal MsdKey DataKey(Item machine) => makeDataKeyFor(Locality, machine);
+    internal ModSaveDataKey DataKey(Item machine) => makeDataKeyFor(Locality, machine);
 
-    internal MsdKey PreviousDataKey(Item machine) => makeDataKeyFor(previousLocality, machine);
+    internal ModSaveDataKey PreviousDataKey(Item machine) => makeDataKeyFor(previousLocality, machine);
 
-    private static MsdKey makeDataKeyFor(PanelLocality locality, Item machine) =>
+    private static ModSaveDataKey makeDataKeyFor(PanelLocality locality, Item machine) =>
         locality switch
         {
-            PanelLocality.Global => MsdKey.Global(machine),
-            PanelLocality.PerLocation => MsdKey.PerLocation(machine, Game1.currentLocation),
-            PanelLocality.PerMachine => (machine is SObject obj) ? MsdKey.PerMachine(obj) : default,
+            PanelLocality.Global => ModSaveDataKey.Global(machine),
+            PanelLocality.PerLocation => ModSaveDataKey.PerLocation(machine, Game1.currentLocation),
+            PanelLocality.PerMachine => (machine is SObject obj) ? ModSaveDataKey.PerMachine(obj) : default,
             _ => default,
         };
 }

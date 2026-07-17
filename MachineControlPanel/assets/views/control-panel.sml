@@ -19,9 +19,7 @@
       />
       <label text={:MachineName} tooltip={:MachineTooltip} font="dialogue" color="white" margin="0,24" />
       <lane orientation="horizontal" margin="0,0,24,8" layout="stretch content" vertical-content-alignment="end" horizontal-content-alignment="end">
-        <frame padding="4">
-          <include name="mushymato.MachineControlPanel/views/includes/overlay-toggle" *context={:OverlayToggle}/>
-        </frame>
+        <include name="mushymato.MachineControlPanel/views/includes/overlay-toggle" *context={:OverlayToggle}/>
         <frame *if={:IsMainPlayer} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="60px 60px">
           <checkbox is-checked={<>ToggleAll} tooltip={ToggleAllTooltip} margin="12"/>
         </frame>

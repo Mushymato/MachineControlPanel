@@ -13,10 +13,11 @@ namespace MachineControlPanel.GUI;
 internal static class MenuHandler
 {
     private static IViewEngine viewEngine = null!;
-    internal static string VIEW_ASSET_PREFIX = null!;
-    internal static string VIEW_ASSET_MACHINE_SELECT = null!;
-    internal static string VIEW_ASSET_CONTROL_PANEL = null!;
-    internal static string VIEW_ASSET_SUBITEM_GRID = null!;
+    internal const string VIEW_ASSET_PREFIX = $"{ModEntry.ModId}/views";
+    internal const string VIEW_ASSET_MACHINE_SELECT = $"{VIEW_ASSET_PREFIX}/machine-select";
+    internal const string VIEW_ASSET_CONTROL_PANEL = $"{VIEW_ASSET_PREFIX}/control-panel";
+    internal const string VIEW_ASSET_SUBITEM_GRID = $"{VIEW_ASSET_PREFIX}/subitem-grid";
+    internal const string VIEW_ASSET_OVERLAY_INFO = $"{VIEW_ASSET_PREFIX}/overlay-info";
     internal static LocalityToggleContext LocalityToggle = new();
     internal static OverlayToggleContext OverlayToggle = new();
 
@@ -24,10 +25,6 @@ internal static class MenuHandler
     {
         viewEngine = helper.ModRegistry.GetApi<IViewEngine>("focustense.StardewUI")!;
         viewEngine.RegisterSprites($"{ModEntry.ModId}/sprites", "assets/sprites");
-        VIEW_ASSET_PREFIX = $"{ModEntry.ModId}/views";
-        VIEW_ASSET_MACHINE_SELECT = $"{VIEW_ASSET_PREFIX}/machine-select";
-        VIEW_ASSET_CONTROL_PANEL = $"{VIEW_ASSET_PREFIX}/control-panel";
-        VIEW_ASSET_SUBITEM_GRID = $"{VIEW_ASSET_PREFIX}/subitem-grid";
         viewEngine.RegisterViews(VIEW_ASSET_PREFIX, "assets/views");
 #if DEBUG
         viewEngine.EnableHotReloadingWithSourceSync();
@@ -145,5 +142,30 @@ internal static class MenuHandler
                 viewEngine.CreateMenuFromAsset(VIEW_ASSET_SUBITEM_GRID, new SubitemGridContext(title, itemDatas))
             );
         }
+    }
+
+    internal static void ShowOverlayInfo()
+    {
+        IClickableMenu priorMenu = Game1.activeClickableMenu;
+        if (priorMenu != null)
+            Game1.nextClickableMenu.Insert(0, priorMenu);
+        IMenuController overlayMenuCtrl = viewEngine.CreateMenuControllerFromAsset(
+            VIEW_ASSET_OVERLAY_INFO,
+            new { CountTotal = ModEntry.Overlay.Value.GetCountTotalString() }
+        );
+        overlayMenuCtrl.PositionSelector = static () => Point.Zero;
+        overlayMenuCtrl.CloseOnOutsideClick = false;
+        overlayMenuCtrl.DimmingAmount = 0f;
+        overlayMenuCtrl.Closing += () =>
+        {
+            ModEntry.Overlay.Value.Enabled = false;
+            // jank to fix on framework side
+            Game1.displayHUD = true;
+        };
+        ModEntry.Overlay.Value.Enabled = true;
+        Game1.activeClickableMenu = overlayMenuCtrl.Menu;
+        // jank to fix on framework side
+        overlayMenuCtrl.Menu.xPositionOnScreen = 0;
+        overlayMenuCtrl.Menu.yPositionOnScreen = 0;
     }
 }

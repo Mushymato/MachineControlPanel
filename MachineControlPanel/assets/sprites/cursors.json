@@ -18,6 +18,9 @@
     },
     "magifyingGlass": {
       "SourceRect": "208,321,15,15"
+    },
+    "telescope": {
+      "SourceRect": "16,688,16,16"
     }
   }
 }

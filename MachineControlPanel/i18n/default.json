@@ -15,8 +15,6 @@
   "config.heading.behaviors": "Behaviors",
   "config.default-is-global.name": "Default Is Global",
   "config.default-is-global.description": "Edit global (everywhere) or by default.",
-  "config.per-machine-control-panel.name": "Per-Machine Control Panel",
-  "config.per-machine-control-panel.description": "Pressing the control panel key will open in per-machine mode by default.",
   "config.default-page.name": "Default Page",
   "config.default-page.description": "Page of control panel to display by default.",
   "config.default-page.machine-rules": "Machine Rules",
@@ -52,10 +50,6 @@
   "machine-select.scope.current-location": "Location",
   "machine-select.scope.machine": "Machine",
   "machine-select.hidden-by-progression-mode": "Not yet obtained machines are hidden due to \"Progression Mode\", disable it in config to see all machines.",
-  "overlay-toggle.show": "Show Overlay",
-  "overlay-toggle.hide": "Hide Overlay",
-  "overlay-toggle.description": "The machine data overlay shows which machines have individual per-machine configs set.",
-  "overlay-toggle.no-data": "No machines have individual configs.",
   "skip-reason.rules": "{{Name}} rejected due to disabled rules.",
   "skip-reason.inputs": "{{Name}} rejected due to disabled inputs.",
   "skip-reason.quality": "{{Name}} rejected due to disabled quality.",
@@ -76,4 +70,8 @@
   // Screen Reader
   "rule-list.s-r.seq": "Rule {{idx}}",
   "rule-list.s-r.quality": "Quality {{quality}}",
+  // Overlay
+  "overlay.description": "Display which machines in the current location have individual per-machine configs set.",
+  "overlay.no-data": "No machines have individual configs.",
+  "overlay.count-total": "{{count}}/{{total}} machines have individual configs"
 }

@@ -35,13 +35,14 @@ public enum PanelLocality
     PerMachine,
 }
 
-public struct MsdKey
+public readonly struct ModSaveDataKey
 {
     // sum type: Global { string QId } | PerLocation { string QId, string Location } | PerMachine { Item Machine }
 
-    public static MsdKey Global(Item machine) => new() { Type = PanelLocality.Global, QId = machine.QualifiedItemId };
+    public static ModSaveDataKey Global(Item machine) =>
+        new() { Type = PanelLocality.Global, QId = machine.QualifiedItemId };
 
-    public static MsdKey PerLocation(SObject machine) =>
+    public static ModSaveDataKey PerLocation(SObject machine) =>
         new()
         {
             Type = PanelLocality.PerLocation,
@@ -49,7 +50,7 @@ public struct MsdKey
             Location = machine.Location.NameOrUniqueName,
         };
 
-    public static MsdKey PerLocation(Item machine, GameLocation location) =>
+    public static ModSaveDataKey PerLocation(Item machine, GameLocation location) =>
         new()
         {
             Type = PanelLocality.PerLocation,
@@ -57,7 +58,7 @@ public struct MsdKey
             Location = location.NameOrUniqueName,
         };
 
-    public static MsdKey PerMachine(SObject machine) =>
+    public static ModSaveDataKey PerMachine(SObject machine) =>
         new()
         {
             Type = PanelLocality.PerMachine,
@@ -204,7 +205,7 @@ public sealed class ModSaveData
     /// Save machine rule for given machine.
     /// </summary>
     internal ModSaveDataEntryMessage? SetMachineRules(
-        MsdKey key,
+        ModSaveDataKey key,
         IEnumerable<RuleIdent> disabledRules,
         IEnumerable<string> disabledInputs,
         bool[] disabledQuality
@@ -251,7 +252,7 @@ public sealed class ModSaveData
         }
     }
 
-    internal bool TryGetModSaveDataEntry(MsdKey key, [NotNullWhen(true)] out ModSaveDataEntry? entry)
+    internal bool TryGetModSaveDataEntry(ModSaveDataKey key, [NotNullWhen(true)] out ModSaveDataEntry? entry)
     {
         entry = key.Type switch
         {
@@ -276,21 +277,21 @@ public sealed class ModSaveData
         return entry != null;
     }
 
-    internal bool RuleState(MsdKey key, RuleIdent ident)
+    internal bool RuleState(ModSaveDataKey key, RuleIdent ident)
     {
         if (TryGetModSaveDataEntry(key, out ModSaveDataEntry? msd))
             return !msd.Rules.Contains(ident);
         return true;
     }
 
-    internal bool InputState(MsdKey key, string inputId)
+    internal bool InputState(ModSaveDataKey key, string inputId)
     {
         if (TryGetModSaveDataEntry(key, out ModSaveDataEntry? msd))
             return !msd.Inputs.Contains(inputId);
         return true;
     }
 
-    internal bool QualityState(MsdKey key, int quality)
+    internal bool QualityState(ModSaveDataKey key, int quality)
     {
         if (TryGetModSaveDataEntry(key, out ModSaveDataEntry? msd))
         {

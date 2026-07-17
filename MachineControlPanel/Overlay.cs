@@ -1,34 +1,67 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
+using StardewModdingAPI.Events;
 using StardewValley;
 
 namespace MachineControlPanel;
 
-public sealed class Overlay
+public sealed class Overlay(int screenId)
 {
-    public bool Enabled { get; set; } = false;
-
-    public bool TryEnable()
+    public bool Enabled
     {
-        if (Enabled)
-            return true;
-        if (Game1.currentLocation == null)
-            return false;
-
-        foreach (var (pos, obj) in Game1.currentLocation.Objects.Pairs)
+        get => field;
+        set
         {
-            if (ModSaveData.MachineHasData(obj))
-            {
-                Enabled = true;
-                return true;
-            }
+            field = value;
+            if (field)
+                ModEntry.help.Events.Display.RenderedWorld += OnRenderedWorld;
+            else
+                ModEntry.help.Events.Display.RenderedWorld -= OnRenderedWorld;
         }
-        return false;
     }
 
-    public void Draw(SpriteBatch b)
+    public bool CanEnable
+    {
+        get
+        {
+            if (Game1.currentLocation == null)
+                return false;
+            foreach (SObject obj in Game1.currentLocation.Objects.Values)
+            {
+                if (ModSaveData.MachineHasData(obj))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public string GetCountTotalString()
+    {
+        if (Game1.currentLocation == null)
+            return string.Empty;
+        int count = 0;
+        int total = 0;
+        foreach (SObject obj in Game1.currentLocation.Objects.Values)
+        {
+            if (obj.GetMachineData() != null)
+            {
+                total++;
+            }
+            if (ModSaveData.MachineHasData(obj))
+            {
+                count++;
+            }
+        }
+        return I18n.Overlay_CountTotal(count, total);
+    }
+
+    private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
     {
         if (!Enabled)
+            return;
+        if (Context.ScreenId != screenId)
             return;
         if (Game1.currentLocation == null)
             return;
@@ -50,7 +83,7 @@ public sealed class Overlay
                 if (Game1.currentLocation.Objects.TryGetValue(pos, out var obj) && ModSaveData.MachineHasData(obj))
                 {
                     Utility.DrawSquare(
-                        b,
+                        e.SpriteBatch,
                         pixelArea: new(point, square),
                         borderWidth: 0,
                         backgroundColor: new(255, 128, 255, 64)
@@ -59,7 +92,7 @@ public sealed class Overlay
                 else
                 {
                     Utility.DrawSquare(
-                        b,
+                        e.SpriteBatch,
                         pixelArea: new(point, square),
                         borderWidth: 0,
                         backgroundColor: new(0, 0, 0, 64)

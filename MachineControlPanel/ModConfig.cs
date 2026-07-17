@@ -86,11 +86,8 @@ internal sealed class ModConfig
     /// <summary>Default page to use</summary>
     public DefaultPageOption DefaultPage { get; set; } = DefaultPageOption.Rules;
 
-    /// <summary>Whether menu starts in </summary>
+    /// <summary>Whether menu starts in global mode or in local mode</summary>
     public bool DefaultIsGlobal { get; set; } = true;
-
-    /// <summary>Pressing the control panel key will open in per-machine mode by default</summary>
-    public bool PerMachineControlPanel { get; set; } = false;
 
     /// <summary>On the machine selection page, hide machines the player don't not have yet.</summary>
     public bool ProgressionMode { get; set; } = true;
@@ -114,7 +111,6 @@ internal sealed class ModConfig
         ToggleMachineOverlayKey = new();
         DefaultPage = DefaultPageOption.Rules;
         DefaultIsGlobal = true;
-        PerMachineControlPanel = false;
         ProgressionMode = true;
         AltQuestionMark = false;
         ConfigPerSave = true;
@@ -221,13 +217,6 @@ internal sealed class ModConfig
             setValue: (value) => DefaultIsGlobal = value,
             name: I18n.Config_DefaultIsGlobal_Name,
             tooltip: I18n.Config_DefaultIsGlobal_Description
-        );
-        GMCM.AddBoolOption(
-            mod,
-            getValue: () => PerMachineControlPanel,
-            setValue: (value) => PerMachineControlPanel = value,
-            name: I18n.Config_PerMachineControlPanel_Name,
-            tooltip: I18n.Config_PerMachineControlPanel_Description
         );
         GMCM.AddTextOption(
             mod,

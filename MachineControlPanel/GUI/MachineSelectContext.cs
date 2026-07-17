@@ -22,8 +22,11 @@ public sealed partial record MachineSelectCell(string QId, MachineData Data, Ite
     public void UpdateBackgroundTint()
     {
         if (
-            ModEntry.SaveData.TryGetModSaveDataEntry(MsdKey.Global(Machine), out _)
-            || ModEntry.SaveData.TryGetModSaveDataEntry(MsdKey.PerLocation(Machine, Game1.currentLocation), out _)
+            ModEntry.SaveData.TryGetModSaveDataEntry(ModSaveDataKey.Global(Machine), out _)
+            || ModEntry.SaveData.TryGetModSaveDataEntry(
+                ModSaveDataKey.PerLocation(Machine, Game1.currentLocation),
+                out _
+            )
         )
         {
             BackgroundTint = Color.White;

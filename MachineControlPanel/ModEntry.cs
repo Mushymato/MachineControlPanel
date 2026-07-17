@@ -18,7 +18,7 @@ public sealed class ModEntry : Mod
     private static IMonitor? mon;
     internal static ModConfig Config = null!;
     private static IManifest man = null!;
-    internal static string ModId => man.UniqueID;
+    internal const string ModId = "mushymato.MachineControlPanel";
 
     /// <summary>
     /// Key for save data of this mod.
@@ -34,7 +34,7 @@ public sealed class ModEntry : Mod
     public static event EventHandler<string>? SavedMachineRules;
     public static readonly List<IAssetName> itemAssetNames = [];
 
-    internal static readonly PerScreen<Overlay> Overlay = new(() => new());
+    internal static readonly PerScreen<Overlay> Overlay = new(() => new(Context.ScreenId));
 
     public override void Entry(IModHelper helper)
     {
@@ -53,7 +53,6 @@ public sealed class ModEntry : Mod
         helper.Events.Content.AssetsInvalidated += OnAssetInvalidated;
         helper.Events.Player.InventoryChanged += OnInventoryChanged;
         helper.Events.Player.Warped += OnWarped;
-        helper.Events.Display.RenderedWorld += OnRenderedWorld;
 
         // host only events
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
@@ -156,7 +155,11 @@ public sealed class ModEntry : Mod
         }
         else if (Config.ToggleMachineOverlayKey.JustPressed())
         {
-            Overlay.Value.Enabled = !Overlay.Value.Enabled;
+            Overlay overlay = Overlay.Value;
+            if (overlay.CanEnable)
+                overlay.Enabled = !overlay.Enabled;
+            else
+                Game1.addHUDMessage(new(I18n.Overlay_NoData(), HUDMessage.error_type));
         }
     }
 
@@ -213,11 +216,6 @@ public sealed class ModEntry : Mod
     {
         if (e.Player == Game1.player)
             Overlay.Value.Enabled = false;
-    }
-
-    private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
-    {
-        Overlay.Value.Draw(e.SpriteBatch);
     }
 
     /// <summary>
@@ -302,7 +300,7 @@ public sealed class ModEntry : Mod
     /// <param name="disabledInputs"></param>
     /// <param name="disabledQuality"></param>
     internal static void SaveMachineRules(
-        MsdKey key,
+        ModSaveDataKey key,
         IEnumerable<RuleIdent> disabledRules,
         IEnumerable<string> disabledInputs,
         bool[] disabledQuality

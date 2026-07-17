@@ -812,12 +812,12 @@ public sealed partial record ControlPanelContext(
             case PanelLocality.PerLocation:
                 foreach (var kv in ruleEntries)
                 {
-                    kv.Value.Active = ModEntry.SaveData.RuleState(MsdKey.Global(Machine), kv.Key);
+                    kv.Value.Active = ModEntry.SaveData.RuleState(ModSaveDataKey.Global(Machine), kv.Key);
                 }
                 foreach (var inputIcon in InputItems)
                 {
                     inputIcon.ActiveByGlobal = ModEntry.SaveData.InputState(
-                        MsdKey.Global(Machine),
+                        ModSaveDataKey.Global(Machine),
                         inputIcon.InputItem.QualifiedItemId
                     );
                 }
@@ -831,15 +831,21 @@ public sealed partial record ControlPanelContext(
                 foreach (var kv in ruleEntries)
                 {
                     kv.Value.Active =
-                        ModEntry.SaveData.RuleState(MsdKey.Global(Machine), kv.Key)
-                        && ModEntry.SaveData.RuleState(MsdKey.PerLocation(Machine, Game1.currentLocation), kv.Key);
+                        ModEntry.SaveData.RuleState(ModSaveDataKey.Global(Machine), kv.Key)
+                        && ModEntry.SaveData.RuleState(
+                            ModSaveDataKey.PerLocation(Machine, Game1.currentLocation),
+                            kv.Key
+                        );
                 }
                 foreach (var inputIcon in InputItems)
                 {
                     inputIcon.ActiveByGlobal =
-                        ModEntry.SaveData.InputState(MsdKey.Global(Machine), inputIcon.InputItem.QualifiedItemId)
+                        ModEntry.SaveData.InputState(
+                            ModSaveDataKey.Global(Machine),
+                            inputIcon.InputItem.QualifiedItemId
+                        )
                         && ModEntry.SaveData.InputState(
-                            MsdKey.PerLocation(Machine, Game1.currentLocation),
+                            ModSaveDataKey.PerLocation(Machine, Game1.currentLocation),
                             inputIcon.InputItem.QualifiedItemId
                         );
                 }
@@ -851,7 +857,7 @@ public sealed partial record ControlPanelContext(
         }
     }
 
-    internal void SaveChanges(MsdKey key) =>
+    internal void SaveChanges(ModSaveDataKey key) =>
         ModEntry.SaveMachineRules(
             key,
             ruleEntries.Where(kv => !kv.Value.State).Select(kv => kv.Key),
