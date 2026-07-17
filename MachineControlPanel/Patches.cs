@@ -109,18 +109,21 @@ internal static class Patches
         )
             return false;
         RuleIdent ident = new(rule.Id, trigger2.Id);
+        // check machine
+        if (
+            ModEntry.SaveData.TryGetModSaveDataEntry(MsdKey.PerMachine(machine), out ModSaveDataEntry? msdEntry)
+            && ShouldSkipMachineInputEntry(machine, inputItem, msdEntry, ident)
+        )
+            return true;
         // check local
         if (
-            ModEntry.SaveData.TryGetModSaveDataEntry(
-                machine.QualifiedItemId,
-                machine.Location.NameOrUniqueName,
-                out ModSaveDataEntry? msdEntry
-            ) && ShouldSkipMachineInputEntry(machine, inputItem, msdEntry, ident)
+            ModEntry.SaveData.TryGetModSaveDataEntry(MsdKey.PerLocation(machine), out msdEntry)
+            && ShouldSkipMachineInputEntry(machine, inputItem, msdEntry, ident)
         )
             return true;
         // check global
         if (
-            ModEntry.SaveData.TryGetModSaveDataEntry(machine.QualifiedItemId, null, out msdEntry)
+            ModEntry.SaveData.TryGetModSaveDataEntry(MsdKey.Global(machine), out msdEntry)
             && ShouldSkipMachineInputEntry(machine, inputItem, msdEntry, ident)
         )
             return true;

@@ -1,0 +1,11 @@
+{
+  "Texture": "Maps/springobjects",
+  "Sprites": {
+    "computer": {
+      "SourceRect": "32,80,16,16"
+    },
+    "fence": {
+      "SourceRect": "160,192,16,16"
+    }
+  }
+}

@@ -40,11 +40,15 @@ Should the current rules settings completely prevent an input from being placed 
 
 For example, if the first bone items rule on the bone mill is disabled, all bone items except for bone fragments will become semi-transparent on the input page.
 
-## Global and Local
+## Global, Location, and Machine
 
-Both Inputs and Rules support disabling rules and inputs for the current location only, or for everywhere in the world. You can switch between the two mods by clicking the globe icon.
+Both Inputs and Rules support disabling rules and inputs for the current machine, the current location only, or for everywhere in the world. You can switch between the three modes by clicking the icon in the top right.
 
-A rule that is disabled everywhere will be disabled for current location regardless of currenct location settings.
+A rule that is disabled everywhere will be disabled for current location regardless of currenct location settings. A rule that is disable for the current location will be disabled for each machine regardless of the individual machine's settings.
+
+### Per-Machine Data Overlay
+
+An overlay can be toggled in the menu that will highlight all machines that have individual per-machine data configured on them. Toggling this overlay can be bound to a key, though none are bound by default.
 
 ## Search
 
@@ -77,9 +81,12 @@ Only the host player is allowed to change machine rules, but everyone can open t
     * Default: Q
 * `Machine Select Key`: Press this key to open a selection menu for all machines in the game
     * Default: LeftControl+Q
+* `Toggle Machine Overlay Key`: Press this key to toggle the machine highlighting overlay.
+    * Default: None
 * `Progression Mode`: On the machine select page, hide not yet obtained machines.
 * `Default Page`: Page of control panel to display by default.
 * `Default Is Global`: Page of control panel to display by default.
+* `Per-Machine Control Panel`: Pressing the control panel key will open in per-machine mode by default.
 * `Config Per Save`: Determines how the save data is retained.
 * `Alt Question Mark`: Use a more visible question mark icon for special outputs (previously the default icon).
 * `Open Machine Select Menu`: Once a save is loaded, this option will display a button that opens the machine select menu, useful in case you are out of keybindings.
@@ -88,7 +95,7 @@ Only the host player is allowed to change machine rules, but everyone can open t
 
 Machine settings are recorded per farm in the save data, like vanilla save data this is written to the save file at end of the day and lost if you exit the game midday.
 
-You can change this by disabling `Config Per Save` in the configurations. With this, the machine settings are saved to global app data immediately on change.
+You can change this by disabling `Config Per Save` in the configurations. With this, the machine settings are saved to global app data immediately on change. This setting does not apply to per-machine configs; they are always stored in the save data.
 
 In the machine selections menu, an opaque background indicates that machine has settings.
 

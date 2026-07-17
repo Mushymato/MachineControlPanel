@@ -80,11 +80,17 @@ internal sealed class ModConfig
     /// <summary>Key for opening machine selection page</summary>
     public KeybindList MachineSelectKey { get; set; } = KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
 
+    /// <summary>Key for toggling the machine highlighting overlay</summary>
+    public KeybindList ToggleMachineOverlayKey { get; set; } = new();
+
     /// <summary>Default page to use</summary>
     public DefaultPageOption DefaultPage { get; set; } = DefaultPageOption.Rules;
 
     /// <summary>Whether menu starts in </summary>
     public bool DefaultIsGlobal { get; set; } = true;
+
+    /// <summary>Pressing the control panel key will open in per-machine mode by default</summary>
+    public bool PerMachineControlPanel { get; set; } = false;
 
     /// <summary>On the machine selection page, hide machines the player don't not have yet.</summary>
     public bool ProgressionMode { get; set; } = true;
@@ -105,8 +111,10 @@ internal sealed class ModConfig
     {
         ControlPanelKey = KeybindList.Parse($"{SButton.MouseLeft}, {SButton.ControllerB}");
         MachineSelectKey = KeybindList.Parse($"{SButton.LeftControl}+{SButton.Q}");
+        ToggleMachineOverlayKey = new();
         DefaultPage = DefaultPageOption.Rules;
         DefaultIsGlobal = true;
+        PerMachineControlPanel = false;
         ProgressionMode = true;
         AltQuestionMark = false;
         ConfigPerSave = true;
@@ -159,6 +167,13 @@ internal sealed class ModConfig
             name: I18n.Config_MachineSelectKey_Name,
             tooltip: I18n.Config_MachineSelectKey_Description
         );
+        GMCM.AddKeybindList(
+            mod,
+            getValue: () => ToggleMachineOverlayKey,
+            setValue: (value) => ToggleMachineOverlayKey = value,
+            name: I18n.Config_ToggleMachineOverlayKey_Name,
+            tooltip: I18n.Config_ToggleMachineOverlayKey_Description
+        );
         GMCM.AddComplexOption(
             mod,
             name: I18n.Config_OpenMachineSelectMenu_Name,
@@ -203,13 +218,16 @@ internal sealed class ModConfig
         GMCM.AddBoolOption(
             mod,
             getValue: () => DefaultIsGlobal,
-            setValue: (value) =>
-            {
-                DefaultIsGlobal = value;
-                MenuHandler.GlobalToggle.IsGlobal = value;
-            },
+            setValue: (value) => DefaultIsGlobal = value,
             name: I18n.Config_DefaultIsGlobal_Name,
             tooltip: I18n.Config_DefaultIsGlobal_Description
+        );
+        GMCM.AddBoolOption(
+            mod,
+            getValue: () => PerMachineControlPanel,
+            setValue: (value) => PerMachineControlPanel = value,
+            name: I18n.Config_PerMachineControlPanel_Name,
+            tooltip: I18n.Config_PerMachineControlPanel_Description
         );
         GMCM.AddTextOption(
             mod,

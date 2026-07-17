@@ -3,6 +3,7 @@ using MachineControlPanel.Data;
 using MachineControlPanel.GUI;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewModdingAPI.Utilities;
 using StardewValley;
 
 namespace MachineControlPanel;
@@ -33,6 +34,8 @@ public sealed class ModEntry : Mod
     public static event EventHandler<string>? SavedMachineRules;
     public static readonly List<IAssetName> itemAssetNames = [];
 
+    internal static readonly PerScreen<Overlay> Overlay = new(() => new());
+
     public override void Entry(IModHelper helper)
     {
         I18n.Init(helper.Translation);
@@ -49,6 +52,8 @@ public sealed class ModEntry : Mod
         helper.Events.Content.AssetRequested += OnAssetRequested;
         helper.Events.Content.AssetsInvalidated += OnAssetInvalidated;
         helper.Events.Player.InventoryChanged += OnInventoryChanged;
+        helper.Events.Player.Warped += OnWarped;
+        helper.Events.Display.RenderedWorld += OnRenderedWorld;
 
         // host only events
         helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
@@ -149,6 +154,10 @@ public sealed class ModEntry : Mod
         {
             MenuHandler.ShowControlPanelForCursorTile();
         }
+        else if (Config.ToggleMachineOverlayKey.JustPressed())
+        {
+            Overlay.Value.Enabled = !Overlay.Value.Enabled;
+        }
     }
 
     /// <summary>
@@ -198,6 +207,16 @@ public sealed class ModEntry : Mod
         if (Config.ProgressionMode)
             foreach (var item in e.Added)
                 PlayerProgressionCache.AddItem(item.QualifiedItemId);
+    }
+
+    private void OnWarped(object? sender, WarpedEventArgs e)
+    {
+        if (e.Player == Game1.player) Overlay.Value.Enabled = false;
+    }
+
+    private void OnRenderedWorld(object? sender, RenderedWorldEventArgs e)
+    {
+        Overlay.Value.Draw(e.SpriteBatch);
     }
 
     /// <summary>
@@ -277,14 +296,12 @@ public sealed class ModEntry : Mod
     /// <summary>
     /// Save machine rule for given machine, message peers about it too.
     /// </summary>
-    /// <param name="bigCraftableId"></param>
-    /// <param name="locationName"></param>
+    /// <param name="key"></param>
     /// <param name="disabledRules"></param>
     /// <param name="disabledInputs"></param>
     /// <param name="disabledQuality"></param>
     internal static void SaveMachineRules(
-        string bigCraftableId,
-        string? locationName,
+        MsdKey key,
         IEnumerable<RuleIdent> disabledRules,
         IEnumerable<string> disabledInputs,
         bool[] disabledQuality
@@ -298,13 +315,10 @@ public sealed class ModEntry : Mod
             return;
         }
         SaveData.Version = man.Version;
-        help.Multiplayer.SendMessage(
-            SaveData.SetMachineRules(bigCraftableId, locationName, disabledRules, disabledInputs, disabledQuality),
-            SAVEDATA_ENTRY,
-            modIDs: [ModId]
-        );
+        var message = SaveData.SetMachineRules(key, disabledRules, disabledInputs, disabledQuality);
+        if (message != null) help.Multiplayer.SendMessage(message, SAVEDATA_ENTRY, modIDs: [ModId]);
         WriteData(SaveData);
-        SavedMachineRules?.Invoke(null, bigCraftableId);
+        if (key.QId != null) SavedMachineRules?.Invoke(null, key.QId);
     }
 
     /// <summary>

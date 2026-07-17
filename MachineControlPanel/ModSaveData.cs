@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using MachineControlPanel.Data;
+using Newtonsoft.Json;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.GameData.Machines;
@@ -10,18 +11,73 @@ namespace MachineControlPanel;
 
 public sealed record RuleIdent(string OutputId, string TriggerId);
 
-public sealed record QIdLocation(string QId, string Location);
-
 public sealed record ModSaveDataEntry(
     ImmutableHashSet<RuleIdent> Rules,
     ImmutableHashSet<string> Inputs,
     bool[] Quality
-);
+)
+{
+    public bool IsEmpty()
+    {
+        if (Rules.Any() || Inputs.Any()) return false;
+        for (int i = 0; i < Quality.Length; i++) if (Quality[i]) return false;
+        return true;
+    }
+}
+
+public enum PanelLocality { Global, PerLocation, PerMachine }
+
+public struct MsdKey
+{
+    // sum type: Global { string QId } | PerLocation { string QId, string Location } | PerMachine { Item Machine }
+
+    public static MsdKey Global(Item machine) => new()
+    {
+        Type = PanelLocality.Global,
+        QId = machine.QualifiedItemId,
+    };
+
+    public static MsdKey PerLocation(SObject machine) => new()
+    {
+        Type = PanelLocality.PerLocation,
+        QId = machine.QualifiedItemId,
+        Location = machine.Location.NameOrUniqueName,
+    };
+
+    public static MsdKey PerLocation(Item machine, GameLocation location) => new()
+    {
+        Type = PanelLocality.PerLocation,
+        QId = machine.QualifiedItemId,
+        Location = location.NameOrUniqueName,
+    };
+
+    public static MsdKey PerMachine(SObject machine) => new()
+    {
+        Type = PanelLocality.PerMachine,
+        QId = machine.QualifiedItemId,
+        Location = machine.Location.NameOrUniqueName,
+        Machine = machine,
+    };
+
+    // |    Type     |  QId   | Location | Machine |
+    // |-------------|--------|----------|---------|
+    // |    null     |  null  |   null   |  null   |
+    // |   Global    | string |   null   |  null   |
+    // | PerLocation | string |  string  |  null   |
+    // | PerMachine  | string |  string  |  Item   |
+
+    public PanelLocality? Type { get; private init; }
+    public string? QId { get; private init; }
+    public string? Location { get; private init; }
+    public SObject? Machine { get; private init; }
+}
 
 public sealed record ModSaveDataEntryMessage(string QId, string? Location, ModSaveDataEntry? Entry);
 
 public sealed class ModSaveData
 {
+    private const string PER_MACHINE = "per-machine-data";
+
     /// <summary>Version, for future compat things</summary>
     public ISemanticVersion? Version { get; set; } = null;
 
@@ -135,117 +191,90 @@ public sealed class ModSaveData
         return hasChange;
     }
 
-    /// <summary>
-    /// I am use bool array bc json doesn't like BitArray
-    /// </summary>
-    /// <param name="intArray"></param>
-    /// <returns></returns>
-    public static bool HasAnySet(bool[] bitArr)
-    {
-        for (int i = 0; i < bitArr.Length; i++)
-        {
-            if (bitArr[i])
-                return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Set MSD entry
-    /// </summary>
-    /// <typeparam name="TKey"></typeparam>
-    /// <param name="msdDict"></param>
-    /// <param name="msdKey"></param>
-    /// <param name="disabledRules"></param>
-    /// <param name="disabledInputs"></param>
-    /// <param name="disabledQuality"></param>
-    /// <returns></returns>
-    private static ModSaveDataEntry? SetMSDEntry(
-        Dictionary<string, ModSaveDataEntry> msdDict,
-        string msdKey,
-        IEnumerable<RuleIdent> disabledRules,
-        IEnumerable<string> disabledInputs,
-        bool[] disabledQuality
-    )
-    {
-        ModSaveDataEntry? msdEntry = null;
-        if (!disabledRules.Any() && !disabledInputs.Any() && !HasAnySet(disabledQuality))
-        {
-            msdDict.Remove(msdKey);
-        }
-        else
-        {
-            msdEntry = new(disabledRules.ToImmutableHashSet(), disabledInputs.ToImmutableHashSet(), disabledQuality);
-            msdDict[msdKey] = msdEntry;
-        }
-        return msdEntry;
-    }
+    internal static bool MachineHasData(Item machine) => machine.modData.ContainsKey($"{ModEntry.ModId}_{PER_MACHINE}");
 
     /// <summary>
     /// Save machine rule for given machine.
     /// </summary>
-    /// <param name="bigCraftableId"></param>
-    /// <param name="disabledRules"></param>
-    /// <param name="disabledInputs"></param>
     internal ModSaveDataEntryMessage? SetMachineRules(
-        string qId,
-        string? location,
+        MsdKey key,
         IEnumerable<RuleIdent> disabledRules,
         IEnumerable<string> disabledInputs,
         bool[] disabledQuality
     )
     {
-        ModSaveDataEntry? msdEntry;
-        if (location == null)
+        var entry = new ModSaveDataEntry(
+            disabledRules.ToImmutableHashSet(),
+            disabledInputs.ToImmutableHashSet(),
+            disabledQuality
+        );
+        if (entry.IsEmpty()) entry = null;
+
+        switch (key.Type)
         {
-            msdEntry = SetMSDEntry(Disabled, qId, disabledRules, disabledInputs, disabledQuality);
+            case PanelLocality.Global:
+                if (entry == null) Disabled.Remove(key.QId!);
+                else Disabled[key.QId!] = entry;
+                return new ModSaveDataEntryMessage(key.QId!, null, entry);
+
+            case PanelLocality.PerLocation:
+                if (!DisabledPerLocation.TryGetValue(key.Location!, out var perLocation))
+                {
+                    perLocation = [];
+                    DisabledPerLocation[key.Location!] = perLocation;
+                }
+                if (entry == null) perLocation.Remove(key.QId!);
+                else perLocation[key.QId!] = entry;
+                return new ModSaveDataEntryMessage(key.QId!, key.Location!, entry);
+
+            case PanelLocality.PerMachine:
+                if (entry == null) key.Machine!.modData.Remove($"{ModEntry.ModId}_{PER_MACHINE}");
+                else key.Machine!.modData[$"{ModEntry.ModId}_{PER_MACHINE}"] = JsonConvert.SerializeObject(entry);
+                return null;
+
+            default:
+                return null;
         }
-        else
-        {
-            if (!DisabledPerLocation.TryGetValue(location, out var perLocation))
-            {
-                perLocation = [];
-                DisabledPerLocation[location] = perLocation;
-            }
-            msdEntry = SetMSDEntry(perLocation, qId, disabledRules, disabledInputs, disabledQuality);
-        }
-        return new ModSaveDataEntryMessage(qId, location, msdEntry);
     }
 
-    internal bool TryGetModSaveDataEntry(string qId, string? location, [NotNullWhen(true)] out ModSaveDataEntry? msd)
+    internal bool TryGetModSaveDataEntry(MsdKey key, [NotNullWhen(true)] out ModSaveDataEntry? entry)
     {
-        msd = null;
-        if (location == null)
+        entry = key.Type switch
         {
-            return Disabled.TryGetValue(qId, out msd);
-        }
-        else
-        {
-            if (DisabledPerLocation.TryGetValue(location, out var perLocation))
-            {
-                return perLocation.TryGetValue(qId, out msd);
-            }
-        }
-        return false;
+            PanelLocality.Global => Disabled.TryGetValue(key.QId!, out var modSaveData) ? modSaveData : null,
+
+            PanelLocality.PerLocation => DisabledPerLocation.TryGetValue(key.Location!, out var perLocation)
+                ? (perLocation.TryGetValue(key.QId!, out var modSaveData) ? modSaveData : null)
+                : null,
+
+            PanelLocality.PerMachine => key.Machine!.modData.TryGetValue(
+                $"{ModEntry.ModId}_{PER_MACHINE}", out string json
+            ) ? JsonConvert.DeserializeObject<ModSaveDataEntry>(json) : null,
+
+            _ => null,
+        };
+
+        if (entry != null && entry.IsEmpty()) entry = null;
+        return entry != null;
     }
 
-    internal bool RuleState(string qId, string? location, RuleIdent ident)
+    internal bool RuleState(MsdKey key, RuleIdent ident)
     {
-        if (TryGetModSaveDataEntry(qId, location, out ModSaveDataEntry? msd))
+        if (TryGetModSaveDataEntry(key, out ModSaveDataEntry? msd))
             return !msd.Rules.Contains(ident);
         return true;
     }
 
-    internal bool InputState(string qId, string? location, string inputId)
+    internal bool InputState(MsdKey key, string inputId)
     {
-        if (TryGetModSaveDataEntry(qId, location, out ModSaveDataEntry? msd))
+        if (TryGetModSaveDataEntry(key, out ModSaveDataEntry? msd))
             return !msd.Inputs.Contains(inputId);
         return true;
     }
 
-    internal bool QualityState(string qId, string? location, int quality)
+    internal bool QualityState(MsdKey key, int quality)
     {
-        if (TryGetModSaveDataEntry(qId, location, out ModSaveDataEntry? msd))
+        if (TryGetModSaveDataEntry(key, out ModSaveDataEntry? msd))
         {
             if (msd.Quality.Length > quality)
                 return !msd.Quality[quality];

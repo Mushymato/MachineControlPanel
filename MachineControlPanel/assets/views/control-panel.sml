@@ -19,10 +19,13 @@
       />
       <label text={:MachineName} tooltip={:MachineTooltip} font="dialogue" color="white" margin="0,24" />
       <lane orientation="horizontal" margin="0,0,24,8" layout="stretch content" vertical-content-alignment="end" horizontal-content-alignment="end">
+        <frame padding="4">
+          <include name="mushymato.MachineControlPanel/views/includes/overlay-toggle" *context={:OverlayToggle}/>
+        </frame>
         <frame *if={:IsMainPlayer} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="60px 60px">
           <checkbox is-checked={<>ToggleAll} tooltip={ToggleAllTooltip} margin="12"/>
         </frame>
-        <include name="mushymato.MachineControlPanel/views/includes/global-toggle" *context={:GlobalToggle}/>
+        <include name="mushymato.MachineControlPanel/views/includes/locality-toggle" *context={:LocalityToggle}/>
         <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="240px 60px" text-color="#43111B" focusable="true"/>
       </lane>
     </lane>
