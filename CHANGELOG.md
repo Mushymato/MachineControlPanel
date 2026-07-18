@@ -8,7 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - New per-machine configuration mode, disable rule/inputs for one machine (by [Esper89](https://github.com/Esper89))
-- 
+- Русский update (by [ellatuk](https://github.com/ellatuk))
+
+### Fixed
+- EMC category item support
+- Fix another NRE in should skip machine output
 
 ## [2.2.0] - 2026-03-26
 
