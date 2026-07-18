@@ -208,8 +208,10 @@ internal static class Quirks
         }
         else
         {
-            foreach (Keys k in e.Held)
+            foreach (SButton btn in e.Held)
             {
+                if (!btn.TryGetKeyboard(out Keys k))
+                    continue;
                 if (Game1.options.doesInputListContain(Game1.options.moveDownButton, k))
                 {
                     panY += panSpeed;

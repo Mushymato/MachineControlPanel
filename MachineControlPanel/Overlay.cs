@@ -1,3 +1,5 @@
+using MachineControlPanel.GUI;
+using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -9,6 +11,19 @@ public sealed class Overlay
 {
     private static readonly Point square = new(Game1.tileSize - 1, Game1.tileSize - 1);
     private readonly int screenId;
+    private IViewDrawable? OverlayInfo
+    {
+        get
+        {
+            if (field == null)
+            {
+                field = MenuHandler.MakeOverlayInfoDrawable();
+                field.Context = new { CountTotal = GetCountTotalString() };
+            }
+            return field;
+        }
+        set => field = value;
+    }
 
     public Overlay(int screenId)
     {
@@ -16,7 +31,16 @@ public sealed class Overlay
         ModEntry.help.Events.Display.RenderedWorld += OnRenderedWorld;
     }
 
-    public bool Enabled { get; set; }
+    public bool Enabled
+    {
+        get => field;
+        set
+        {
+            field = value;
+            if (!field)
+                OverlayInfo = null;
+        }
+    }
 
     public bool CanEnable
     {
@@ -97,6 +121,11 @@ public sealed class Overlay
                     );
                 }
             }
+        }
+
+        if (Game1.activeClickableMenu == null)
+        {
+            OverlayInfo?.Draw(e.SpriteBatch, Vector2.Zero);
         }
     }
 }

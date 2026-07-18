@@ -85,8 +85,7 @@ Only the host player is allowed to change machine rules, but everyone can open t
     * Default: None
 * `Progression Mode`: On the machine select page, hide not yet obtained machines.
 * `Default Page`: Page of control panel to display by default.
-* `Default Is Global`: Page of control panel to display by default.
-* `Per-Machine Control Panel`: Pressing the control panel key will open in per-machine mode by default.
+* `Default Is Global`: Page of control panel to display by default. When this is off, display either the per machine rules or the per location rules.
 * `Config Per Save`: Determines how the save data is retained.
 * `Alt Question Mark`: Use a more visible question mark icon for special outputs (previously the default icon).
 * `Open Machine Select Menu`: Once a save is loaded, this option will display a button that opens the machine select menu, useful in case you are out of keybindings.

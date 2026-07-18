@@ -149,7 +149,6 @@ internal static class MenuHandler
         if (priorMenu != null)
             Game1.nextClickableMenu.Insert(0, priorMenu);
         ModEntry.Overlay.Value.Enabled = true;
-        // Utility.TryOpenShopMenu("QiGemShop", null, true);
         IMenuController overlayMenuCtrl = viewEngine.CreateMenuControllerFromAsset(
             VIEW_ASSET_OVERLAY_INFO,
             new { CountTotal = ModEntry.Overlay.Value.GetCountTotalString() }
@@ -177,5 +176,10 @@ internal static class MenuHandler
         // jank to fix on framework side
         overlayMenuCtrl.Menu.xPositionOnScreen = 0;
         overlayMenuCtrl.Menu.yPositionOnScreen = 0;
+    }
+
+    internal static IViewDrawable MakeOverlayInfoDrawable()
+    {
+        return viewEngine.CreateDrawableFromAsset(VIEW_ASSET_OVERLAY_INFO);
     }
 }
