@@ -73,5 +73,10 @@
   // Overlay
   "overlay.description": "Display which machines in the current location have individual per-machine configs set.",
   "overlay.no-data": "No machines have individual configs.",
-  "overlay.count-total": "{{count}}/{{total}} machines have individual configs"
+  "overlay.count-total": "{{count}}/{{total}} machines have individual configs",
+  // Perfection Handbook
+  "reminder.verb.output": "Produce: {{thing}}",
+  "reminder.verb.input": "Input: {{thing}}",
+  "reminder.verb.fuel": "Fuel: {{thing}}",
+  "reminder.verb.machine": "Machine: {{thing}}"
 }

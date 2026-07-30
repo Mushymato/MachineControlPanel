@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+using MachineControlPanel.Data;
 using MachineControlPanel.GUI.Includes;
 using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
@@ -5,7 +7,9 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Extensions;
+using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
+using StardewValley.TokenizableStrings;
 using xTile;
 
 namespace MachineControlPanel.GUI;
@@ -19,6 +23,9 @@ internal static class MenuHandler
     internal const string VIEW_ASSET_SUBITEM_GRID = $"{VIEW_ASSET_PREFIX}/subitem-grid";
     internal const string VIEW_ASSET_OVERLAY_INFO = $"{VIEW_ASSET_PREFIX}/overlay-info";
     internal static LocalityToggleContext LocalityToggle = new();
+    internal static IPerfectionHandbookAPI? ph = null;
+    internal const string PHKind_ProcessInMachine = "ProcessInMachine";
+    internal const string PHSep = "##";
 
     internal static void Register(IModHelper helper)
     {
@@ -28,6 +35,17 @@ internal static class MenuHandler
 #if DEBUG
         viewEngine.EnableHotReloadingWithSourceSync();
 #endif
+
+        try
+        {
+            // perfection handbook
+            ph = helper.ModRegistry.GetApi<IPerfectionHandbookAPI>("mushymato.PerfectionHandbook");
+            ph?.RegisterReminderKind(PHKind_ProcessInMachine, Process_InMachine);
+        }
+        catch (Exception ex)
+        {
+            ModEntry.Log($"Failed to get 'mushymato.PerfectionHandbook' API:\n{ex}", LogLevel.Warn);
+        }
 
         try
         {
@@ -79,6 +97,96 @@ internal static class MenuHandler
         catch (Exception ex)
         {
             ModEntry.Log($"Failed to get 'aedenthorn.MobilePhone' API:\n{ex}", LogLevel.Warn);
+        }
+    }
+
+    private static bool Process_InMachine(string entryId, [NotNullWhen(true)] out IReminderEntryDisplay? entryDisplay)
+    {
+        entryDisplay = null;
+
+        string[] keyParts = entryId.Split(PHSep);
+        if (keyParts.Length < 4)
+            return false;
+        if (ItemRegistry.GetData(keyParts[0]) is not ParsedItemData machineObjData)
+            return false;
+        if (MachineRuleCache.TryGetRuleDefList(keyParts[0]) is not IReadOnlyList<RuleDef> ruleDefs)
+            return false;
+        RuleIdent ident = new(keyParts[1], keyParts[2]);
+        if (
+            ruleDefs.FirstOrDefault(pair => pair.Ident.OutputId == keyParts[1] && pair.Ident.TriggerId == keyParts[2])
+            is not RuleDef def
+        )
+            return false;
+
+        if (def.Outputs.FirstOrDefault(output => output.Id == keyParts[3]) is not IconOutputDef outputDef)
+            return false;
+
+        if (
+            new RuleIcon(def.Input).ReprItem is not Item inReprItem
+            || ItemRegistry.GetData(inReprItem.QualifiedItemId) is not ParsedItemData inItemData
+        )
+            return false;
+
+        if (
+            new RuleIcon(outputDef).ReprItem is not Item outReprItem
+            || ItemRegistry.GetData(outReprItem.QualifiedItemId) is not ParsedItemData outItemData
+        )
+            return false;
+
+        List<PHReminderEntryDisplay> subItems =
+        [
+            new PHReminderEntryDisplay(
+                I18n.Reminder_Verb_Machine(TokenParser.ParseText(machineObjData.DisplayName)),
+                machineObjData.GetTexture(),
+                machineObjData.GetSourceRect()
+            ),
+            new PHReminderEntryDisplay(
+                I18n.Reminder_Verb_Input(inReprItem.DisplayName),
+                inItemData.GetTexture(),
+                inItemData.GetSourceRect(),
+                def.Input.Count
+            ),
+        ];
+        if (def.SharedFuel != null)
+        {
+            foreach (IconDef fuel in def.SharedFuel)
+            {
+                AddSubReminderEntryDisplay(ref subItems, fuel);
+            }
+        }
+        if (outputDef.EMCFuel != null)
+        {
+            foreach (IconDef fuel in outputDef.EMCFuel)
+            {
+                AddSubReminderEntryDisplay(ref subItems, fuel);
+            }
+        }
+
+        entryDisplay = new PHReminderEntryDisplay(
+            I18n.Reminder_Verb_Output(outReprItem.DisplayName),
+            outItemData.GetTexture(),
+            outItemData.GetSourceRect(),
+            outputDef.Count,
+            SubReminders: subItems
+        );
+        return entryDisplay != null;
+
+        static void AddSubReminderEntryDisplay(ref List<PHReminderEntryDisplay> subItems, IconDef fuel)
+        {
+            if (
+                new RuleIcon(fuel).ReprItem is not Item fuelItem
+                || ItemRegistry.GetData(fuelItem.QualifiedItemId) is not ParsedItemData fuelItemData
+            )
+                return;
+            subItems.Add(
+                new PHReminderEntryDisplay(
+                    I18n.Reminder_Verb_Fuel(fuelItem.DisplayName),
+                    fuelItemData.GetTexture(),
+                    fuelItemData.GetSourceRect(),
+                    fuel.Count
+                )
+            );
+            return;
         }
     }
 
@@ -147,21 +255,24 @@ internal static class MenuHandler
     {
         IClickableMenu priorMenu = Game1.activeClickableMenu;
         if (priorMenu != null)
+        {
+            priorMenu.AddDependency();
             Game1.nextClickableMenu.Insert(0, priorMenu);
+        }
         ModEntry.Overlay.Value.Enabled = true;
         IMenuController overlayMenuCtrl = viewEngine.CreateMenuControllerFromAsset(
             VIEW_ASSET_OVERLAY_INFO,
             new { CountTotal = ModEntry.Overlay.Value.GetCountTotalString() }
         );
+        overlayMenuCtrl.HideHUD = false;
         overlayMenuCtrl.PositionSelector = static () => Point.Zero;
         overlayMenuCtrl.CloseOnOutsideClick = false;
         overlayMenuCtrl.DimmingAmount = 0f;
         overlayMenuCtrl.Closing += () =>
         {
+            priorMenu?.RemoveDependency();
             Game1.viewportFreeze = false;
             ModEntry.Overlay.Value.Enabled = false;
-            // jank to fix on framework side
-            Game1.displayHUD = true;
         };
         if (
             Game1.currentLocation?.map is Map map
@@ -173,9 +284,6 @@ internal static class MenuHandler
         }
         ModEntry.Overlay.Value.Enabled = true;
         Game1.activeClickableMenu = overlayMenuCtrl.Menu;
-        // jank to fix on framework side
-        overlayMenuCtrl.Menu.xPositionOnScreen = 0;
-        overlayMenuCtrl.Menu.yPositionOnScreen = 0;
     }
 
     internal static IViewDrawable MakeOverlayInfoDrawable()

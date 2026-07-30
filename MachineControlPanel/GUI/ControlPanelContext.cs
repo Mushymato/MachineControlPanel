@@ -405,11 +405,36 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
                 break;
         }
     }
+
+    public IReminderEntry? Reminder { get; } =
+        MenuHandler.ph?.GetOrCreateReminder(
+            MenuHandler.PHKind_ProcessInMachine,
+            string.Concat(
+                RIE.Def.QId,
+                MenuHandler.PHSep,
+                RIE.Def.Ident.OutputId,
+                MenuHandler.PHSep,
+                RIE.Def.Ident.TriggerId,
+                MenuHandler.PHSep,
+                IOD.Id ?? string.Empty
+            )
+        );
+
+    public bool TogglePerfectionHandbookReminder()
+    {
+        if (MenuHandler.ph == null || Reminder == null)
+            return false;
+        if (!MenuHandler.ph.RemindersEditModifierKey.IsDown())
+            return false;
+
+        MenuHandler.ph.ToggleReminder(Reminder);
+        return true;
+    }
 }
 
 public sealed partial record ControlPanelContext(
     Item Machine,
-    IReadOnlyList<RuleIdentDefPair> RuleDefs,
+    IReadOnlyList<RuleDef> RuleDefs,
     bool RealMachine = false
 )
 {
@@ -420,7 +445,7 @@ public sealed partial record ControlPanelContext(
 
     internal static ControlPanelContext? TryCreate(Item machine, bool realMachine = false)
     {
-        if (MachineRuleCache.TryGetRuleDefList(machine.QualifiedItemId) is IReadOnlyList<RuleIdentDefPair> ruleDefs)
+        if (MachineRuleCache.TryGetRuleDefList(machine.QualifiedItemId) is IReadOnlyList<RuleDef> ruleDefs)
         {
             ControlPanelContext context = new(machine, ruleDefs, realMachine);
             MenuHandler.LocalityToggle.PropertyChanged += context.RecheckSavedStates;
@@ -525,7 +550,7 @@ public sealed partial record ControlPanelContext(
 
     private readonly Dictionary<RuleIdent, RuleInputEntry> ruleEntries = RuleDefs.ToDictionary(
         kv => kv.Ident,
-        kv => new RuleInputEntry(kv.Def)
+        kv => new RuleInputEntry(kv)
         {
             State = ModEntry.SaveData.RuleState(MenuHandler.LocalityToggle.DataKey(Machine), kv.Ident),
         }
@@ -648,7 +673,7 @@ public sealed partial record ControlPanelContext(
     {
         Dictionary<string, InputIcon> seenItem = [];
         List<InputIcon> inputItems = [];
-        foreach ((RuleIdent ident, RuleDef def) in RuleDefs)
+        foreach (RuleDef def in RuleDefs)
         {
             if (def.Input.Items == null)
                 continue;
@@ -656,11 +681,11 @@ public sealed partial record ControlPanelContext(
             {
                 if (seenItem.TryGetValue(item.QualifiedItemId, out InputIcon? inputIcon))
                 {
-                    inputIcon.OriginRules[ident] = false;
+                    inputIcon.OriginRules[def.Ident] = false;
                     continue;
                 }
                 inputIcon = new(item);
-                inputIcon.OriginRules[ident] = false;
+                inputIcon.OriginRules[def.Ident] = false;
                 inputIcon.State = ModEntry.SaveData.InputState(
                     MenuHandler.LocalityToggle.DataKey(Machine),
                     item.QualifiedItemId

@@ -24,7 +24,8 @@
           <checkbox is-checked={<>ToggleAll} tooltip={ToggleAllTooltip} margin="12"/>
         </frame>
         <include name="mushymato.MachineControlPanel/views/includes/locality-toggle" *context={:LocalityToggle}/>
-        <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="240px 60px" text-color="#43111B" focusable="true"/>
+        <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg}
+          layout="240px 60px" text-color="#43111B" focusable="true"/>
       </lane>
     </lane>
 
@@ -40,6 +41,7 @@
           <panel *repeat={RuleEntriesFilteredPaginated} vertical-content-alignment="end">
             <lane orientation="horizontal" margin="0,0,0,10">
               <lane *repeat={:this}
+                left-click=|TogglePerfectionHandbookReminder()|
                 pointer-enter=|~ControlPanelContext.HandleHoverRuleEntry(RIE)|
                 opacity={Opacity}
                 orientation="vertical" margin="6"

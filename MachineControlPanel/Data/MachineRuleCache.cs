@@ -284,7 +284,8 @@ public sealed record IconOutputDef(
     IReadOnlyList<string>? Notes = null,
     bool CopyQuality = false,
     IReadOnlyList<IconDef>? EMCFuel = null,
-    IReadOnlyList<IconDef>? EMCByproduct = null
+    IReadOnlyList<IconDef>? EMCByproduct = null,
+    string? Id = null
 ) : IconDef(Items, Count, ContextTags, Condition, Notes, false)
 {
     internal static IExtraMachineConfigApi? emc;
@@ -308,7 +309,8 @@ public sealed record IconOutputDef(
                 [defaultItem],
                 defaultItem.Stack,
                 Condition: mio.Condition,
-                Notes: [I18n.RuleList_SameAsInput()]
+                Notes: [I18n.RuleList_SameAsInput()],
+                Id: mio.Id
             );
         }
         else if (ItemQueryCache.ResolveMachineItemOutput(mio) is IReadOnlyList<Item> items && items.Count > 0)
@@ -350,7 +352,8 @@ public sealed record IconOutputDef(
                 Condition: mio.Condition,
                 EMCFuel: emcFuel,
                 EMCByproduct: emcExtraOutputs,
-                CopyQuality: mio.CopyQuality
+                CopyQuality: mio.CopyQuality,
+                Id: mio.Id
             );
         }
         return null;
@@ -397,6 +400,8 @@ public sealed record IconOutputDef(
 /// <param name="EMCFuel"></param>
 /// <param name="EMCExtraOutputs"></param>
 public sealed record RuleDef(
+    string? QId,
+    RuleIdent Ident,
     IconDef Input,
     IReadOnlyList<IconOutputDef> Outputs,
     IReadOnlyList<IconDef>? SharedFuel = null
@@ -414,11 +419,9 @@ public sealed record RuleDef(
 #endif
 };
 
-public sealed record RuleIdentDefPair(RuleIdent Ident, RuleDef Def);
-
 internal static class MachineRuleCache
 {
-    private static readonly Dictionary<string, IReadOnlyList<RuleIdentDefPair>?> machineRuleCache = [];
+    private static readonly Dictionary<string, IReadOnlyList<RuleDef>?> machineRuleCache = [];
     private static Dictionary<string, MachineData>? machines = null;
     internal static Dictionary<string, MachineData> Machines => machines ??= DataLoader.Machines(Game1.content);
 
@@ -464,7 +467,7 @@ internal static class MachineRuleCache
             "export/machine_rule_cache.json",
             machineRuleCache.ToDictionary(
                 (kv) => kv.Key,
-                (kv) => kv.Value?.Select(rule => new ValueTuple<RuleIdent, string>(rule.Ident, rule.Def.ToString()))
+                (kv) => kv.Value?.Select(rule => new ValueTuple<RuleIdent, string>(rule.Ident, rule.ToString()))
             )
         );
 
@@ -484,7 +487,7 @@ internal static class MachineRuleCache
         return false;
     }
 
-    internal static IReadOnlyList<RuleIdentDefPair>? CreateRuleDefList(string qId)
+    internal static IReadOnlyList<RuleDef>? CreateRuleDefList(string qId)
     {
         if (
             !Machines.TryGetValue(qId, out MachineData? data)
@@ -505,7 +508,7 @@ internal static class MachineRuleCache
             }
         }
 
-        List<RuleIdentDefPair> ruleDefList = [];
+        List<RuleDef> ruleDefList = [];
 
         foreach (MachineOutputRule rule in outputRules)
         {
@@ -540,13 +543,13 @@ internal static class MachineRuleCache
                 }
                 if (outputDefs.Count == 0)
                     continue;
-                ruleDefList.Add(new(new(rule.Id, motr.Id), new(inputDef, outputDefs, sharedFuel)));
+                ruleDefList.Add(new(qId, new(rule.Id, motr.Id), inputDef, outputDefs, sharedFuel));
             }
         }
 
         return ruleDefList;
     }
 
-    internal static IReadOnlyList<RuleIdentDefPair>? TryGetRuleDefList(string qId) =>
+    internal static IReadOnlyList<RuleDef>? TryGetRuleDefList(string qId) =>
         machineRuleCache.GetOrCreateValue(qId, CreateRuleDefList);
 }

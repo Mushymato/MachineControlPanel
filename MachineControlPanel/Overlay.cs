@@ -7,7 +7,7 @@ using StardewValley;
 
 namespace MachineControlPanel;
 
-public sealed class Overlay
+public sealed class PerMachineOverlay
 {
     private static readonly Point square = new(Game1.tileSize - 1, Game1.tileSize - 1);
     private readonly int screenId;
@@ -25,7 +25,7 @@ public sealed class Overlay
         set => field = value;
     }
 
-    public Overlay(int screenId)
+    public PerMachineOverlay(int screenId)
     {
         this.screenId = screenId;
         ModEntry.help.Events.Display.RenderedWorld += OnRenderedWorld;

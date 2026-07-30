@@ -1,6 +1,7 @@
 ﻿global using SObject = StardewValley.Object;
 using MachineControlPanel.Data;
 using MachineControlPanel.GUI;
+using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -35,7 +36,7 @@ public sealed class ModEntry : Mod
     public static event EventHandler<string>? SavedMachineRules;
     public static readonly List<IAssetName> itemAssetNames = [];
 
-    internal static readonly PerScreen<Overlay> Overlay = new(() => new(Context.ScreenId));
+    internal static readonly PerScreen<PerMachineOverlay> Overlay = new(() => new(Context.ScreenId));
 
     public override void Entry(IModHelper helper)
     {
@@ -164,7 +165,7 @@ public sealed class ModEntry : Mod
         }
         else if (Config.ToggleMachineOverlayKey.JustPressed())
         {
-            Overlay overlay = Overlay.Value;
+            PerMachineOverlay overlay = Overlay.Value;
             if (overlay.CanEnable)
                 overlay.Enabled = !overlay.Enabled;
             else
