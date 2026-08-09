@@ -52,6 +52,7 @@
                     <image *if={State} sprite={@Mods/StardewUI/Sprites/CheckboxChecked} />
                     <image *!if={State} sprite={@Mods/StardewUI/Sprites/CheckboxUnchecked} />
                   </panel>
+                  <image *if={ReminderIsActive} sprite={@mushymato.PerfectionHandbook/sprites/cursors:blueExclaim} layout="12px 32px" margin="-16,1,0,0" />
                 </panel>
                 <spacer *!if={Active} layout="36px 60px" />
                 <rule-icon *repeat={:Inputs} />

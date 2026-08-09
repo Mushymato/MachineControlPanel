@@ -420,6 +420,9 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
             )
         );
 
+    // need this for weird pintail reasons
+    public bool ReminderIsActive => Reminder?.Active ?? false;
+
     public bool TogglePerfectionHandbookReminder()
     {
         if (MenuHandler.ph == null || Reminder == null)
@@ -428,6 +431,7 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
             return false;
 
         MenuHandler.ph.ToggleReminder(Reminder);
+        PropertyChanged?.Invoke(this, new(nameof(ReminderIsActive)));
         return true;
     }
 }

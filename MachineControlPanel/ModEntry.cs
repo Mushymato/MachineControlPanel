@@ -1,8 +1,6 @@
 ﻿global using SObject = StardewValley.Object;
 using MachineControlPanel.Data;
 using MachineControlPanel.GUI;
-using MachineControlPanel.Integration;
-using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
