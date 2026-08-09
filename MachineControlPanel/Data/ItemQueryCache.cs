@@ -173,40 +173,40 @@ internal static class ItemQueryCache
             )
         )
         {
-            ModEntry.LogOnce($"Error creating '{outputMethod}' (from {machineObj.QualifiedItemId}): {error}");
+            ModEntry.Log(
+                $"Error creating '{outputMethod}' (from {machineObj.QualifiedItemId}): {error}",
+                LogLevel.Warn
+            );
             return null;
         }
-        try
+
+        List<double> elapsed = [];
+
+        int errorLimit = 25;
+        List<Item> validInputs = [];
+        foreach (Item? item in AllItems)
         {
-            createdDelegate(machineObj, firstItem, true, output, Game1.player, out _);
-        }
-        catch (Exception)
-        {
-            ModEntry.LogOnce($"Error running '{outputMethod}' (from {machineObj.QualifiedItemId})");
-            return null;
-        }
-        return AllItems
-            .Where(
-                (item) =>
+            if (item == null)
+                continue;
+            try
+            {
+                if (createdDelegate(machineObj, item, true, output, Game1.player, out _) != null)
+                    validInputs.Add(item);
+            }
+            catch (Exception ex)
+            {
+                ModEntry.Log(
+                    $"Error testing {item.QualifiedItemId} on '{output.OutputMethod}' (from {machineObj.QualifiedItemId})\n{ex}"
+                );
+                errorLimit--;
+                if (errorLimit == 0)
                 {
-                    if (item != null)
-                    {
-                        try
-                        {
-                            if (createdDelegate(machineObj, item, true, output, Game1.player, out _) != null)
-                                return true;
-                        }
-                        catch (Exception)
-                        {
-                            ModEntry.LogOnce(
-                                $"Error testing {item.QualifiedItemId} on '{output.OutputMethod}' (from {machineObj.QualifiedItemId})"
-                            );
-                        }
-                    }
-                    return false;
+                    ModEntry.Log($"Got more than 25 errors on '{output.OutputMethod}', stop probing", LogLevel.Warn);
+                    break;
                 }
-            )
-            .ToList();
+            }
+        }
+        return validInputs;
     }
 
     internal static IReadOnlyList<Item>? TryGetOutputMethodItemList(string qId, MachineItemOutput output)
