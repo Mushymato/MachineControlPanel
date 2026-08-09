@@ -46,6 +46,7 @@
   "rule-list.edited": "=",
   "rule-list.footer-note": "Only the host player can change machine settings.",
   "rule-list.search": "Search...",
+  "rule-list.search-by-item": "Search by Item...",
   "machine-select.scope.everywhere": "Everywhere",
   "machine-select.scope.current-location": "Location",
   "machine-select.scope.machine": "Machine",

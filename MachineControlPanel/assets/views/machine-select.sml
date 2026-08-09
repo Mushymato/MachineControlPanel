@@ -1,13 +1,24 @@
-<lane orientation="vertical" horizontal-content-alignment="middle" >
+<lane orientation="vertical" horizontal-content-alignment="middle">
   <lane orientation="horizontal" vertical-content-alignment="middle">
     <image sprite={@mushymato.MachineControlPanel/sprites/cursors:magifyingGlass} layout="40px 40px" margin="8"/>
     <textinput text={<>SearchText} placeholder={#rule-list.search} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="240px 60px" margin="0,14" text-color="#43111B" focusable="true"/>
+    <textinput text={<>SearchByItemText} placeholder={#rule-list.search-by-item} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="240px 60px" margin="0,14" text-color="#43111B" focusable="true"/>
     <include name="mushymato.MachineControlPanel/views/includes/overlay-toggle" />
+  </lane>
+  <lane *if={HasSearchByItemText} horizontal-content-alignment="middle">
+    <frame *repeat={:SearchByItemCells}
+      background={@mushymato.MachineControlPanel/sprites/cursors:shopBg}
+      background-tint={BackgroundTint}
+      hovered-subject={:ReprItem}
+      left-click=|^DoSearchByItem(this)|
+      focusable="true"
+      padding="8">
+        <image sprite={:Datum} layout="64px 64px" horizontal-alignment="middle"/>
+    </frame>
   </lane>
   <scrollable layout="75%[1152..] 90%[608..]" peeking="128" scrollbar-margin="0,0,0,0">
     <grid item-layout="length: 104+" horizontal-item-alignment="middle">
-      <frame
-        *repeat={MachineCellsFiltered}
+      <frame *repeat={:MachineCellsFiltered}
         background={@mushymato.MachineControlPanel/sprites/cursors:shopBg}
         background-tint={BackgroundTint}
         tooltip={:Tooltip}
@@ -25,8 +36,7 @@
           +hover:scale="1.1"
           +transition:scale="100ms EaseInSine"/>
       </frame>
-      <frame
-        *if={ShowHiddenCount}
+      <frame *if={ShowHiddenCount}
         background={@mushymato.MachineControlPanel/sprites/cursors:shopBg}
         background-tint="#7f7f7f80"
         tooltip={#machine-select.hidden-by-progression-mode}

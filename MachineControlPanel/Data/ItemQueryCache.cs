@@ -52,7 +52,7 @@ internal static class ItemQueryCache
 
     private static IReadOnlyDictionary<string, Item>? allItems = null;
     private static IReadOnlyDictionary<string, Item> AllItemsDict => allItems ??= GetAllItems();
-    private static IReadOnlyList<Item> AllItems => AllItemsDict.Values.ToList();
+    internal static IReadOnlyList<Item> AllItems => AllItemsDict.Values.ToList();
     internal static ItemQueryContext IQContext => new();
 
     internal static Item? GetItem(string qId)

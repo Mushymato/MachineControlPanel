@@ -214,30 +214,21 @@ internal static class MenuHandler
 
     internal static bool ShowControlPanel(Item machine, bool realMachine = false, bool asChildMenu = false)
     {
-        Stopwatch stopwatch = Stopwatch.StartNew();
         LocalityToggle.ControlPanelOpened(realMachine);
-        ModEntry.Log($"ShowControlPanel 1 {stopwatch.Elapsed.TotalMilliseconds}");
-        stopwatch.Restart();
         if (ControlPanelContext.TryCreate(machine, realMachine) is not ControlPanelContext context)
         {
             ModEntry.Log($"No machine rules found for '{machine.DisplayName}'.");
             return false;
         }
-        ModEntry.Log($"ShowControlPanel 2 {stopwatch.Elapsed.TotalMilliseconds}");
-        stopwatch.Restart();
         if (!context.HasInputs)
             context.PageIndex = (int)DefaultPageOption.Rules;
         var menuCtrl = viewEngine.CreateMenuControllerFromAsset(VIEW_ASSET_CONTROL_PANEL, context);
         menuCtrl.EnableCloseButton();
         menuCtrl.Closing += context.Closing;
-        ModEntry.Log($"ShowControlPanel 3 {stopwatch.Elapsed.TotalMilliseconds}");
-        stopwatch.Restart();
         if (asChildMenu && Game1.activeClickableMenu != null)
             Game1.activeClickableMenu.SetChildMenu(menuCtrl.Menu);
         else
             Game1.activeClickableMenu = menuCtrl.Menu;
-        ModEntry.Log($"ShowControlPanel 4 {stopwatch.Elapsed.TotalMilliseconds}");
-        stopwatch.Restart();
         return true;
     }
 

@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PropertyChanged.SourceGenerator;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Extensions;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
 using StardewValley.Objects;
@@ -707,13 +708,9 @@ public sealed partial record ControlPanelContext(
     public bool HasInputs => InputItems.Any();
     private List<InputIcon>? inputItemsFiltered = null;
     public List<InputIcon> InputItemsFiltered =>
-        inputItemsFiltered ??= InputItems
-            .Where(
-                (ipt) =>
-                    string.IsNullOrEmpty(SearchText)
-                    || ipt.InputItem.DisplayName.ToLower().Contains(SearchText.ToLower())
-            )
-            .ToList();
+        inputItemsFiltered ??= string.IsNullOrEmpty(SearchText)
+            ? InputItems
+            : InputItems.Where((ipt) => ipt.InputItem.DisplayName.ContainsIgnoreCase(SearchText)).ToList();
 
     // InputItems Pagination
     [Notify]
