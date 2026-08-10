@@ -208,7 +208,7 @@ internal static class MenuHandler
             ? cursorTile.ToPoint()
             : Game1.player.GetGrabTile().ToPoint();
         SObject? machine = Game1.player.currentLocation.getObjectAtTile(tile.X, tile.Y, ignorePassables: true);
-        if (machine != null && DataLoader.Machines(Game1.content).ContainsKey(machine.QualifiedItemId))
+        if (machine != null && MachineRuleCache.Machines.ContainsKey(machine.QualifiedItemId))
             ShowControlPanel(machine, realMachine: true);
     }
 

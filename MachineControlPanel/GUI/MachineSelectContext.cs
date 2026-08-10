@@ -54,9 +54,40 @@ public sealed partial record SearchByItemCell(string QId, ParsedItemData Datum, 
 /// <summary>Context for machine select</summary>
 public sealed partial class MachineSelectContext
 {
+    private readonly Stopwatch stopwatch = new();
+    private Queue<string>? prefetchQueue;
+
     public MachineSelectContext()
     {
         UpdateMachineCellsFiltered();
+        Prefetch_Init();
+    }
+
+    internal void Prefetch_Init()
+    {
+        if (prefetchQueue != null)
+            return;
+        prefetchQueue = [];
+        foreach (string key in MachineRuleCache.Machines.Keys)
+        {
+            prefetchQueue.Enqueue(key);
+        }
+    }
+
+    public void Update(TimeSpan elapsed)
+    {
+        if (prefetchQueue == null || prefetchQueue.Count == 0)
+            return;
+        if (prefetchQueue.TryDequeue(out string? key))
+        {
+            stopwatch.Restart();
+            MachineRuleCache.TryGetRuleDefList(key);
+            stopwatch.Stop();
+            ModEntry.Log(
+                $"{stopwatch.Elapsed} to prefetch '{key}' rule defs",
+                stopwatch.ElapsedMilliseconds > 1000f / 60 ? LogLevel.Warn : LogLevel.Debug
+            );
+        }
     }
 
     #region machine cells
@@ -97,7 +128,6 @@ public sealed partial class MachineSelectContext
 
     private void UpdateMachineCellsFiltered()
     {
-        Stopwatch stopwatch = Stopwatch.StartNew();
         MachineCellsFiltered.Clear();
         int hidden = 0;
         string searchText = SearchText;
@@ -125,8 +155,6 @@ public sealed partial class MachineSelectContext
             MachineCellsFiltered.Add(cell);
         }
         HiddenByProgressionCount = hidden;
-        stopwatch.Stop();
-        ModEntry.Log($"UpdateMachineCellsFiltered: {stopwatch.Elapsed}", LogLevel.Debug);
     }
 
     internal void UpdateBackgroundTint(object? sender, string e)

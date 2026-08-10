@@ -20,7 +20,7 @@ internal static class ItemQueryCache
     );
     private static readonly Regex ExcludeTags = new("(quality_|preserve_sheet_index_).+");
     private static readonly Dictionary<string, IReadOnlyList<Item>?> conditionItemCache = [];
-    private static readonly Dictionary<ValueTuple<string, string>, IReadOnlyList<Item>?> outputMethodCache = [];
+    private static readonly Dictionary<string, IReadOnlyList<Item>?> outputMethodCache = [];
     private static Dictionary<string, HashSet<string>>? contextTagLookupCache = null;
     private static Dictionary<string, HashSet<string>> ContextTagLookupCache =>
         contextTagLookupCache ??= GetContextTagLookupCache();
@@ -153,18 +153,20 @@ internal static class ItemQueryCache
         return false;
     }
 
-    /// <summary>Do fast lookup of context tags</summary>
+    /// <summary>
+    /// Probe output methods.
+    /// This can be quite slow and possibly inaccurate, it is best effort.
+    /// </summary>
     /// <param name="tags"></param>
     /// <param name="items"></param>
     /// <returns></returns>
     internal static IReadOnlyList<Item>? CreateOutputMethodItemList(
-        ValueTuple<string, string> machineAndMethod,
+        string outputMethod,
+        string machine,
         MachineItemOutput output
     )
     {
-        SObject machineObj = ItemRegistry.Create<SObject>(machineAndMethod.Item1, allowNull: true);
-        string outputMethod = machineAndMethod.Item2;
-        Item firstItem = AllItems[0];
+        SObject machineObj = ItemRegistry.Create<SObject>(machine, allowNull: true);
         if (
             !StaticDelegateBuilder.TryCreateDelegate<MachineOutputDelegate>(
                 outputMethod,
@@ -180,14 +182,27 @@ internal static class ItemQueryCache
             return null;
         }
 
-        List<double> elapsed = [];
+        List<Item> validInputs = [];
+
+        Item firstItem = AllItems[0];
+        try
+        {
+            if (createdDelegate(machineObj, firstItem, true, output, Game1.player, out _) != null)
+                validInputs.Add(firstItem);
+        }
+        catch (Exception ex)
+        {
+            ModEntry.Log(
+                $"Error testing first item {firstItem.QualifiedItemId} on '{output.OutputMethod}' (from {machineObj.QualifiedItemId})\n{ex}"
+            );
+            return null;
+        }
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
 
         int errorLimit = 25;
-        List<Item> validInputs = [];
-        foreach (Item? item in AllItems)
+        foreach (Item item in AllItems.Skip(1))
         {
-            if (item == null)
-                continue;
             try
             {
                 if (createdDelegate(machineObj, item, true, output, Game1.player, out _) != null)
@@ -206,14 +221,17 @@ internal static class ItemQueryCache
                 }
             }
         }
+
+        ModEntry.Log($"CreateOutputMethodItemList({outputMethod}): {stopwatch.Elapsed}");
+
         return validInputs;
     }
 
     internal static IReadOnlyList<Item>? TryGetOutputMethodItemList(string qId, MachineItemOutput output)
     {
         return outputMethodCache.GetOrCreateValue(
-            new ValueTuple<string, string>(qId, output.OutputMethod),
-            (key) => CreateOutputMethodItemList(key, output)
+            output.OutputMethod,
+            (key) => CreateOutputMethodItemList(key, qId, output)
         );
     }
 
