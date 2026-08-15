@@ -54,40 +54,9 @@ public sealed partial record SearchByItemCell(string QId, ParsedItemData Datum, 
 /// <summary>Context for machine select</summary>
 public sealed partial class MachineSelectContext
 {
-    private readonly Stopwatch stopwatch = new();
-    private Queue<string>? prefetchQueue;
-
     public MachineSelectContext()
     {
         UpdateMachineCellsFiltered();
-        Prefetch_Init();
-    }
-
-    internal void Prefetch_Init()
-    {
-        if (prefetchQueue != null)
-            return;
-        prefetchQueue = [];
-        foreach (string key in MachineRuleCache.Machines.Keys)
-        {
-            prefetchQueue.Enqueue(key);
-        }
-    }
-
-    public void Update(TimeSpan elapsed)
-    {
-        if (prefetchQueue == null || prefetchQueue.Count == 0)
-            return;
-        if (prefetchQueue.TryDequeue(out string? key))
-        {
-            stopwatch.Restart();
-            MachineRuleCache.TryGetRuleDefList(key);
-            stopwatch.Stop();
-            ModEntry.Log(
-                $"{stopwatch.Elapsed} to prefetch '{key}' rule defs",
-                stopwatch.ElapsedMilliseconds > 1000f / 60 ? LogLevel.Warn : LogLevel.Debug
-            );
-        }
     }
 
     #region machine cells
@@ -186,6 +155,7 @@ public sealed partial class MachineSelectContext
     [Notify]
     private string searchByItemText = "";
     private SearchByItemCell? selectedSearchByItem = null;
+    private bool hasSearched = false;
 
     public readonly ObservableCollection<SearchByItemCell> SearchByItemCells = [];
     public bool HasSearchByItemText
@@ -199,6 +169,12 @@ public sealed partial class MachineSelectContext
             }
             if (string.IsNullOrEmpty(SearchByItemText))
                 return false;
+            if (!hasSearched)
+            {
+                foreach (string key in MachineRuleCache.Machines.Keys)
+                    MachineRuleCache.TryGetRuleDefList(key);
+                hasSearched = true;
+            }
             List<SearchByItemCell> foundCells = GetSearchByItemOptions(searchByItemText, 8);
             SearchByItemCells.Clear();
             foreach (SearchByItemCell cell in foundCells)

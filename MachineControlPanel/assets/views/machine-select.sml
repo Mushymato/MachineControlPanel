@@ -10,6 +10,7 @@
       background={@mushymato.MachineControlPanel/sprites/cursors:shopBg}
       background-tint={BackgroundTint}
       hovered-subject={:ReprItem}
+      tooltip={:ReprItem}
       left-click=|^DoSearchByItem(this)|
       focusable="true"
       padding="8">
