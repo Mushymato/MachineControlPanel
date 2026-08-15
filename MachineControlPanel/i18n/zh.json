@@ -5,6 +5,8 @@
   "config.control-panel-key.description": "在机器旁边时，按此键打开控制面板",
   "config.machine-select-key.name": "机器选择按键",
   "config.machine-select-key.description": "按此键打开机器选择菜单",
+  "config.toggle-machine-overlay-key.name": "机器覆盖显示按键",
+  "config.toggle-machine-overlay-key.description": "按此键显示哪些机器有单一设置",
   "config.open-machine-select-menu.name": "打开机器选择菜单",
   "config.open-machine-select-menu.description": "（加载存档后可使用）",
   "config.config-per-save.name": "存档独立设置",
@@ -44,8 +46,10 @@
   "rule-list.edited": "*",
   "rule-list.footer-note": "只有房主可以更改机器设置",
   "rule-list.search": "搜索...",
+  "rule-list.search-by-item": "按输入物品搜索...",
   "machine-select.scope.everywhere": "全局",
   "machine-select.scope.current-location": "当前位置",
+  "machine-select.scope.machine": "Machine",
   "machine-select.hidden-by-progression-mode": "未获取的机器因“进度模式”而隐藏，更改此设置即可显示所有机器",
   "skip-reason.rules": "{{Name}}因规则设置而退回",
   "skip-reason.inputs": "{{Name}}因输入设置而退回",
@@ -67,4 +71,13 @@
   // Screen Reader
   "rule-list.s-r.seq": "规则{{idx}}",
   "rule-list.s-r.quality": "品质{{quality}}",
+  // Overlay
+  "overlay.description": "显示当前区域哪些机器有单一设置",
+  "overlay.no-data": "没有任何单一设置的机器",
+  "overlay.count-total": "{{count}}/{{total}}机器有单一设置",
+  // Perfection Handbook
+  "reminder.verb.output": "产出: {{thing}}",
+  "reminder.verb.input": "输入: {{thing}}",
+  "reminder.verb.fuel": "燃料: {{thing}}",
+  "reminder.verb.machine": "机器: {{thing}}"
 }
