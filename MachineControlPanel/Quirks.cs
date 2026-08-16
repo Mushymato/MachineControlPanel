@@ -144,7 +144,7 @@ internal static class Quirks
             Description =
                 "Where did you get this? Put it back where you found it (this is a placeholder item from Machine Control Panel)",
             Type = "Basic",
-            Category = -20,
+            Category = -999,
             SpriteIndex = 923,
             Edibility = 0,
         };
