@@ -145,7 +145,8 @@ internal static class MenuHandler
                 I18n.Reminder_Verb_Input(inReprItem.DisplayName),
                 inItemData.GetTexture(),
                 inItemData.GetSourceRect(),
-                def.Input.Count
+                Count: def.Input.Count,
+                Quality: def.Input.Quality
             ),
         ];
         if (def.SharedFuel != null)
@@ -167,7 +168,8 @@ internal static class MenuHandler
             I18n.Reminder_Verb_Output(outReprItem.DisplayName),
             outItemData.GetTexture(),
             outItemData.GetSourceRect(),
-            outputDef.Count,
+            Count: outputDef.Count,
+            Quality: outputDef.Quality,
             SubReminders: subItems
         );
         return entryDisplay != null;
@@ -184,7 +186,8 @@ internal static class MenuHandler
                     I18n.Reminder_Verb_Fuel(fuelItem.DisplayName),
                     fuelItemData.GetTexture(),
                     fuelItemData.GetSourceRect(),
-                    fuel.Count
+                    fuel.Count,
+                    fuel.Quality
                 )
             );
             return;
