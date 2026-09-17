@@ -4,7 +4,6 @@ using MachineControlPanel.Data;
 using MachineControlPanel.Integration;
 using Microsoft.Xna.Framework;
 using PropertyChanged.SourceGenerator;
-using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.GameData.Machines;

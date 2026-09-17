@@ -25,10 +25,9 @@ public sealed class ModEntry : Mod
     /// </summary>
     private const string SAVEDATA = "save-machine-rules";
 
-    /// <summary>
-    /// Key for a partial message, e.g. only 1 machine's rules/inputs were changed.
-    /// </summary>
-    private const string SAVEDATA_ENTRY = "save-machine-rules-entry";
+    /// <summary>Request host to add a machine rule entry</summary>
+    private const string SAVEDATA_ENTRY_REQUEST = "save-machine-rules-entry";
+
     internal static ModSaveData SaveData { get; private set; } = null!;
     internal static IModHelper help = null!;
     public static event EventHandler<string>? SavedMachineRules;
@@ -103,36 +102,43 @@ public sealed class ModEntry : Mod
     /// <param name="e"></param>
     private void OnModMessageReceived(object? sender, ModMessageReceivedEventArgs e)
     {
-        if (e.FromModID == ModManifest.UniqueID)
+        if (e.FromModID != ModManifest.UniqueID)
+            return;
+
+        Log($"OnModMessageReceived {e.Type}");
+        switch (e.Type)
         {
-            switch (e.Type)
-            {
-                // entire saveData
-                case SAVEDATA:
-                    try
-                    {
-                        SaveData = e.ReadAs<ModSaveData>();
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        Log($"Failed to read save data sent by host.", LogLevel.Warn);
-                        SaveData = new();
-                    }
+            // entire saveData
+            case SAVEDATA:
+                try
+                {
+                    SaveData = e.ReadAs<ModSaveData>();
+                }
+                catch (InvalidOperationException)
+                {
+                    Log($"Failed to read save data sent by host.", LogLevel.Warn);
+                    SaveData = new();
+                }
+                break;
+            // 1 entry in saveData
+            case SAVEDATA_ENTRY_REQUEST:
+                if (SaveData == null)
+                {
+                    Log("Received unexpected partial save data.", LogLevel.Error);
                     break;
-                // 1 entry in saveData
-                case SAVEDATA_ENTRY:
-                    if (SaveData == null)
-                    {
-                        Log("Received unexpected partial save data.", LogLevel.Error);
-                        break;
-                    }
-                    ModSaveDataEntryMessage msdEntryMsg = e.ReadAs<ModSaveDataEntryMessage>();
-                    if (msdEntryMsg.Entry == null)
-                        SaveData.Disabled.Remove(msdEntryMsg.QId);
-                    else
-                        SaveData.Disabled[msdEntryMsg.QId] = msdEntryMsg.Entry;
+                }
+                ModSaveDataEntryMessage message;
+                try
+                {
+                    message = e.ReadAs<ModSaveDataEntryMessage>();
+                }
+                catch (InvalidOperationException)
+                {
+                    Log($"Failed to read save data sent by {e.FromPlayerID}.", LogLevel.Warn);
                     break;
-            }
+                }
+                SetMachineRulesMessage(message);
+                break;
         }
     }
 
@@ -263,7 +269,7 @@ public sealed class ModEntry : Mod
     {
         if (Config.ProgressionMode)
             PlayerProgressionCache.Populate();
-        if (!Game1.IsMasterGame)
+        if (!Context.IsMainPlayer)
             return;
         try
         {
@@ -289,15 +295,30 @@ public sealed class ModEntry : Mod
     /// <param name="e"></param>
     private void OnPeerConnected(object? sender, PeerConnectedEventArgs e)
     {
-        if (!Game1.IsMasterGame)
+        if (!Context.IsMainPlayer)
             return;
-
         Helper.Multiplayer.SendMessage(
             SaveData,
             SAVEDATA,
             modIDs: [ModManifest.UniqueID],
             playerIDs: [e.Peer.PlayerID]
         );
+    }
+
+    private static void SetMachineRulesMessage(ModSaveDataEntryMessage message)
+    {
+        Log($"{Game1.player.UniqueMultiplayerID}: APPLY ({message.QId}, {message.Location})");
+        SaveData.SetMachineRules(man, message);
+        if (Context.IsMainPlayer)
+        {
+            WriteData(SaveData);
+            if (Context.IsMultiplayer)
+            {
+                Log($"{Game1.player.UniqueMultiplayerID}: BROADCAST ({message.QId}, {message.Location})");
+                help.Multiplayer.SendMessage(message, SAVEDATA_ENTRY_REQUEST, modIDs: [ModId]);
+            }
+        }
+        SavedMachineRules?.Invoke(null, message.QId);
     }
 
     /// <summary>
@@ -314,20 +335,23 @@ public sealed class ModEntry : Mod
         bool[] disabledQuality
     )
     {
-        if (!Game1.IsMasterGame)
-            return;
         if (SaveData?.Version == null)
         {
             Log("Attempted to save machine rules without save loaded", LogLevel.Error);
             return;
         }
-        SaveData.Version = man.Version;
-        var message = SaveData.SetMachineRules(key, disabledRules, disabledInputs, disabledQuality);
-        if (message != null)
-            help.Multiplayer.SendMessage(message, SAVEDATA_ENTRY, modIDs: [ModId]);
-        WriteData(SaveData);
-        if (key.QId != null)
-            SavedMachineRules?.Invoke(null, key.QId);
+        ModSaveDataEntryMessage? message = SaveData.PrepareToSetMachineRules(
+            key,
+            disabledRules,
+            disabledInputs,
+            disabledQuality
+        );
+        if (message == null)
+            return;
+        if (Context.IsMainPlayer)
+            SetMachineRulesMessage(message);
+        else
+            help.Multiplayer.SendMessage(message, SAVEDATA_ENTRY_REQUEST, modIDs: [ModId]);
     }
 
     /// <summary>
@@ -337,7 +361,7 @@ public sealed class ModEntry : Mod
     /// <param name="args"></param>
     private void ConsoleResetSaveData(string command, string[] args)
     {
-        if (!Game1.IsMasterGame)
+        if (!Context.IsMainPlayer)
         {
             Log("Only the host player can use this command.", LogLevel.Error);
             return;
@@ -361,7 +385,7 @@ public sealed class ModEntry : Mod
     /// <exception cref="NotImplementedException"></exception>
     private void ConsoleDumpSaveData(string arg1, string[] arg2)
     {
-        if (!Game1.IsMasterGame)
+        if (!Context.IsMainPlayer)
         {
             Log("Only the host player can use this command.", LogLevel.Error);
             return;

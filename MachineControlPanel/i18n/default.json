@@ -21,6 +21,8 @@
   "config.default-page.item-inputs": "Item Inputs",
   "config.progression-mode.name": "Progression Mode",
   "config.progression-mode.description": "On the machine select page, hide not yet obtained machines.",
+  "config.only-host-can-edit.name": "Only Host Can Edit",
+  "config.only-host-can-edit.description": "Restrict ability to edit machine config rules to the farm host.",
   "config.rule-entries-page-size.name": "Rule Entries Page Row",
   "config.rule-entries-page-size.description": "Number of rows in the rule entries tab to display in a single page, lower this number if you experiance lag in the menu.",
   "config.grid-items-page-size.name": "Grid Items Page Size",
@@ -44,9 +46,8 @@
   // this char is appeneded after Rules or Inputs if edits exist for one
   // most languages should use * but in english it looks angry
   "rule-list.edited": "=",
-  "rule-list.footer-note": "Only the host player can change machine settings.",
   "rule-list.search": "Search...",
-  "rule-list.search-by-item": "Search by Input Item...",
+  "rule-list.search-by-item": "Search Input...",
   "machine-select.scope.everywhere": "Everywhere",
   "machine-select.scope.current-location": "Location",
   "machine-select.scope.machine": "Machine",

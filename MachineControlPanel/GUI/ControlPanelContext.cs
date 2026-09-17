@@ -10,6 +10,7 @@ using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
+using StardewValley.Network;
 using StardewValley.Objects;
 
 namespace MachineControlPanel.GUI;
@@ -322,7 +323,6 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
     }
 
     public bool Active => RIE.Active;
-    public bool ActiveAndMainPlayer => RIE.Active && Context.IsMainPlayer;
 
     public float Opacity => State && Active ? 1f : 0.6f;
 
@@ -440,19 +440,20 @@ public sealed record RuleOutputEntry(RuleInputEntry RIE, IconOutputDef IOD) : IN
 public sealed partial record ControlPanelContext(
     Item Machine,
     IReadOnlyList<RuleDef> RuleDefs,
-    bool RealMachine = false
+    bool RealMachine,
+    bool CanEdit,
+    NetMutex? Mutex
 )
 {
-    public bool IsMainPlayer => Context.IsMainPlayer;
     internal const int RULE_ITEM_PER_ROW = 14;
     internal static Color DisabledColor = Color.Black * 0.8f;
     public LocalityToggleContext LocalityToggle => MenuHandler.LocalityToggle;
 
-    internal static ControlPanelContext? TryCreate(Item machine, bool realMachine = false)
+    internal static ControlPanelContext? TryCreate(Item machine, bool realMachine, bool canEdit, NetMutex? mutex)
     {
         if (MachineRuleCache.TryGetRuleDefList(machine.QualifiedItemId) is IReadOnlyList<RuleDef> ruleDefs)
         {
-            ControlPanelContext context = new(machine, ruleDefs, realMachine);
+            ControlPanelContext context = new(machine, ruleDefs, realMachine, canEdit, mutex);
             MenuHandler.LocalityToggle.PropertyChanged += context.RecheckSavedStates;
             context.PropertyChanged += context.ToggleAllInThisPage;
             context.PropertyChanged += context.ResetOnSearchText;
@@ -462,7 +463,7 @@ public sealed partial record ControlPanelContext(
         return null;
     }
 
-    public readonly string MachineName = Context.IsMainPlayer ? Machine.DisplayName : I18n.RuleList_FooterNote();
+    public readonly string MachineName = Machine.DisplayName;
     public readonly ParsedItemData MachineData = ItemRegistry.GetData(Machine.QualifiedItemId);
     public readonly SDUITooltipData MachineTooltip = new(Machine.getDescription(), Machine.DisplayName, Machine);
 
@@ -894,6 +895,7 @@ public sealed partial record ControlPanelContext(
     {
         SaveChanges(MenuHandler.LocalityToggle.DataKey(Machine));
         MenuHandler.LocalityToggle.PropertyChanged -= RecheckSavedStates;
+        Mutex?.ReleaseLock();
     }
 
     #region overlay toggle

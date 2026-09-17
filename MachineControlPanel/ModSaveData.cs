@@ -74,8 +74,8 @@ public readonly struct ModSaveDataKey
     // | PerLocation | string |  string  |  null   |
     // | PerMachine  | string |  string  |  Item   |
 
-    public PanelLocality? Type { get; private init; }
-    public string? QId { get; private init; }
+    public PanelLocality Type { get; private init; }
+    public string QId { get; private init; }
     public string? Location { get; private init; }
     public SObject? Machine { get; private init; }
 }
@@ -201,10 +201,7 @@ public sealed class ModSaveData
 
     internal static bool MachineHasData(Item machine) => machine.modData.ContainsKey($"{ModEntry.ModId}_{PER_MACHINE}");
 
-    /// <summary>
-    /// Save machine rule for given machine.
-    /// </summary>
-    internal ModSaveDataEntryMessage? SetMachineRules(
+    internal ModSaveDataEntryMessage? PrepareToSetMachineRules(
         ModSaveDataKey key,
         IEnumerable<RuleIdent> disabledRules,
         IEnumerable<string> disabledInputs,
@@ -216,39 +213,43 @@ public sealed class ModSaveData
             disabledInputs.ToImmutableHashSet(),
             disabledQuality
         );
-        if (entry.IsEmpty())
-            entry = null;
-
         switch (key.Type)
         {
             case PanelLocality.Global:
-                if (entry == null)
-                    Disabled.Remove(key.QId!);
-                else
-                    Disabled[key.QId!] = entry;
                 return new ModSaveDataEntryMessage(key.QId!, null, entry);
-
             case PanelLocality.PerLocation:
-                if (!DisabledPerLocation.TryGetValue(key.Location!, out var perLocation))
-                {
-                    perLocation = [];
-                    DisabledPerLocation[key.Location!] = perLocation;
-                }
-                if (entry == null)
-                    perLocation.Remove(key.QId!);
-                else
-                    perLocation[key.QId!] = entry;
                 return new ModSaveDataEntryMessage(key.QId!, key.Location!, entry);
-
             case PanelLocality.PerMachine:
                 if (entry == null)
                     key.Machine!.modData.Remove($"{ModEntry.ModId}_{PER_MACHINE}");
                 else
                     key.Machine!.modData[$"{ModEntry.ModId}_{PER_MACHINE}"] = JsonConvert.SerializeObject(entry);
                 return null;
+        }
+        return null;
+    }
 
-            default:
-                return null;
+    internal void SetMachineRules(IManifest man, ModSaveDataEntryMessage message)
+    {
+        Version = man.Version;
+        if (message.Location is string location)
+        {
+            if (!DisabledPerLocation.TryGetValue(location, out var perLocation))
+            {
+                perLocation = [];
+                DisabledPerLocation[location] = perLocation;
+            }
+            if (message.Entry == null)
+                perLocation.Remove(message.QId);
+            else
+                perLocation[message.QId] = message.Entry;
+        }
+        else
+        {
+            if (message.Entry == null)
+                Disabled.Remove(message.QId);
+            else
+                Disabled[message.QId] = message.Entry;
         }
     }
 

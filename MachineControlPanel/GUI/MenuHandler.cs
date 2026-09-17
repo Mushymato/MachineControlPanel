@@ -10,6 +10,7 @@ using StardewValley;
 using StardewValley.Extensions;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
+using StardewValley.Network;
 using StardewValley.TokenizableStrings;
 using xTile;
 
@@ -217,8 +218,40 @@ internal static class MenuHandler
 
     internal static bool ShowControlPanel(Item machine, bool realMachine = false, bool asChildMenu = false)
     {
+        if (Context.IsMultiplayer)
+        {
+            if (ModEntry.Config.OnlyHostCanEdit)
+            {
+                return ShowControlPanelImpl(machine, realMachine, asChildMenu, canEdit: Context.IsMainPlayer);
+            }
+            NetMutex mutex = Game1.player.team.GetOrCreateGlobalInventoryMutex(
+                $"{ModEntry.ModId}/editmutex/{machine.QualifiedItemId}"
+            );
+            if (mutex.IsLocked())
+                return ShowControlPanelImpl(machine, realMachine, asChildMenu, false);
+            bool result = false;
+            mutex.RequestLock(() =>
+            {
+                result = ShowControlPanelImpl(machine, realMachine, asChildMenu, mutex: mutex);
+            });
+            return result;
+        }
+        else
+        {
+            return ShowControlPanelImpl(machine, realMachine, asChildMenu);
+        }
+    }
+
+    internal static bool ShowControlPanelImpl(
+        Item machine,
+        bool realMachine,
+        bool asChildMenu,
+        bool canEdit = true,
+        NetMutex? mutex = null
+    )
+    {
         LocalityToggle.ControlPanelOpened(realMachine);
-        if (ControlPanelContext.TryCreate(machine, realMachine) is not ControlPanelContext context)
+        if (ControlPanelContext.TryCreate(machine, realMachine, canEdit, mutex) is not ControlPanelContext context)
         {
             ModEntry.Log($"No machine rules found for '{machine.DisplayName}'.");
             return false;

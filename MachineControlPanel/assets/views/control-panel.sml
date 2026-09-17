@@ -20,7 +20,7 @@
       <label text={:MachineName} tooltip={:MachineTooltip} font="dialogue" color="white" margin="0,24" />
       <lane orientation="horizontal" margin="0,0,24,8" layout="stretch content" vertical-content-alignment="end" horizontal-content-alignment="end">
         <include name="mushymato.MachineControlPanel/views/includes/overlay-toggle" />
-        <frame *if={:IsMainPlayer} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="60px 60px">
+        <frame *if={:CanEdit} background={@mushymato.MachineControlPanel/sprites/cursors:insetBg} layout="60px 60px">
           <checkbox is-checked={<>ToggleAll} tooltip={ToggleAllTooltip} margin="12"/>
         </frame>
         <include name="mushymato.MachineControlPanel/views/includes/locality-toggle" *context={:LocalityToggle}/>
@@ -47,8 +47,8 @@
                 orientation="vertical" margin="6"
                 horizontal-content-alignment="middle">
                 <panel *if={Active} margin="0,12">
-                  <checkbox *if={:~ControlPanelContext.IsMainPlayer} is-checked={<>State} screen-read="Rule Checkbox" />
-                  <panel *!if={:~ControlPanelContext.IsMainPlayer} opacity="0.5">
+                  <checkbox *if={:~ControlPanelContext.CanEdit} is-checked={<>State} screen-read="Rule Checkbox" />
+                  <panel *!if={:~ControlPanelContext.CanEdit} opacity="0.5">
                     <image *if={State} sprite={@Mods/StardewUI/Sprites/CheckboxChecked} />
                     <image *!if={State} sprite={@Mods/StardewUI/Sprites/CheckboxUnchecked} />
                   </panel>
@@ -90,7 +90,7 @@
       <image sprite={@Mods/StardewUI/Sprites/ThinHorizontalDivider} layout="1236px content" margin="0,0,8,0" fit="Stretch"/>
       <scrollable peeking="128" scrollbar-margin="8,0,0,0" progress={<>ScrollableProgress}>
         <grid *case="2" item-layout="length: 76+" horizontal-item-alignment="middle">
-          <panel *if={:~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFilteredPaginated}
+          <panel *if={:~ControlPanelContext.CanEdit} *repeat={InputItemsFilteredPaginated}
             tooltip={:Tooltip}
             left-click=|ToggleState()|
             hovered-subject={:InputItem}
@@ -101,7 +101,7 @@
               +hover:scale="1.1"
               +transition:scale="100ms EaseInSine"/>
           </panel>
-          <panel *!if={:~ControlPanelContext.IsMainPlayer} *repeat={InputItemsFilteredPaginated}
+          <panel *!if={:~ControlPanelContext.CanEdit} *repeat={InputItemsFilteredPaginated}
             tooltip={:Tooltip}
             hovered-subject={:InputItem}
             focusable="true">

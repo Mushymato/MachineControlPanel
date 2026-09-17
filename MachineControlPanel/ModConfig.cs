@@ -96,7 +96,10 @@ internal sealed class ModConfig
     public bool AltQuestionMark { get; set; } = false;
 
     /// <summary>Use per save config data, if this is off, the configs comes from global data instead</summary>
-    public bool ConfigPerSave { get; set; } = true;
+    public bool ConfigPerSave { get; set; } = false;
+
+    /// <summary>Only the host player can edit rules</summary>
+    public bool OnlyHostCanEdit { get; set; } = false;
 
     /// <summary>Maximum number of rows to display on rule entries page, lower this if you have performance issues</summary>
     public int RuleEntriesPageSize { get; set; } = 8;
@@ -113,7 +116,8 @@ internal sealed class ModConfig
         DefaultIsGlobal = true;
         ProgressionMode = true;
         AltQuestionMark = false;
-        ConfigPerSave = true;
+        ConfigPerSave = false;
+        OnlyHostCanEdit = false;
         RuleEntriesPageSize = 8;
         GridItemsPageSize = 1024;
     }
@@ -217,6 +221,13 @@ internal sealed class ModConfig
             setValue: (value) => DefaultIsGlobal = value,
             name: I18n.Config_DefaultIsGlobal_Name,
             tooltip: I18n.Config_DefaultIsGlobal_Description
+        );
+        GMCM.AddBoolOption(
+            mod,
+            getValue: () => OnlyHostCanEdit,
+            setValue: (value) => OnlyHostCanEdit = value,
+            name: I18n.Config_OnlyHostCanEdit_Name,
+            tooltip: I18n.Config_OnlyHostCanEdit_Description
         );
         GMCM.AddTextOption(
             mod,
